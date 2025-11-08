@@ -1,13 +1,16 @@
 package com.ffive.pos_system.service;
 
-import com.ffive.pos_system.model.Product;
-import com.ffive.pos_system.repository.ProductRepository;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+import com.ffive.pos_system.model.Product;
+import com.ffive.pos_system.repository.ProductRepository;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class ProductService {
 
     private final ProductRepository repo;
@@ -16,9 +19,10 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public Product createProduct(String name, BigDecimal price) {
-        Product entity = new Product(name, price);
-        return repo.save(entity);
+    public Product createProduct(Product product) {
+        log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
+        // TODO: Add validations :)
+        return repo.save(product);
     }
 
     public List<Product> getAllProducts() {
