@@ -11,3 +11,15 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.xml
     default-schema: pos
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger
+    operationsSorter: method
+    tagsSorter: alpha
+  info:
+    title: POS System API
+    description: API documentation for the POS system
+    version: 1.0.0

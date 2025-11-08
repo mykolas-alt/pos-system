@@ -1,32 +1,35 @@
 package com.ffive.pos_system.controller;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.service.ProductService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
+@RequestMapping("/product")
+@Tag(name = "Product", description = "Product management endpoints")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    @GetMapping("/create-product")
-    public String createProduct() {
-        long randomPrice = 5 + (long) (Math.random() * 11);
-        productService.createProduct("Sample Product", BigDecimal.valueOf(randomPrice)).toString();
+    @PostMapping
+    public String createProduct(String name, BigDecimal price) {
+        productService.createProduct(name, price).toString();
         return "Product created";
     }
 
-    @GetMapping("/get-products")
-    public String getProducts() {
-        return "<ul>" +
-                productService.getAllProducts().stream()
-                        .map(product -> "<li>" + String.valueOf(product) + "</li>")
-                        .reduce("", (a, b) -> a + b)
-                + "</ul>";
+    @GetMapping
+    public List<Product> getProducts() {
+        return productService.getAllProducts();
     }
 }
