@@ -14,8 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,12 +25,9 @@ import lombok.Setter;
 @Audited
 public class Business {
 
-    @Id
     @GeneratedValue
     @Schema(hidden = true)
     private UUID id;
-
-    @OneToOne
     @JoinColumn(name = "owner_id")
     @Schema(hidden = true)
     private Employee owner;

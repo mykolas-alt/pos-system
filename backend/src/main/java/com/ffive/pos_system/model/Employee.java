@@ -2,8 +2,6 @@ package com.ffive.pos_system.model;
 
 import java.util.UUID;
 
-import org.hibernate.envers.Audited;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +19,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@Audited
 @AllArgsConstructor
 public class Employee {
 
@@ -39,6 +37,10 @@ public class Employee {
 
     @Column(nullable = false)
     private String email;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private POSUser userAccount;
 
     @ManyToOne
     @JoinColumn(name = "manager_id")

@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.repository.EmployeeRepository;
@@ -33,14 +32,10 @@ public class EmployeeConverter {
         return employee;
     }
 
-    public Employee fromBusinessCreationRequest(BusinessCreationRequest creationRequest) {
-        if (creationRequest == null) {
-            return null;
-        }
-
-        return Employee.builder()
-                .name(creationRequest.getOwnerName())
-                .email(creationRequest.getOwnerEmail())
+    private POSUser toUserAccount(EmployeeCreationRequest creationRequest) {
+        return POSUser.builder()
+                .username(creationRequest.getEmail())
+                .password(creationRequest.getPassword())
                 .build();
     }
 }
