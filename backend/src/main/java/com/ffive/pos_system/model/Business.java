@@ -1,49 +1,48 @@
 package com.ffive.pos_system.model;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
-public class Product {
+public class Business {
 
     @Id
     @GeneratedValue
     @Schema(hidden = true)
     private UUID id;
 
+    @OneToOne
+    @JoinColumn(name = "owner_id")
     @Schema(hidden = true)
-    @ManyToOne
-    @JoinColumn(name = "business_id", nullable = false)
-    private Business business;
+    private Employee owner;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
-    private BigDecimal price;
+    private String address;
 
-    public Product(String name, BigDecimal price) {
-        this.name = name;
-        this.price = price;
-    }
+    @Column(name = "contact_info", nullable = false)
+    private String contactInfo;
 
-    public Product() {
-    }
+    @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Schema(hidden = true)
+    private List<Employee> employees;
 
-    @Override
-    public String toString() {
-        return name + " ($" + price + ")";
+    public Business() {
     }
 }

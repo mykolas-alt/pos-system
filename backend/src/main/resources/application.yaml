@@ -12,6 +12,11 @@ spring:
     change-log: classpath:/db/changelog/db.changelog-master.xml
     default-schema: pos
 
+server:
+  error:
+    include-message: always
+    include-binding-errors: never
+    include-stacktrace: never
 springdoc:
   api-docs:
     path: /api-docs
@@ -23,3 +28,21 @@ springdoc:
     title: POS System API
     description: API documentation for the POS system
     version: 1.0.0
+
+auth:
+  # "/auth/**,/swagger,/swagger/**,/swagger-ui,/swagger-ui/**,/v3/api-docs,/v3/api-docs/**"
+  unsecured-endpoints:
+    - "/auth/**"
+    - "/swagger"
+    - "/swagger/**"
+    - "/api-docs"
+    - "/api-docs.yaml"
+    - "/api-docs/**"
+    - "/swagger-ui.html"
+    - "/swagger-ui/**"
+    - "/v3/api-docs"
+    - "/v3/api-docs/**"
+    - "/v3/api-docs.yaml"
+jwt:
+  secret: ${JWT_SECRET:super-long-random-secret-key-which-is-secure-and-32+chars!}
+  expiration-ms: 86400000

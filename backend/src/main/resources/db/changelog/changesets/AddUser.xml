@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addPOSUserTable" author="mykolas">
+        <createTable tableName="posuser">
+
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="username_not_null" />
+            </column>
+
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="password_hash_not_null" />
+            </column>
+
+        </createTable>
+
+        <addColumn tableName="employee">
+            <column name="user_id" type="UUID">
+                <constraints
+                    nullable="false"
+                    notNullConstraintName="user_id_not_null"
+                    foreignKeyName="fk_employee_user"
+                    referencedTableName="posuser"
+                    referencedColumnNames="id" />
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

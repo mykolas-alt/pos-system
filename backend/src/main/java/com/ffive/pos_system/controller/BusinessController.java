@@ -8,28 +8,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ffive.pos_system.model.Product;
-import com.ffive.pos_system.service.ProductService;
+import com.ffive.pos_system.model.Business;
+import com.ffive.pos_system.service.BusinessService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/product")
-@Tag(name = "Product", description = "Product management endpoints")
+@RequestMapping("/business")
+@Tag(name = "Business", description = "Business management endpoints")
 @RequiredArgsConstructor
-public class ProductController {
+public class BusinessController {
 
-    private final ProductService productService;
+    private final BusinessService businessService;
 
     @PostMapping
-    public String createProduct(@RequestBody Product product) {
-        productService.createProduct(product);
-        return "Product created";
+    public String createBusiness(@RequestBody Business business) {
+        businessService.createBusiness(business);
+        return "Business created";
     }
 
     @GetMapping
-    public List<Product> getProducts() {
-        return productService.getAllProducts();
+    public List<Business> getBusinesss() {
+        return businessService.getAllBusinesses();
     }
 }
