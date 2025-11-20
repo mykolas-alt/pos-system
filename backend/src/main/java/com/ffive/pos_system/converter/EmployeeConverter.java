@@ -2,9 +2,9 @@ package com.ffive.pos_system.converter;
 
 import org.springframework.stereotype.Component;
 
-import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.model.Employee;
+import com.ffive.pos_system.model.POSUser;
 import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.repository.EmployeeRepository;
 
@@ -27,6 +27,7 @@ public class EmployeeConverter {
         Employee employee = Employee.builder()
                 .name(creationRequest.getName())
                 .email(creationRequest.getEmail())
+                .userAccount(toUserAccount(creationRequest))
                 .manager(employeeRepository
                         .findById(creationRequest.getManagerId())
                         .orElse(null))
@@ -38,14 +39,10 @@ public class EmployeeConverter {
         return employee;
     }
 
-    public Employee fromBusinessCreationRequest(BusinessCreationRequest creationRequest) {
-        if (creationRequest == null) {
-            return null;
-        }
-
-        return Employee.builder()
-                .name(creationRequest.getOwnerName())
-                .email(creationRequest.getOwnerEmail())
+    private POSUser toUserAccount(EmployeeCreationRequest creationRequest) {
+        return POSUser.builder()
+                .username(creationRequest.getEmail())
+                .password(creationRequest.getPassword())
                 .build();
     }
 }

@@ -14,11 +14,20 @@ public class EmployeeHandler {
 
     private final PasswordEncoder passwordEncoder;
 
+    public Employee handleNewEmployee(Employee employee) {
+        // TODO: add validation no business assigned
+
+        POSUser userAccount = employee.getUserAccount();
+        userAccount.setPasswordHash(passwordEncoder.encode(userAccount.getPassword()));
+
+        return employee;
+    }
+
     public Employee handleNewEmployeeForBusiness(Employee employee) {
         // TODO: add validation
 
-        // POSUser userAccount = employee.getUserAccount();
-        // userAccount.setPasswordHash(passwordEncoder.encode(userAccount.getPassword()));
+        POSUser userAccount = employee.getUserAccount();
+        userAccount.setPasswordHash(passwordEncoder.encode(userAccount.getPassword()));
 
         return employee;
     }
