@@ -1,28 +1,38 @@
 # PoS system for Software design course
-
-## Prerequisites
-
+## Requirements
 - Java 21+
 - PostgreSQL 15+ (Either installed locally or via Docker)
+- Node.js
 
-## Starting the Application
+## Building and launching
+### Repository Location
+There is two ways to download repository that application would run properly.
 
-Start a postgres instance.
+**First method (Linux & Windows):**
+Clone repository to Linux environment. There will be made all work.
+- **Windows:** Use **WSL** and place repository inside it. If you place repo in windows environment using **WSL** then it won't work.
+- **Linux:** Place repo anywhere.
 
-### If using the provided script
+**Secont method (Windows only):**
+For this method you need to use both Windows and WSL. In both WSL and Windows make clone of repo, but on **WSL** repo is needed only to launch PostgreSQL database.
 
-The script "run-postgres.sh" can be used to start a postgres instance
-using Docker.
+### PostgreSQL Database
+To create and launch database could be used **provided script "run-postgres.sh"** inside **/backend** folder and **Docker**.
 
-Before using the script create a .env file (can be copied from .env.sample)
-to configure the database connection.  By running ./run-postgres.sh --startdb
-a docker instance with postgres will be started.  ./run-postgres.sh --stopdb
-will stop the instance.
+**Before** using the script create **.env** file to configure the database connection. **Sample** file **".env.sample"** could be found in **/backend** folder.
 
-### Building and Running
+**How to use script:**
+- **Command "./run-postgres.sh --startdb"** will start **Docker instance** with **PostgreSQL**.
+- **Command "./run-postgres.sh --stopdb"** will stop **Docker instance**.
 
-In a linux environment, the application can be built and started by running
-./mvnw spring-boot:run in the project root directory.
+### Java Backend
+To **build and launch** backend go to **/backend** folder and use command.
 
-If starting the application in a Windows environment, use mvnw.cmd instead
-of ./mvnw.
+**Depending** on the environment that is used command will have slight changes:
+- **Windows:** ./mvnw.cmd spring-boot:run
+- **Linux:** ./mvnw spring-boot:run
+
+To **stop** backend use key combination **CTRL + C**
+
+### React Frontend
+To **build and launch** frontend go to **/frontend** folder and use command "npm run dev". To **stop** frontend use key combination **CTRL + C**

@@ -31,4 +31,4 @@ jobs:
             cache: maven
 
         - name: Run tests
-          run: ./mvnw -B verify -Dspring.profiles.active=test
+          run: ./backend/mvnw -B verify -Dspring.profiles.active=test
