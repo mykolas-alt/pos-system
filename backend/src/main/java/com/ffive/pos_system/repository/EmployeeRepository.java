@@ -23,4 +23,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
             WHERE e.business.id = :businessId
             """)
     List<Employee> findAllByBusiness(@Param("businessId") UUID businessId);
+
+    @Query("""
+            SELECT e FROM Employee e
+            WHERE e.userAccount.id = :userId
+            """)
+    Optional<Employee> findByUserId(@Param("userId") UUID userId);
 }

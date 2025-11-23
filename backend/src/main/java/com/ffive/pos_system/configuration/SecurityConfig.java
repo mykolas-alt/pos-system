@@ -25,8 +25,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        System.out.println(">>>> DEBUG: endpoints = " + authProperties.getUnsecuredEndpoints());
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(authProperties.getUnsecuredEndpoints().toArray(String[]::new)).permitAll()
