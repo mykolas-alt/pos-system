@@ -1,0 +1,59 @@
+#main_navbar{
+    background-color:var(--secondary-background-color);
+    border-bottom:4px solid var(--detail-color);
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    display:flex;
+    flex-direction:row;
+    justify-content:flex-start;
+    align-items: center;
+    width:100%;
+    padding:1rem;
+    box-sizing:border-box;
+    overflow:hidden;
+}
+
+#theme_icon{
+    width:2.5rem;
+    height:2.5rem;
+    margin-right:1rem;
+}
+
+.nav_button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-color);
+  background-color:var(--secondary-background-color);
+  border:2px solid var(--detail-color);
+  border-radius:8px;
+  box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  cursor:pointer;
+  padding:15px 16px;
+  text-decoration:none;
+  font-size:1.2rem;
+  font-weight:bold;
+  margin:0.2rem 0.5rem;
+  height:3rem;
+  transition:background-color 0.3s ease,transform 0.3s ease;
+}
+
+  .nav_button:hover{
+    background-color:var(--secondary-background-color-hover);
+    transform:scale(1.05);
+  }
+
+.logo_icon{
+    margin-top:-0.3rem;
+    margin-left:2rem;
+    margin-right:auto;
+}
+
+.theme_button{
+    margin-left: auto;
+    margin-right: 0rem;
+}
+
+.account_button{
+    margin-left: 1rem;
+    margin-right: 2rem;
+}
