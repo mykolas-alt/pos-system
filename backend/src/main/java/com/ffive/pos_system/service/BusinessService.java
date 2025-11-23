@@ -10,8 +10,13 @@ import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.security.POSUserDetails;
+<<<<<<< HEAD
 import com.ffive.pos_system.service.validation.ValidationException;
 
+=======
+
+import jakarta.validation.ValidationException;
+>>>>>>> ce953e9 (added executing user injection)
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,5 +52,12 @@ public class BusinessService {
         // TODO: add validator
 
         return businessRepository.save(business);
+<<<<<<< HEAD
+=======
+    }
+
+    public List<Business> getAllBusinesses() {
+        return businessRepository.findAll();
+>>>>>>> ce953e9 (added executing user injection)
     }
 }
