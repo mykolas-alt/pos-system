@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.handler.NewBusinessHandler;
+import com.ffive.pos_system.dto.BusinessCreationRequest;
+import com.ffive.pos_system.handler.NewBusinessHandler;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.repository.EmployeeRepository;
@@ -14,6 +16,7 @@ import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
 
 =======
+import com.ffive.pos_system.service.validation.ValidationException;
 
 import jakarta.validation.ValidationException;
 >>>>>>> ce953e9 (added executing user injection)
@@ -52,12 +55,5 @@ public class BusinessService {
         // TODO: add validator
 
         return businessRepository.save(business);
-<<<<<<< HEAD
-=======
-    }
-
-    public List<Business> getAllBusinesses() {
-        return businessRepository.findAll();
->>>>>>> ce953e9 (added executing user injection)
     }
 }

@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.ffive.pos_system.model.POSUser;
-import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.UserRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 
@@ -17,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 public class POSUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final EmployeeRepository employeeRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
