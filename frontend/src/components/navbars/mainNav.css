@@ -57,3 +57,12 @@
     margin-left: 1rem;
     margin-right: 2rem;
 }
+
+#account_menu{
+  background-color:var(--tertiary-background-color);
+  position:absolute;
+  top:5rem;
+  right: 2rem;
+  width:14rem;
+  z-index:120;
+}

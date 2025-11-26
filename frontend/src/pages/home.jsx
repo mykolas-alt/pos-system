@@ -1,10 +1,11 @@
 import React from "react"
 import "./home.css"
 
-export const Home=() => {
+export const Home=({user}) => {
     return(
         <div>
-            Home
+            <h1>Welcome, {user.username}!</h1>
+            <p>Your email: {user.email}</p>
         </div>
     )
 }
