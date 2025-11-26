@@ -3,6 +3,8 @@ package com.ffive.pos_system.model;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,6 +24,7 @@ import lombok.Setter;
 @Setter
 @Builder
 @AllArgsConstructor
+@Audited
 public class Business {
 
     @Id

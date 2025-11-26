@@ -7,7 +7,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,12 +29,13 @@ public class POSUser {
     @Column(nullable = false)
     private String username;
 
-    @Transient
-    private String password;
-
     @Column(nullable = false)
     @Schema(hidden = true)
     private String passwordHash;
+
+    @OneToOne
+    @JoinColumn(name = "employee_id")
+    private Employee employee;
 
     public POSUser() {
     }

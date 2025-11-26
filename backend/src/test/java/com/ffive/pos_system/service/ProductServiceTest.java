@@ -33,18 +33,19 @@ public class ProductServiceTest {
     @Mock
     private POSUserDetails posUserDetails;
 
+    // TODO: fix test
     @Test
     void testCreateProduct() {
         Product product = new Product("Test Product", BigDecimal.TEN);
         UUID randomUUID = UUID.randomUUID();
-        when(posUserDetails.getEmployeeId()).thenReturn(randomUUID);
+        // when(posUserDetails.getEmployeeId()).thenReturn(randomUUID);
         when(employeeRepository.findById(randomUUID))
                 .thenReturn(Optional.of(Employee.builder()
                         .business(Business.builder().build())
                         .build()));
 
         POSUserDetails userDetails = POSUserDetails.builder()
-                .employeeId(randomUUID)
+                // .employeeId(randomUUID)
                 .build();
         productService.createProduct(product, userDetails);
 

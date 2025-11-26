@@ -19,17 +19,15 @@
                 <constraints nullable="false" notNullConstraintName="password_hash_not_null" />
             </column>
 
-        </createTable>
-
-        <addColumn tableName="employee">
-            <column name="user_id" type="UUID">
+            <column name="employee_id" type="UUID">
                 <constraints
-                    nullable="false"
-                    notNullConstraintName="user_id_not_null"
-                    foreignKeyName="fk_employee_user"
-                    referencedTableName="posuser"
+                    nullable="true"
+                    notNullConstraintName="employee_id_not_null"
+                    foreignKeyName="fk_user_employee"
+                    referencedTableName="employee"
                     referencedColumnNames="id" />
             </column>
-        </addColumn>
+        </createTable>
+
     </changeSet>
 </databaseChangeLog>

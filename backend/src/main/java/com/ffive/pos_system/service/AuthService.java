@@ -5,7 +5,8 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.ffive.pos_system.dto.EmployeeCreationRequest;
+import com.ffive.pos_system.dto.UserCreationRequest;
+import com.ffive.pos_system.model.POSUser;
 import com.ffive.pos_system.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final EmployeeService employeeService;
+    private final UserService userService;
 
-    public Optional<String> registerEmployee(EmployeeCreationRequest request) {
+    public Optional<String> registerUser(UserCreationRequest request) {
         log.info("Registering new employee with username: {}", request);
-        return Optional.ofNullable(employeeService.createEmployee(request))
-                .map(employee -> employee.getUserAccount().getUsername())
+        return Optional.ofNullable(userService.createUser(request))
+                .map(POSUser::getUsername)
                 .map(jwtService::generateToken);
     }
 

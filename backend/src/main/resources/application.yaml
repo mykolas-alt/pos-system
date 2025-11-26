@@ -4,6 +4,8 @@ spring:
     username: ${DB_USER:arturas}
     password: ${DB_PASSWORD:pos_user}
   jpa:
+    hibernate:
+      ddl-auto: none
     properties:
       hibernate.default_schema: pos
   application:

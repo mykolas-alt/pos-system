@@ -3,6 +3,8 @@ package com.ffive.pos_system.model;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.hibernate.envers.Audited;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,6 +18,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Audited
 public class Product {
 
     @Id

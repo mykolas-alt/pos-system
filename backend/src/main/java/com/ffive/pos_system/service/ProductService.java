@@ -6,11 +6,13 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ProductRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ProductCreateValidator;
+import com.ffive.pos_system.util.EmployeeHelper;
 
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
@@ -27,17 +29,23 @@ public class ProductService {
 
     public Product createProduct(Product product, POSUserDetails userDetails) {
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
+        Employee employee = EmployeeHelper.resolveEmployeeFromUserDetails(userDetails);
         productCreateValidator.validate(product);
 
         // TODO: handler
-        product.setBusiness(employeeRepository.findById(userDetails.getEmployeeId()).orElseThrow().getBusiness());
+        product.setBusiness(employee.getBusiness());
         return productRepository.save(product);
     }
 
-    public Product modifyProduct(Product product) {
-        if (product.getId() == null || !productRepository.existsById(product.getId())) {
+    public Product modifyProduct(Product product, POSUserDetails userDetails) {
+        if (product.getId() == null) {
             throw new ValidationException(MODIFYING_NON_EXISTENT_ENTITY);
         }
+
+        // very temporary solution to retain business association
+        productRepository.findById(product.getId())
+                .ifPresent(oldProduct -> product.setBusiness(oldProduct.getBusiness()));
+
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
         productCreateValidator.validate(product);
 

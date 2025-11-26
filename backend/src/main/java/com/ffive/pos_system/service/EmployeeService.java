@@ -12,7 +12,6 @@ import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,30 +25,14 @@ public class EmployeeService {
     private final EmployeeHandler employeeHandler;
     private final EmployeeConverter employeeConverter;
 
-    public Employee createEmployee(EmployeeCreationRequest creationRequest) {
-        return Optional.ofNullable(creationRequest)
-                .map(employeeConverter::fromCreationRequest)
-                .map(employeeHandler::handleNewEmployee)
-                .map(this::createEmployee)
-                .orElse(null);
-    }
-
     public Employee createEmployeeForBusiness(EmployeeCreationRequest creationRequest) {
         return Optional.ofNullable(creationRequest)
                 .map(employeeConverter::fromCreationRequest)
                 .map(employeeHandler::handleNewEmployeeForBusiness)
-                .map(this::createEmployee)
                 .orElse(null);
     }
 
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
-    }
-
-    @Transactional
-    private Employee createEmployee(Employee employee) {
-        var user = userRepository.save(employee.getUserAccount());
-        employee.setUserAccount(user);
-        return employeeRepository.save(employee);
     }
 }
