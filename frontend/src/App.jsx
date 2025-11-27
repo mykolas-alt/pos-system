@@ -1,13 +1,16 @@
-import {BrowserRouter,Routes,Route} from 'react-router-dom'
+import {BrowserRouter,Routes,Route,useNavigate,useLocation} from 'react-router-dom'
 import {useState} from "react"
 import {Toaster,toast} from 'react-hot-toast'
-import {useNavigate} from 'react-router-dom'
 import './App.css'
 
 import {MainNav} from './components/navbars/mainNav.jsx'
+import {CateringNav} from './components/navbars/cateringNav.jsx'
+import {BeautyNav} from './components/navbars/beautyNav.jsx'
 
 import {Main} from './pages/main.jsx'
 import {Home} from './pages/home.jsx'
+import {Catering} from './pages/catering.jsx'
+import {Beauty} from './pages/beauty.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
 
@@ -16,6 +19,7 @@ import Hidden from "./assets/hidden_icon.png"
 
 function App(){
   const navigate=useNavigate()
+  const location=useLocation()
 
   const [isPanelVisible,setIsPanelVisible]=useState(false)
   const [isRegister,setIsRegister]=useState(false)
@@ -31,6 +35,26 @@ function App(){
   const [errors,setErrors]=useState([])
 
   const [user,setUser]=useState(null)
+  const currentBusiness=getBusiness()
+
+  let NavBarToShow=MainNav
+  if(location.pathname.includes("/catering/")){
+    NavBarToShow=CateringNav
+  }else if(location.pathname.includes("/beauty/")){
+    NavBarToShow=BeautyNav
+  }
+
+  function getBusiness(){
+    const db=getDb()
+    const path=location.pathname
+
+    const match=path.match(/\/(catering|beauty)\/(\d+)/)
+    if(!match)
+      return null
+
+    const businessId=parseInt(match[2])
+    return db.businesses.find(b => b.id===businessId) || null
+  }
 
   function resetErrors(){
     setErrors([])
@@ -116,11 +140,13 @@ function App(){
   return(
     <div id='page'>
       <Toaster position="top-right"/>
-      <MainNav onLoginClick={() => setIsPanelVisible(true)} user={user} onLogout={() => {setUser(null);navigate("/")}}/>
+      <NavBarToShow onLoginClick={() => setIsPanelVisible(true)} user={user} business={currentBusiness} onLogout={() => {setUser(null);navigate("/")}}/>
       <div id="main_body">
         <Routes>
           <Route path='/' element={user ? <Home user={user}/>:<Main/>}/>
           <Route path='/:username' element={user ? <Home user={user}/>:<Main/>}/>
+          <Route path='/:username/catering/:id' element={<Catering user={user}/>}/>
+          <Route path='/:username/beauty/:id' element={<Beauty user={user}/>}/>
         </Routes>
       </div>
       {isPanelVisible && (

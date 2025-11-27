@@ -4,11 +4,12 @@
   font-weight:400;
 
   --text-color:#000000;
-  --primary-background-color:#cecece;
-  --primary-background-color-hover:#dfdfdf;
-  --secondary-background-color:#929292;
+  --primary-background-color:#ebebeb;
+  --primary-background-color-hover:#e3e3e3;
+  --secondary-background-color:#b7b7b7;
   --secondary-background-color-hover:#b1b1b1;
-  --tertiary-background-color:#787878;
+  --tertiary-background-color:#939393;
+  --tertiary-background-color-hover:#888888;
   --detail-color:#296cd1;
   --error-text-color:#ff0000;
   
@@ -24,11 +25,12 @@
 
 .dark{
   --text-color:#ffffff;
-  --primary-background-color:#222222;
-  --primary-background-color-hover:#323232;
-  --secondary-background-color:#3b3b3b;
-  --secondary-background-color-hover:#4d4d4d;
-  --tertiary-background-color:#676767;
+  --primary-background-color:#252525;
+  --primary-background-color-hover:#242424;
+  --secondary-background-color:#313131;
+  --secondary-background-color-hover:#3c3c3c;
+  --tertiary-background-color:#414141;
+  --tertiary-background-color-hover:#4d4d4d;
   --detail-color:#15458c;
   --error-text-color:#dc3636;
 }
@@ -46,6 +48,7 @@ hr{
   background-color:var(--detail-color);
   border:none;
   border-radius:4px;
+  transition:background-color 0.3s ease;
 }
 
 .row_align{
@@ -60,4 +63,39 @@ hr{
   flex-direction:column;
   justify-content:center;
   align-items:center;
+}
+
+.controls{
+  justify-self:center;
+  justify-content:right;
+  color:var(--text-color);
+  background-color:var(--secondary-background-color);
+  border:2px solid var(--detail-color);
+  border-radius:8px;
+  box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  padding:15px 16px;
+  margin:1rem 0 1rem 0;
+  text-decoration:none;
+  font-size:1.2rem;
+  font-weight:bold;
+  width:90%;
+  height:2rem;
+  transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
+}
+
+.item_list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(25rem,1fr));
+  gap:2px;
+  justify-self:center;
+  color:var(--text-color);
+  background-color:var(--secondary-background-color);
+  border:2px solid var(--detail-color);
+  border-radius:8px;
+  box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  padding:15px 16px;
+  margin:1rem 0 1rem 0;
+  width:90%;
+  min-height:30rem;
+  transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
 }

@@ -1,9 +1,12 @@
 #page{
   background-color: var(--primary-background-color);
+  transition:background-color 0.3s ease;
 }
 
 #main_body{
   background-color:var(--primary-background-color);
+  margin-bottom:0rem;
+  transition:background-color 0.3s ease;
 }
 
 #transparent_panel{
@@ -28,6 +31,7 @@
   width:30rem;
   height:28rem;
   z-index:110;
+  transition:background-color 0.3s ease,border-color 0.3s ease;
 }
 
 #acc_options{
@@ -52,7 +56,7 @@
   margin:0.2rem 0.5rem;
   width:8rem;
   height:3rem;
-  transition:background-color 0.3s ease,transform 0.3s ease;
+  transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
 
   .acc_button:hover{
@@ -86,7 +90,7 @@
   margin:0.5rem 0.5rem 0.5rem 0.5rem;
   width:70%;
   height:1.5rem;
-  transition:background-color 0.3s ease,transform 0.3s ease;
+  transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
 
   .acc_input_field:hover{
@@ -104,7 +108,7 @@
   box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
   margin:0.5rem 0.5rem 0.5rem 0.5rem;
   width:77%;
-  transition:background-color 0.3s ease,transform 0.3s ease;
+  transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
 
   .password_wrapper:hover{
@@ -126,6 +130,7 @@
   font-weight:bold;
   width:100%;
   height:1.5rem;
+  transition:background-color 0.3s ease,color 0.3s ease;
 }
 
 .password_toggle_button{

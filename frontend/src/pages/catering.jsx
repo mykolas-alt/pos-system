@@ -1,10 +1,18 @@
 import React from "react"
+import {useParams} from "react-router-dom"
 import "./catering.css"
 
-export const Catering=() => {
+import {getDb} from "../utils/tempDB"
+
+export const Catering=({user}) => {
+    const {id}=useParams()
+    const db=getDb()
+    const business=db.businesses.find(b => b.id===parseInt(id))
+
     return(
         <div>
-            Catering
+            Catering: {user.username}
+            <p>{business.name}</p>
         </div>
     )
 }
