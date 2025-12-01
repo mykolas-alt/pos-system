@@ -1,5 +1,5 @@
 #page{
-  background-color: var(--primary-background-color);
+  background-color:var(--primary-background-color);
   transition:background-color 0.3s ease;
 }
 
@@ -98,6 +98,11 @@
     transform:scale(1.05);
   }
 
+  .acc_input_field:focus{
+    border-color:var(--focus-color);
+    outline:none;
+  }
+
 .password_wrapper{
   position:relative;
   display:flex;
@@ -123,6 +128,7 @@
   background-color:var(--secondary-background-color);
   border:none;
   border-radius:8px;
+  outline:none;
   cursor:pointer;
   padding:15px 16px;
   text-decoration:none;
@@ -132,6 +138,11 @@
   height:1.5rem;
   transition:background-color 0.3s ease,color 0.3s ease;
 }
+
+  .acc_password_field:focus > password_wrapper{
+    border-color:var(--focus-color);
+    outline:none;
+  }
 
 .password_toggle_button{
   position:absolute;

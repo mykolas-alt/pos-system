@@ -1,5 +1,5 @@
 import {BrowserRouter,Routes,Route,useNavigate,useLocation} from 'react-router-dom'
-import {useState} from "react"
+import {useEffect,useState} from "react"
 import {Toaster,toast} from 'react-hot-toast'
 import './App.css'
 
@@ -8,9 +8,10 @@ import {CateringNav} from './components/navbars/cateringNav.jsx'
 import {BeautyNav} from './components/navbars/beautyNav.jsx'
 
 import {Main} from './pages/main.jsx'
-import {Home} from './pages/home.jsx'
-import {Catering} from './pages/catering.jsx'
-import {Beauty} from './pages/beauty.jsx'
+import {BusinessCreate} from './pages/businessCreate.jsx'
+import {Catering} from './pages/catering/main.jsx'
+import {Orders} from './pages/catering/orders.jsx'
+import {Beauty} from './pages/beauty/main.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
 
@@ -34,26 +35,58 @@ function App(){
 
   const [errors,setErrors]=useState([])
 
+  const [isSessionLoading,setIsSessionLoading]=useState(true)
   const [user,setUser]=useState(null)
-  const currentBusiness=getBusiness()
+  const [userBusiness,setUserBusiness]=useState(null)
 
   let NavBarToShow=MainNav
-  if(location.pathname.includes("/catering/")){
-    NavBarToShow=CateringNav
-  }else if(location.pathname.includes("/beauty/")){
-    NavBarToShow=BeautyNav
+  if(user){
+    if(location.pathname.includes("/catering/")){
+      NavBarToShow=CateringNav
+    }else if(location.pathname.includes("/beauty/")){
+      NavBarToShow=BeautyNav
+    }
   }
 
-  function getBusiness(){
+  useEffect(() => {
     const db=getDb()
-    const path=location.pathname
+    const saved=localStorage.getItem("session")
+    if(!saved){
+      navigate("/")
+      setIsSessionLoading(false)
+      return
+    }
 
-    const match=path.match(/\/(catering|beauty)\/(\d+)/)
-    if(!match)
+    const session=JSON.parse(saved)
+
+    if(Date.now()>session.expiresAt){
+      localStorage.removeItem("session")
+      navigate("/")
+      setIsSessionLoading(false)
+      return
+    }
+
+    setUser(session.user)
+    const business=getUserBusiness(session.user.id)
+    setUserBusiness(business)
+
+    const correctPath=business ? `/${session.user.username}/${business.type}/${business.id}`:`/${session.user.username}`
+
+    if(location.pathname!==correctPath)
+      navigate(correctPath)
+
+    setIsSessionLoading(false)
+  },[])
+
+  function getUserBusiness(userId){
+    const db=getDb()
+
+    const record=db.employees.find(e => e.userId===userId)
+    if(!record)
       return null
 
-    const businessId=parseInt(match[2])
-    return db.businesses.find(b => b.id===businessId) || null
+    const business=db.businesses.find(b => b.id===record.businessId)
+    return business || null
   }
 
   function resetErrors(){
@@ -91,8 +124,23 @@ function App(){
 
     toast.success(`Welcome back, ${user.username}!`)
     setUser(user)
+    const session={
+      user,
+      expiresAt:Date.now()+30*60*1000
+    }
+    localStorage.setItem("session",JSON.stringify(session))
+
     setIsPanelVisible(false)
-    navigate(`/${user.username}`)
+
+    const business=getUserBusiness(user.id)
+    if(!business){
+      navigate(`/${user.username}`)
+      return
+    }
+
+    setUserBusiness(business)
+
+    navigate(`/${user.username}/${business.type}/${business.id}`)
   }
 
   function handleRegister(){
@@ -133,89 +181,109 @@ function App(){
 
     toast.success(`Account created! Welcome, ${newUser.username}!`)
     setUser(newUser)
+    const session={
+      user,
+      expiresAt:Date.now()+30*60*1000
+    }
+    localStorage.setItem("session",JSON.stringify(session))
+
     setIsPanelVisible(false)
     navigate(`/${newUser.username}`)
   }
 
+  function handleLogOut(){
+    localStorage.removeItem("session")
+    navigate("/")
+    setUser(null)
+    setUserBusiness(null)
+  }
+
   return(
-    <div id='page'>
-      <Toaster position="top-right"/>
-      <NavBarToShow onLoginClick={() => setIsPanelVisible(true)} user={user} business={currentBusiness} onLogout={() => {setUser(null);navigate("/")}}/>
-      <div id="main_body">
-        <Routes>
-          <Route path='/' element={user ? <Home user={user}/>:<Main/>}/>
-          <Route path='/:username' element={user ? <Home user={user}/>:<Main/>}/>
-          <Route path='/:username/catering/:id' element={<Catering user={user}/>}/>
-          <Route path='/:username/beauty/:id' element={<Beauty user={user}/>}/>
-        </Routes>
-      </div>
-      {isPanelVisible && (
+    <div id="page">
+      {isSessionLoading ? (
+        <div className="loading_anim"/>
+      ):(
         <>
-          <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
-          <div id="login_panel">
-            <div id="acc_options" className="row_align">
-              <button className="acc_button" onClick={() => {resetErrors();setIsRegister(false)}}>Prisijungti</button>
-              <button className="acc_button" onClick={() => {resetErrors();setIsRegister(true)}}>Registracija</button>
-            </div>
-            <hr/>
-            {isRegister ? (
-              <>
-                <div className="acc_input_fields">
-                  <input className={"acc_input_field "+(errors.regEmail ? "invalid":"")} type="text" placeholder="Email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} autoFocus/>
-                  {errors.regEmail && (
-                    <div className="error_text">
-                      {errors.regEmail}
-                    </div>
-                  )}
-                  <input className={"acc_input_field "+(errors.regUsername ? "invalid":"")} type="text" placeholder="Vartotojo Vardas" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}/>
-                  {errors.regUsername && (
-                    <div className="error_text">
-                      {errors.regUsername}
-                    </div>
-                  )}
-                  <div className="password_wrapper">
-                    <input className={"acc_password_field "+(errors.regPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
-                    <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
-                      {isPasswordVisible ? 
-                        <img id="theme_icon" src={Visible} alt="Visible Icon"/>:
-                        <img id="theme_icon" src={Hidden} alt="Hidden Icon"/>}
-                    </button>
-                  </div>
-                  {errors.regPassword && (
-                    <div className="error_text">
-                      {errors.regPassword}
-                    </div>
-                  )}
-                </div>
-                <button className="acc_submit_button" onClick={handleRegister}>Registruotis</button>
-              </>
-            ):(
-              <>
-                <div className="acc_input_fields">
-                  <input className={"acc_input_field "+(errors.loginInput ? "invalid":"")} type="text" placeholder="Vartotojo Vardas ar Email" value={loginInput} onChange={(e) => setLoginInput(e.target.value)} autoFocus/>
-                  {errors.loginInput && (
-                    <div className="error_text">
-                      {errors.loginInput}
-                    </div>
-                  )}
-                  <div className="password_wrapper">
-                    <input className={"acc_password_field "+(errors.loginPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis"  value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
-                    <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
-                      {isPasswordVisible ? 
-                        <img id="theme_icon" src={Visible} alt="Visible Icon"/>:
-                        <img id="theme_icon" src={Hidden} alt="Hidden Icon"/>}
-                    </button>
-                  </div>
-                  {errors.loginPassword && (
-                    <div className="error_text">
-                      {errors.loginPassword}
-                    </div>
-                  )}
-                </div>
-                <button className="acc_submit_button" onClick={handleLogin}>Prisijungti</button>
-              </>
-            )}
+          <Toaster position="top-right"/>
+          <NavBarToShow onLoginClick={() => setIsPanelVisible(true)} user={user} business={userBusiness} onLogout={() => handleLogOut()}/>
+          <div id="main_body">
+            <Routes>
+              <Route path='/' element={<Main/>}/>
+              <Route path='/:username' element={<BusinessCreate setUserBusiness={setUserBusiness} user={user}/>}/>
+              <Route path='/:username/catering/:id' element={<Catering user={user} business={userBusiness}/>}/>
+              <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness}/>}/>
+              <Route path='/:username/beauty/:id' element={<Beauty user={user} business={userBusiness}/>}/>
+            </Routes>
           </div>
+          {isPanelVisible && (
+            <>
+              <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
+              <div id="login_panel">
+                <div id="acc_options" className="row_align">
+                  <button className="acc_button" onClick={() => {resetErrors();setIsRegister(false)}}>Prisijungti</button>
+                  <button className="acc_button" onClick={() => {resetErrors();setIsRegister(true)}}>Registracija</button>
+                </div>
+                <hr/>
+                {isRegister ? (
+                  <>
+                    <div className="acc_input_fields">
+                      <input className={"acc_input_field "+(errors.regEmail ? "invalid":"")} type="text" placeholder="Email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} autoFocus/>
+                      {errors.regEmail && (
+                        <div className="error_text">
+                          {errors.regEmail}
+                        </div>
+                      )}
+                      <input className={"acc_input_field "+(errors.regUsername ? "invalid":"")} type="text" placeholder="Vartotojo Vardas" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}/>
+                      {errors.regUsername && (
+                        <div className="error_text">
+                          {errors.regUsername}
+                        </div>
+                      )}
+                      <div className="password_wrapper">
+                        <input className={"acc_password_field "+(errors.regPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
+                        <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
+                          {isPasswordVisible ? 
+                            <img id="theme_icon" src={Visible} alt="Visible Icon"/>:
+                            <img id="theme_icon" src={Hidden} alt="Hidden Icon"/>}
+                        </button>
+                      </div>
+                      {errors.regPassword && (
+                        <div className="error_text">
+                          {errors.regPassword}
+                        </div>
+                      )}
+                    </div>
+                    <button className="acc_submit_button" onClick={handleRegister}>Registruotis</button>
+                  </>
+                ):(
+                  <>
+                    <div className="acc_input_fields">
+                      <input className={"acc_input_field "+(errors.loginInput ? "invalid":"")} type="text" placeholder="Vartotojo Vardas ar Email" value={loginInput} onChange={(e) => setLoginInput(e.target.value)} autoFocus/>
+                      {errors.loginInput && (
+                        <div className="error_text">
+                          {errors.loginInput}
+                        </div>
+                      )}
+                      <div className="password_wrapper">
+                        <input className={"acc_password_field "+(errors.loginPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis"  value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+                        <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
+                          {isPasswordVisible ? 
+                            <img id="theme_icon" src={Visible} alt="Visible Icon"/>:
+                            <img id="theme_icon" src={Hidden} alt="Hidden Icon"/>}
+                        </button>
+                      </div>
+                      {errors.loginPassword && (
+                        <div className="error_text">
+                          {errors.loginPassword}
+                        </div>
+                      )}
+                    </div>
+                    <button className="acc_submit_button" onClick={handleLogin}>Prisijungti</button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

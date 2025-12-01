@@ -2,24 +2,16 @@ import React,{useState,useEffect,useRef} from "react"
 import {NavLink} from "react-router-dom"
 import "./mainNav.css"
 
-import {useLocalStorage} from "../../utils/theme"
+import {useTheme} from '../../utils/themeContext.jsx'
 
 import Sun from "../../assets/sun.png"
 import Moon from "../../assets/moon.png"
 
 export const MainNav=({onLoginClick,user,onLogout}) => {
-    const [theme,setTheme]=useLocalStorage("theme",false)
+    const {theme,toggleTheme}=useTheme()
     const [isAccountMenuVisible,setIsAccountMenuVisible]=useState(false)
     const menuRef=useRef(null)
     const buttonRef=useRef(null)
-
-    useEffect(() => {
-        if(theme){
-            document.documentElement.classList.add("dark")
-        }else{
-            document.documentElement.classList.remove("dark")
-        }
-    },[theme])
 
     useEffect(() => {
         function handleClickOutside(event){
@@ -44,11 +36,11 @@ export const MainNav=({onLoginClick,user,onLogout}) => {
             ):(
                 <NavLink to="/" className="logo_icon">Logotipas</NavLink>
             )}
-            <button className="nav_button theme_button" onClick={() => setTheme(prev => !prev)}>
+            <button className="nav_button theme_button" onClick={toggleTheme}>
                 <div className="row_align">
                     {theme ? 
-                    <img id="theme_icon" src={Moon} alt="Moon Icon"/>:
-                    <img id="theme_icon" src={Sun} alt="Sun Icon"/>}
+                    <img id="theme_icon" src={Sun} alt="Sun Icon"/>:
+                    <img id="theme_icon" src={Moon} alt="Moon Icon"/>}
                     Tema
                 </div>
             </button>

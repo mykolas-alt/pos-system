@@ -3,6 +3,7 @@
 - Java 21+
 - PostgreSQL 15+ (Either installed locally or via Docker)
 - Node.js
+- Vite
 
 ## Building and launching
 ### Repository Location

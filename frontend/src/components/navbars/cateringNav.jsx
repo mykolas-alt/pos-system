@@ -1,25 +1,23 @@
 import React,{useState,useEffect,useRef} from "react"
-import {NavLink} from "react-router-dom"
+import {NavLink,useNavigate} from "react-router-dom"
 import "./mainNav.css"
 
-import {useLocalStorage} from "../../utils/theme"
+import {useTheme} from '../../utils/themeContext.jsx'
 
 import Sun from "../../assets/sun.png"
 import Moon from "../../assets/moon.png"
 
 export const CateringNav=({user,business,onLogout}) => {
-    const [theme,setTheme]=useLocalStorage("theme",false)
+    const navigate=useNavigate()
+    const {theme,toggleTheme}=useTheme()
     const [isAccountMenuVisible,setIsAccountMenuVisible]=useState(false)
     const menuRef=useRef(null)
     const buttonRef=useRef(null)
 
     useEffect(() => {
-        if(theme){
-            document.documentElement.classList.add("dark")
-        }else{
-            document.documentElement.classList.remove("dark")
-        }
-    },[theme])
+        if(!user)
+            navigate("/")
+    },[user])
 
     useEffect(() => {
         function handleClickOutside(event){
@@ -39,30 +37,35 @@ export const CateringNav=({user,business,onLogout}) => {
 
     return(
         <nav id="main_navbar">
-            <NavLink to={`/${user.username}`} className="logo_icon">Logotipas</NavLink>
-            {business && (
-                <div className="nav_center_title">
-                    {business.name}
-                </div>
-            )}
-            <button className="nav_button theme_button" onClick={() => setTheme(prev => !prev)}>
-                <div className="row_align">
-                    {theme ? 
-                    <img id="theme_icon" src={Moon} alt="Moon Icon"/>:
-                    <img id="theme_icon" src={Sun} alt="Sun Icon"/>}
-                    Tema
-                </div>
-            </button>
-            {user && (
-                <>
+            <div className="nav_item_positioning col_align">
+                <div className="nav_item_positioning row_align">
+                    <NavLink to={`/${user.username}/catering/${business.id}`} className="logo_icon">Logotipasc</NavLink>
+                    {business && (
+                        <div className="nav_center_title">
+                            {business.name}
+                        </div>
+                    )}
+                    <button className="nav_button theme_button" onClick={toggleTheme}>
+                        <div className="row_align">
+                            {theme ? 
+                            <img id="theme_icon" src={Sun} alt="Sun Icon"/>:
+                            <img id="theme_icon" src={Moon} alt="Moon Icon"/>}
+                            Tema
+                        </div>
+                    </button>
                     <button className="nav_button account_button" ref={buttonRef} onClick={() => setIsAccountMenuVisible(prev => !prev)}>{user.username}</button>
                     {isAccountMenuVisible && (
                         <div id="account_menu" ref={menuRef}>
                             <button className="account_menu_button" onClick={onLogout}>Atsijungti</button>
                         </div>
                     )}
-                </>
-            )}
+                </div>
+                <div className="row_align">
+                    <button className="business_nav_button" onClick={() => navigate(`/${user.username}/catering/${business.id}/orders`)}>Užsakymai</button>
+                    <button className="business_nav_button">Pozicijos</button>
+                    <button className="business_nav_button">Darbuotojai</button>
+                </div>
+            </div>
         </nav>
     )
 }
