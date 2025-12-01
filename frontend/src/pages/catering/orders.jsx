@@ -20,6 +20,27 @@ export const Orders=({user,business}) => {
         const ordersData=db.orders
             .filter(o => o.businessId===business.id)
 
+        ordersData.forEach(order => {
+            let total=0
+            const orderProducts=db.OrderProduct.filter(op => op.orderId===order.id)
+            
+            let productTotal
+            orderProducts.forEach(ordProd => {
+                productTotal=0
+                const products=db.Products.filter(p => p.id===ordProd.productId)
+                
+                products.forEach(product => {
+                    productTotal=product.price*ordProd.quantity
+                })
+            })
+
+            total+=productTotal!==undefined ? productTotal:0.00
+
+            console.log(productTotal)
+
+            order.total=total
+        });
+
         setOrders(ordersData)
     },[user])
 
@@ -41,7 +62,7 @@ export const Orders=({user,business}) => {
                             )}
                             <div className="row_align">
                                 <p className="order_status">Statusas: {o.status}</p>
-                                <p className="order_total">Iš viso: {o.total}</p>
+                                <p className="order_total">Iš viso: {o.total.toFixed(2)}€</p>
                             </div>
                         </div>
                     ))
