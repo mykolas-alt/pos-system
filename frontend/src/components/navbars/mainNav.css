@@ -13,6 +13,11 @@
   transition:background-color 0.3s ease,border-color 0.3s ease;
 }
 
+#home_icon{
+  width:2.5rem;
+  height:2.5rem;
+}
+
 #theme_icon{
   width:2.5rem;
   height:2.5rem;
@@ -36,7 +41,7 @@
   border-radius:8px;
   box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
   cursor:pointer;
-  padding:15px 16px;
+  padding:15px 10px;
   text-decoration:none;
   font-size:1.2rem;
   font-weight:bold;
@@ -49,6 +54,12 @@
     background-color:var(--tertiary-background-color-hover);
     transform:scale(1.05);
   }
+
+
+.home_button{
+    margin-left:0.1rem;
+    margin-right:0.1rem;
+}
 
 .logo_icon{
     margin-top:-0.3rem;
@@ -63,13 +74,13 @@
 }
 
 .theme_button{
-    margin-left: auto;
-    margin-right: 0rem;
+    margin-left:auto;
+    margin-right:0rem;
 }
 
 .account_button{
-    margin-left: 1rem;
-    margin-right: 2rem;
+    margin-left:1rem;
+    margin-right:2rem;
 }
 
 #account_menu{

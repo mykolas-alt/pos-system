@@ -12,31 +12,40 @@ const DEFAULT_DB={
         {id:4,email:"alexgreen@gmail.com",username:"AlexGreen",password:"TestUser123"}
     ],
     employees:[
-        {id:1,userId:1,businessId:1,name:"Jonh Doe",role:"Owner"},
-        {id:2,userId:3,businessId:2,name:"Josh Brown",role:"Owner"},
-        {id:3,userId:5,businessId:2,name:"Alex Green",role:"Employee"}
+        {id:1,userId:1,businessId:1,name:"Jonh Doe",role:"Savininkas"},
+        {id:2,userId:3,businessId:2,name:"Josh Brown",role:"Savininkas"},
+        {id:3,userId:5,businessId:2,name:"Alex Green",role:"Darbuotojas"}
     ],
     orders:[
-        {id:1,businessId:1,status:"Paid",createdAt:new Date(2025,10,30,15,8,54),closedAt:new Date(2025,10,30,15,29,38)},
-        {id:2,businessId:1,status:"Closed",createdAt:new Date(2025,10,30,15,10,11),closedAt:new Date(2025,10,30,15,12,43)},
-        {id:3,businessId:1,status:"Paid",createdAt:new Date(2025,10,30,15,11,27),closedAt:new Date(2025,10,30,15,19,21)},
-        {id:4,businessId:1,status:"Open",createdAt:new Date(2025,10,30,15,14,20),closedAt:""}
+        {id:1,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,30,15,8,54),closedAt:new Date(2025,10,30,15,29,38)},
+        {id:2,businessId:1,status:"Uždaryta",createdAt:new Date(2025,10,30,15,10,11),closedAt:new Date(2025,10,30,15,12,43)},
+        {id:3,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,30,15,11,27),closedAt:new Date(2025,10,30,15,19,21)},
+        {id:4,businessId:1,status:"Atvira",createdAt:new Date(2025,10,30,15,14,20),closedAt:""}
     ],
-    OrderProduct:[
-        {id:1,orderId:1,productId:1,quantity:2}
+    orderProduct:[
+        {id:1,orderId:1,productId:1,quantity:2},
+        {id:2,orderId:2,productId:3,quantity:1},
+        {id:3,orderId:3,productId:4,quantity:2},
+        {id:4,orderId:3,productId:2,quantity:1},
+        {id:5,orderId:4,productId:3,quantity:1}
     ],
-    Products:[
-        {id:1,businessId:1,name:"Latte",price:3.99,categoryId:1}
+    products:[
+        {id:1,businessId:1,name:"Latte",price:3.99,categoryId:1},
+        {id:2,businessId:1,name:"Amerikano",price:3.59,categoryId:1},
+        {id:3,businessId:1,name:"Šokoladinis Pyragas",price:4.99,categoryId:2},
+        {id:4,businessId:1,name:"Čeburekas",price:2.99,categoryId:3}
     ],
-    Categories:[
-        {id:1,businessId:1,name:"Hot Drinks"}
+    categories:[
+        {id:1,businessId:1,name:"Karšti Gėrimai"},
+        {id:2,businessId:1,name:"Desertai"},
+        {id:3,businessId:1,name:"Greitas Maistas"}
     ],
-    Reservations:[
-        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),custumerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Open",createdAt:new Date(2025,11,2,17,42,51),closedAt:""}
+    reservations:[
+        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),custumerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Atvira",createdAt:new Date(2025,11,2,17,42,51),closedAt:""}
     ],
-    Services:[
-        {id:1,businessId:2,specialistId:3,name:"Massage",duration:"30 min",opensAt:"10:00",closesAt:"18:00",price:19.99},
-        {id:2,businessId:2,specialistId:3,name:"Haircut",duration:"60 min",opensAt:"11:00",closesAt:"18:00",price:15.99}
+    services:[
+        {id:1,businessId:2,specialistId:3,name:"Masažas",duration:"30 min",opensAt:"10:00",closesAt:"18:00",price:19.99},
+        {id:2,businessId:2,specialistId:3,name:"Plaukų Kirpimas",duration:"60 min",opensAt:"11:00",closesAt:"18:00",price:15.99}
     ]
 }
 

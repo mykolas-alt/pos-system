@@ -4,7 +4,7 @@ import "./orders.css"
 
 import {getDb} from "../../utils/tempDB"
 
-export const Orders=({user,business}) => {
+export const Orders=({user,business,onOrderOpen}) => {
     const navigate=useNavigate()
 
     const [orders,setOrders]=useState([])
@@ -21,24 +21,17 @@ export const Orders=({user,business}) => {
             .filter(o => o.businessId===business.id)
 
         ordersData.forEach(order => {
-            let total=0
-            const orderProducts=db.OrderProduct.filter(op => op.orderId===order.id)
+            const orderProducts=db.orderProduct.filter(op => op.orderId===order.id)
             
-            let productTotal
+            let total=0
             orderProducts.forEach(ordProd => {
-                productTotal=0
-                const products=db.Products.filter(p => p.id===ordProd.productId)
-                
+                const products=db.products.filter(p => p.id===ordProd.productId)
                 products.forEach(product => {
-                    productTotal=product.price*ordProd.quantity
+                    total=product.price*ordProd.quantity+total
                 })
             })
 
-            total+=productTotal!==undefined ? productTotal:0.00
-
-            console.log(productTotal)
-
-            order.total=total
+            order.total=total!==undefined ? total:0
         });
 
         setOrders(ordersData)
@@ -51,20 +44,20 @@ export const Orders=({user,business}) => {
             </div>
             <div className="item_list">
                 {orders.length===0 ? (
-                    <p id="order_card_not_found">No orders found</p>
+                    <p id="order_card_not_found">Nerasta užsakymų</p>
                 ):(
                     orders.map(o => (
-                        <div key={o.id} className="order_card col_align"/*onClick={() => handleBusinessClick(b)}*/>
+                        <button key={o.id} className="order_card col_align" onClick={() => onOrderOpen(o.id)}>
                             <p className="order_id">ID: {o.id}</p>
                             <p className="order_created">Sukurtas: {o.createdAt}</p>
                             {o.closedAt!=="" && (
                                 <p className="order_closed">Uždarytas: {o.closedAt}</p>
                             )}
-                            <div className="row_align">
-                                <p className="order_status">Statusas: {o.status}</p>
+                            <div className="order_info row_align">
+                                <p className="order_status">Būklė: {o.status}</p>
                                 <p className="order_total">Iš viso: {o.total.toFixed(2)}€</p>
                             </div>
-                        </div>
+                        </button>
                     ))
                 )}
             </div>

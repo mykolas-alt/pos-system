@@ -6,6 +6,8 @@ import {useTheme} from '../../utils/themeContext.jsx'
 
 import Sun from "../../assets/sun.png"
 import Moon from "../../assets/moon.png"
+import Home_Light from "../../assets/home_light.png"
+import Home_Dark from "../../assets/home_dark.png"
 
 export const CateringNav=({user,business,onLogout}) => {
     const navigate=useNavigate()
@@ -39,6 +41,11 @@ export const CateringNav=({user,business,onLogout}) => {
         <nav id="main_navbar">
             <div className="nav_item_positioning col_align">
                 <div className="nav_item_positioning row_align">
+                    <button className="nav_button home_button" onClick={() => navigate(`/${user.username}/catering/${business.id}`)}>
+                        {theme ? 
+                        <img id="home_icon" src={Home_Light} alt="Home Icon"/>:
+                        <img id="home_icon" src={Home_Dark} alt="Home Icon"/>}
+                    </button>
                     <NavLink to={`/${user.username}/catering/${business.id}`} className="logo_icon">Logotipasc</NavLink>
                     {business && (
                         <div className="nav_center_title">

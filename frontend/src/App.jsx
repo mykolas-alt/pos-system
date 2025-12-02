@@ -11,12 +11,16 @@ import {Main} from './pages/main.jsx'
 import {BusinessCreate} from './pages/businessCreate.jsx'
 import {Catering} from './pages/catering/main.jsx'
 import {Orders} from './pages/catering/orders.jsx'
+import {OrderView} from './pages/catering/orderView.jsx'
 import {Beauty} from './pages/beauty/main.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
+import {useTheme} from './utils/themeContext.jsx'
 
-import Visible from "./assets/visible_icon.png"
-import Hidden from "./assets/hidden_icon.png"
+import Visible_Light from "./assets/visible_icon_light.png"
+import Visible_Dark from "./assets/visible_icon_dark.png"
+import Hidden_Light from "./assets/hidden_icon_light.png"
+import Hidden_Dark from "./assets/hidden_icon_dark.png"
 
 function App(){
   const navigate=useNavigate()
@@ -25,6 +29,7 @@ function App(){
   const [isPanelVisible,setIsPanelVisible]=useState(false)
   const [isRegister,setIsRegister]=useState(false)
   const [isPasswordVisible,setIsPasswordVisible]=useState(false)
+  const {theme,toggleTheme}=useTheme()
 
   const [loginInput,setLoginInput]=useState("")
   const [loginPassword,setLoginPassword]=useState("")
@@ -198,6 +203,13 @@ function App(){
     setUserBusiness(null)
   }
 
+  function handleOrderOpening(id){
+    if(!userBusiness || !user)
+      return
+
+    navigate(`/${user.username}/catering/${userBusiness.id}/orders/${id}`)
+  }
+
   return(
     <div id="page">
       {isSessionLoading ? (
@@ -211,7 +223,8 @@ function App(){
               <Route path='/' element={<Main/>}/>
               <Route path='/:username' element={<BusinessCreate setUserBusiness={setUserBusiness} user={user}/>}/>
               <Route path='/:username/catering/:id' element={<Catering user={user} business={userBusiness}/>}/>
-              <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness}/>}/>
+              <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
+              <Route path='/:username/catering/:id/orders/:orderId' element={<OrderView user={user} business={userBusiness}/>}/>
               <Route path='/:username/beauty/:id' element={<Beauty user={user} business={userBusiness}/>}/>
             </Routes>
           </div>
@@ -243,8 +256,8 @@ function App(){
                         <input className={"acc_password_field "+(errors.regPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
                         <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
                           {isPasswordVisible ? 
-                            <img id="theme_icon" src={Visible} alt="Visible Icon"/>:
-                            <img id="theme_icon" src={Hidden} alt="Hidden Icon"/>}
+                            theme ? <img id="theme_icon" src={Visible_Light} alt="Visible Icon"/>:<img id="theme_icon" src={Visible_Dark} alt="Visible Icon"/>:
+                            theme ? <img id="theme_icon" src={Hidden_Light} alt="Hidden Icon"/>:<img id="theme_icon" src={Hidden_Dark} alt="Hidden Icon"/>}
                         </button>
                       </div>
                       {errors.regPassword && (
@@ -268,8 +281,8 @@ function App(){
                         <input className={"acc_password_field "+(errors.loginPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis"  value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
                         <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
                           {isPasswordVisible ? 
-                            <img id="theme_icon" src={Visible} alt="Visible Icon"/>:
-                            <img id="theme_icon" src={Hidden} alt="Hidden Icon"/>}
+                            theme ? <img id="theme_icon" src={Visible_Light} alt="Visible Icon"/>:<img id="theme_icon" src={Visible_Dark} alt="Visible Icon"/>:
+                            theme ? <img id="theme_icon" src={Hidden_Light} alt="Hidden Icon"/>:<img id="theme_icon" src={Hidden_Dark} alt="Hidden Icon"/>}
                         </button>
                       </div>
                       {errors.loginPassword && (
