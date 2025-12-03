@@ -18,7 +18,8 @@ Clone repository to Linux environment. There will be made all work.
 For this method you need to use both Windows and WSL. In both WSL and Windows make clone of repo, but on **WSL** repo is needed only to launch PostgreSQL database.
 
 ### PostgreSQL Database
-To create and launch database could be used **provided script "run-postgres.sh"** inside **/backend** folder and **Docker**.
+To create and launch database could be used **provided script "run-postgres.sh"** inside **/backend** folder and **Docker**. 
+Might need to run command do delete return symbol : **sed -i 's/\r$//' run-postgres.sh**
 
 **Before** using the script create **.env** file to configure the database connection. **Sample** file **".env.sample"** could be found in **/backend** folder.
 

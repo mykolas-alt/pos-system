@@ -64,6 +64,13 @@ function App(){
 
     const session=JSON.parse(saved)
 
+    if(!session || !session.user){
+      localStorage.removeItem("session")
+      navigate("/")
+      setIsSessionLoading(false)
+      return
+    }
+
     if(Date.now()>session.expiresAt){
       localStorage.removeItem("session")
       navigate("/")
@@ -187,7 +194,7 @@ function App(){
     toast.success(`Account created! Welcome, ${newUser.username}!`)
     setUser(newUser)
     const session={
-      user,
+      user: newUser,
       expiresAt:Date.now()+30*60*1000
     }
     localStorage.setItem("session",JSON.stringify(session))
