@@ -21,7 +21,7 @@ export const Orders=({user,business,onOrderOpen}) => {
             .filter(o => o.businessId===business.id)
 
         ordersData.forEach(order => {
-            const orderProducts=db.orderProduct.filter(op => op.orderId===order.id)
+            const orderProducts=db.orderProducts.filter(op => op.orderId===order.id)
             
             let total=0
             orderProducts.forEach(ordProd => {
