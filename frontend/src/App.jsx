@@ -13,6 +13,7 @@ import {Catering} from './pages/catering/main.jsx'
 import {Orders} from './pages/catering/orders.jsx'
 import {OrderView} from './pages/catering/orderView.jsx'
 import {Beauty} from './pages/beauty/main.jsx'
+import {Report} from './pages/catering/report.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
 import {useTheme} from './utils/themeContext.jsx'
@@ -233,6 +234,7 @@ function App(){
               <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
               <Route path='/:username/catering/:id/orders/:orderId' element={<OrderView user={user} business={userBusiness}/>}/>
               <Route path='/:username/beauty/:id' element={<Beauty user={user} business={userBusiness}/>}/>
+              <Route path='/:username/catering/:id/report' element={<Report user={user} business={userBusiness}/>}/>
             </Routes>
           </div>
           {isPanelVisible && (
