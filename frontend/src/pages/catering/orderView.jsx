@@ -2,27 +2,33 @@ import React,{useEffect,useState} from "react"
 import {useParams,useNavigate} from "react-router-dom"
 import "./orderView.css"
 
-import {getDb} from "../../utils/tempDB"
+import {getDb,saveDb} from "../../utils/tempDB"
 
 export const OrderView=({user,business}) => {
     const {orderId}=useParams()
     const navigate=useNavigate()
 
     const [order,setOrders]=useState()
-    const [products,setProducts]=useState([])
-    const [orderProducts,setOrderProducts]=useState([])
-    const [categories,setCategories]=useState([])
+    const [productsInOrder,setProductsInOrder]=useState([])
 
     const [search,setSearch]=useState("")
+    const [categories,setCategories]=useState([])
     const [selectedCategories,setSelectedCategories]=useState([])
+
+    const [products,setProducts]=useState([])
+    const [comment,setComment]=useState("")
+
     const [selectedProduct,setSelectedProduct]=useState()
     const [selectedProductOptions,setSelectedProductOptions]=useState([])
     const [selectedProductPrice,setSelectedProductPrice]=useState(0)
+    const [selectedProductQuantity,setSelectedProductQuantity]=useState(1)
     const [selectedOptions,setSelectedOptions]=useState({})
 
     const [isOrderLoading,setIsOrderLoading]=useState(true)
     const [isPanelVisible,setIsPanelVisible]=useState(false)
+    const [isCommentVisible,setIsCommentVisible]=useState(false)
     const [addingNewProduct,setAddingNewProduct]=useState(false)
+    const [editingOrderProductId,setEditingOrderProductId]=useState(null)
 
     const filteredProducts=products.filter(p => {
         const matchesSearch=p.name.toLowerCase().includes(search.toLowerCase())
@@ -33,6 +39,20 @@ export const OrderView=({user,business}) => {
     })
 
     useEffect(() => {
+        loadOrderData()
+
+        setIsOrderLoading(false)
+    },[user])
+
+    useEffect(() => {
+        if(!selectedProduct || selectedProductOptions.length===0)
+            return
+
+        const newPrice=recalcPrice(selectedProduct,selectedProductOptions,selectedOptions)
+        setSelectedProductPrice(newPrice)
+    },[selectedOptions,selectedProductQuantity])
+
+    function loadOrderData(){
         const db=getDb()
 
         const orderData=db.orders.find(o => o.id===Number(orderId))
@@ -45,8 +65,11 @@ export const OrderView=({user,business}) => {
         orderProductsData.forEach(orderProduct => {
             const products=db.products.filter(p => p.id===orderProduct.productId)
             products.forEach(product => {
-                product.quantity=orderProduct.quantity
-                orderContent.push(product)
+                orderContent.push({
+                    ...product,
+                    quantity:orderProduct.quantity,
+                    orderProductId:orderProduct.id
+                })
                 total=product.price*orderProduct.quantity+total
             })
             quantity=orderProduct.quantity+quantity
@@ -57,18 +80,13 @@ export const OrderView=({user,business}) => {
 
         setOrders(orderData)
         setProducts(productsData)
-        setOrderProducts(orderContent)
+        setProductsInOrder(orderContent)
         setCategories(categoriesData)
-        setIsOrderLoading(false)
-    },[user])
+    }
 
-    useEffect(() => {
-        if(!selectedProduct || selectedProductOptions.length===0)
-            return
-
-        const newPrice=recalcPrice(selectedProduct,selectedProductOptions,selectedOptions)
-        setSelectedProductPrice(newPrice)
-    },[selectedOptions])
+    function getNextId(arr){
+        return arr.reduce((m,it) => Math.max(m,(it && it.id) || 0),0)+1
+    }
 
     function toggleCategory(id){
         setSelectedCategories(prev =>
@@ -76,12 +94,61 @@ export const OrderView=({user,business}) => {
         )
     }
 
-    function openProductOptions(id){
+    function openProductOptions(id,isEditing){
         const db=getDb()
-        const product=db.products.find(p => p.id===id)
+
+        let product
+        let quantity=1
+        let initialSelections={}
+
+        if(isEditing){
+            setEditingOrderProductId(id)
+            const orderProduct=db.orderProducts.find(op => op.id===id)
+            product=db.products.find(p => p.id===orderProduct.productId)
+
+            quantity=orderProduct.quantity
+
+            const selectedOptionRows=db.orderProductSelectedOptions.filter(o => o.orderProductId===orderProduct.id)
+            selectedOptionRows.forEach(row => {
+                const group=db.productOptionGroups.find(g => g.id===row.productOptionGroupId)
+
+                if(group.type==="slider"){
+                    initialSelections[group.id]=row.value
+                }
+                if(group.type==="single"){
+                    initialSelections[group.id]=row.value
+                }
+                if(group.type==="multi"){
+                    if(!initialSelections[group.id])
+                        initialSelections[group.id]=[]
+
+                    if(Array.isArray(row.value)){
+                        initialSelections[group.id]=row.value
+                    }else{
+                        initialSelections[group.id].push(row.value)
+                    }
+                }
+            })
+        }else{
+            setEditingOrderProductId(null)
+            product=db.products.find(p => p.id===id)
+
+            const optionGroups=db.productOptionGroups.filter(g => g.productId===id)
+            optionGroups.forEach(group => {
+                if(group.type==="slider"){
+                    initialSelections[group.id]=group.minSelect
+                }
+                if(group.type==="single"){
+                    initialSelections[group.id]=null
+                }
+                if(group.type==="multi"){
+                    initialSelections[group.id]=[]
+                }
+            })
+        }
 
         let productOptions=[]
-        const optionGroups=db.productOptionGroups.filter(g => g.productId===id)
+        const optionGroups=db.productOptionGroups.filter(g => g.productId===product.id)
         optionGroups.forEach(group => {
             const productOptionValues=db.productOptionValues.filter(pov => pov.productOptionGroupId===group.id)
 
@@ -95,25 +162,24 @@ export const OrderView=({user,business}) => {
             })
         })
 
-        setSelectedProductOptions(productOptions)
-        let initial={}
-
-        productOptions.forEach(group => {
-            if(group.type==="slider"){
-                initial[group.id]=group.minSelect
-            }
-            if(group.type==="single"){
-                initial[group.id]=null
-            }
-            if(group.type==="multi"){
-                initial[group.id]=[]
-            }
-        })
-
-        setSelectedOptions(initial)
-        setSelectedProductPrice(recalcPrice(product,productOptions,initial))
         setSelectedProduct(product)
+
+        setSelectedProductOptions(productOptions)
+        setSelectedOptions(initialSelections)
+
+        setSelectedProductPrice(recalcPrice(product,productOptions,initialSelections))
+        setSelectedProductQuantity(quantity)
+
         setIsPanelVisible(true)
+    }
+
+    function openComment(){
+        const db=getDb()
+
+        const orderComment=order.comment
+
+        setComment(orderComment)
+        setIsCommentVisible(true)
     }
 
     function changeSlider(groupId,delta,min,max){
@@ -139,6 +205,16 @@ export const OrderView=({user,business}) => {
             const newValues=current.includes(valueId) ? current.filter(v => v!==valueId):[...current,valueId]
 
             return {...prev,[groupId]: newValues}
+        })
+    }
+
+    function changeQuantity(delta){
+        setSelectedProductQuantity(prev => {
+            let value=prev+delta;
+            if(value<1)
+                value=1
+
+            return value
         })
     }
 
@@ -168,7 +244,107 @@ export const OrderView=({user,business}) => {
             }
         })
 
+        price=price*selectedProductQuantity
+
         return price
+    }
+
+    function addProductToOrder(){
+        const db=getDb()
+
+        const nextOrderProductId=getNextId(db.orderProducts)
+        const newOrderProduct={
+            id:nextOrderProductId,
+            orderId:order.id,
+            productId:selectedProduct.id,
+            quantity:selectedProductQuantity
+        }
+
+        let nextOptId=getNextId(db.orderProductSelectedOptions)
+        selectedProductOptions.forEach(group => {
+            const newOrderProductSelectedOptions={
+                id:nextOptId++,
+                orderProductId:newOrderProduct.id,
+                productOptionGroupId:group.id,
+                value:selectedOptions[group.id]
+            }
+
+            db.orderProductSelectedOptions.push(newOrderProductSelectedOptions)
+        })
+
+        db.orderProducts.push(newOrderProduct)
+        saveDb(db)
+
+        loadOrderData()
+        setIsPanelVisible(false)
+    }
+
+    function changeProductInOrder(){
+        const db=getDb()
+
+        const orderProduct=db.orderProducts.find(op => op.id===editingOrderProductId)
+        if(!orderProduct)
+            return
+
+        orderProduct.quantity=selectedProductQuantity
+
+        let nextId=getNextId(db.orderProductSelectedOptions)
+
+        db.orderProductSelectedOptions=db.orderProductSelectedOptions.filter(o => o.orderProductId!==editingOrderProductId)
+
+        selectedProductOptions.forEach(group => {
+            const existing=db.orderProductSelectedOptions.find(o => o.orderProductId===editingOrderProductId && o.productOptionGroupId===group.id)
+            const valueToStore=selectedOptions[group.id]
+
+            if(existing){
+                existing.value=valueToStore
+            }else{
+                const newOptionRow={
+                    id:nextId++,
+                    orderProductId:editingOrderProductId,
+                    productOptionGroupId:group.id,
+                    value:valueToStore
+                }
+
+                db.orderProductSelectedOptions.push(newOptionRow)
+            }
+        })
+
+        const groupIds=selectedProductOptions.map(g => g.id)
+        db.orderProductSelectedOptions=db.orderProductSelectedOptions.filter(o => !(o.orderProductId===editingOrderProductId && !groupIds.includes(o.productOptionGroupId)))
+
+        saveDb(db)
+
+        loadOrderData()
+        setIsPanelVisible(false)
+        setEditingOrderProductId(null)
+    }
+
+    function deleteProductInOrder(orderProductId){
+        const db=getDb()
+
+        db.orderProducts=db.orderProducts.filter(op => op.id!==orderProductId)
+
+        db.orderProductSelectedOptions=db.orderProductSelectedOptions.filter(o => o.orderProductId!==orderProductId)
+
+        saveDb(db)
+        loadOrderData()
+    }
+
+    function saveComment(){
+        const db=getDb()
+
+        const orderData=db.orders.find(o => o.id===Number(orderId))
+        if(!orderData){
+            console.log(orderData)
+            return
+        }
+
+        orderData.comment=comment
+
+        saveDb(db)
+        loadOrderData()
+        setIsCommentVisible(false)
     }
 
     return(
@@ -184,11 +360,11 @@ export const OrderView=({user,business}) => {
                                 <button className="product_exit_button" onClick={() => setIsPanelVisible(false)}>X</button>
                                 <p className="product_name">{selectedProduct.name}</p>
                                 <hr/>
-                                <div className="product_options">
-                                    {selectedProductOptions.length===0 ? (
-                                        <></>
-                                    ):(
-                                        selectedProductOptions.map(po => (
+                                {selectedProductOptions.length===0 ? (
+                                    <></>
+                                ):(
+                                    <div className="product_options_list">
+                                        {selectedProductOptions.map(po => (
                                             <div key={po.id} className="product_option_group">
                                                 {po.type==="slider" && (
                                                     <div className="col_align">
@@ -237,21 +413,21 @@ export const OrderView=({user,business}) => {
                                                     </div>
                                                 )}
                                             </div>
-                                        ))
-                                    )}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="product_quantity row_align">
-                                    <p className="product_quantity_text">Kiekis: 0</p>
-                                    <button className="product_quantity_button">-</button>
-                                    <button className="product_quantity_button">+</button>
+                                    <p className="product_quantity_text">Kiekis: {selectedProductQuantity}</p>
+                                    <button className="product_quantity_button" onClick={() => changeQuantity(-1)}>-</button>
+                                    <button className="product_quantity_button" onClick={() => changeQuantity(1)}>+</button>
                                     <p className="product_price">Kaina: {selectedProductPrice.toFixed(2)}€</p>
                                 </div>
                                 {addingNewProduct ? (
-                                    <button className="product_confirm_button">
+                                    <button className="product_confirm_button" onClick={() => addProductToOrder()}>
                                         Pridėti
                                     </button>
                                 ):(
-                                    <button className="product_confirm_button">
+                                    <button className="product_confirm_button" onClick={() => changeProductInOrder()}>
                                         Pakeisti
                                     </button>
                                 )}
@@ -283,7 +459,7 @@ export const OrderView=({user,business}) => {
                                     <p id="product_card_not_found">Nerasta pozicijų</p>
                                 ):(
                                     filteredProducts.map(p => (
-                                        <button key={p.id} className="product_card col_align" onClick={() => {setAddingNewProduct(true);openProductOptions(p.id)}}>
+                                        <button key={p.id} className="product_card col_align" onClick={() => {setAddingNewProduct(true);openProductOptions(p.id,false)}}>
                                             <div id="product_card_name">{p.name}</div>
                                             <div id="product_card_price">{p.price.toFixed(2)}€</div>
                                         </button>
@@ -295,19 +471,44 @@ export const OrderView=({user,business}) => {
                     <div id="order_info" className={(order.status!=="Atvira" ? "closed_order":"")+" col_align"}>
                         <div id="order_info_id">Užsakymo ID: {order.id}</div>
                         <div id="order_product_list" className="col_align">
-                            {orderProducts.length===0 ? (
+                            {productsInOrder.length===0 ? (
                                 <></>
                             ):(
-                                orderProducts.map(op => (
-                                    <button key={op.id} className="order_product_card col_align" onClick={() => {setAddingNewProduct(false);openProductOptions(op.id)}}>
-                                        {op.name} * {op.quantity}
-                                    </button>
+                                productsInOrder.map(op => (
+                                    order.status!=="Atvira" ? (
+                                        <div key={op.orderProductId} className="order_product_card row_align">
+                                            {op.name} * {op.quantity}
+                                        </div>
+                                    ):(
+                                        <div key={op.orderProductId} className="order_product_card row_align">
+                                            {op.name} * {op.quantity}
+                                            <button className="order_product_card_edit_button" onClick={() => {setAddingNewProduct(false);openProductOptions(op.orderProductId,true)}}>Keisti</button>
+                                            <button className="order_product_card_delete_button" onClick={() => deleteProductInOrder(op.orderProductId)}>X</button>
+                                        </div>
+                                    )
                                 ))
                             )}
                         </div>
                         <div className="order_total_info row_align">
-                            <p id="order_total">Iš viso: {order.total}</p>
+                            <p id="order_total">Iš viso: {order.total.toFixed(2)}€</p>
                             <p id="order_quantity">Kiekis: {order.quantity}</p>
+                        </div>
+                        <div className="order_more_functions row_align">
+                            <button className="order_options_button">Opcijos</button>
+                            <button className="order_comment_button" onClick={() => openComment()}>Pastaba</button>
+                            {isCommentVisible && (
+                                <div className="order_comment_panel col_align">
+                                    <button className="order_comment_close_button" onClick={() => setIsCommentVisible(false)}>X</button>
+                                    {order.status!=="Atvira" ? (
+                                        <textarea className="order_comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
+                                    ):(
+                                        <>
+                                            <textarea className="order_comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
+                                            <button className="order_comment_save_button" onClick={() => saveComment()}>Išsaugoti</button>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         {order.status!=="Atvira" ? (
                             <></>
