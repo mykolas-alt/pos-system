@@ -39,6 +39,11 @@ export const OrderView=({user,business}) => {
     })
 
     useEffect(() => {
+        if(!user){
+            navigate("/")
+            return
+        }
+        
         loadOrderData()
 
         setIsOrderLoading(false)

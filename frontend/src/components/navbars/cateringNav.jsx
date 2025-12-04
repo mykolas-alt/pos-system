@@ -71,6 +71,7 @@ export const CateringNav=({user,business,onLogout}) => {
                     <button className="business_nav_button" onClick={() => navigate(`/${user.username}/catering/${business.id}/orders`)}>Užsakymai</button>
                     <button className="business_nav_button">Pozicijos</button>
                     <button className="business_nav_button">Darbuotojai</button>
+                    <button className="business_nav_button">Statistika</button>
                 </div>
             </div>
         </nav>
