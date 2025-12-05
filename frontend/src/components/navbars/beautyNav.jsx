@@ -68,7 +68,7 @@ export const BeautyNav=({user,business,onLogout}) => {
                     )}
                 </div>
                 <div className="row_align">
-                    <button className="business_nav_button" onClick={() => navigate(`/${user.username}/beauty/${business.id}/rezervations`)}>Rezervacijos</button>
+                    <button className="business_nav_button" onClick={() => navigate(`/${user.username}/beauty/${business.id}/reservations`)}>Rezervacijos</button>
                     <button className="business_nav_button">Paslaugos</button>
                     <button className="business_nav_button">Darbuotojai</button>
                     <button className="business_nav_button">Statistika</button>

@@ -8,7 +8,7 @@ export const OrderView=({user,business}) => {
     const {orderId}=useParams()
     const navigate=useNavigate()
 
-    const [order,setOrders]=useState()
+    const [order,setOrder]=useState()
     const [productsInOrder,setProductsInOrder]=useState([])
 
     const [search,setSearch]=useState("")
@@ -83,7 +83,7 @@ export const OrderView=({user,business}) => {
         orderData.total=total!==undefined ? total:0
         orderData.quantity=quantity!==undefined ? quantity:0
 
-        setOrders(orderData)
+        setOrder(orderData)
         setProducts(productsData)
         setProductsInOrder(orderContent)
         setCategories(categoriesData)

@@ -26,14 +26,14 @@
     margin-right:1rem;
 }
 
-#rezervation_card_not_found{
+#reservation_card_not_found{
     justify-self:center;
     font-size:1.5rem;
     font-weight:bold;
     margin:1rem;
 }
 
-.rezervation_card{
+.reservation_card{
     display:flex;
     align-items:center;
     justify-content:center;
@@ -53,50 +53,50 @@
     transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
 
-    .rezervation_card:hover{
+    .reservation_card:hover{
         background-color:var(--tertiary-background-color-hover);
         transform:scale(1.05);
     }
 
-.rezervation_main_info{
+.reservation_main_info{
     width:100%;
 }
 
-.rezervation_id{
+.reservation_id{
     font-size:1.2rem;
     font-weight:bold;
     margin:0.1rem auto 0.5rem 1.5rem;
 }
 
-.rezervation_time{
+.reservation_time{
     font-size:1.2rem;
     font-weight:bold;
     margin:0.1rem 1.5rem 0.5rem auto;
 }
 
-.rezervation_created{
+.reservation_created{
     font-size:1rem;
     font-weight:bold;
     margin:0.2rem auto 0.5rem 1.5rem;
 }
 
-.rezervation_closed{
+.reservation_closed{
     font-size:1rem;
     font-weight:bold;
     margin:0.2rem auto 0.5rem 1.5rem;
 }
 
-.rezervation_info{
+.reservation_info{
     width:100%;
 }
 
-.rezervation_status{
+.reservation_status{
     font-size:1.2rem;
     font-weight:bold;
     margin:0.2rem auto auto 1.5rem;
 }
 
-.rezervation_total{
+.reservation_total{
     font-size:1.2rem;
     font-weight:bold;
     margin:0.2rem 1.5rem auto auto;

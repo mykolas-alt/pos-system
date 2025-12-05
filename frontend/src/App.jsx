@@ -13,7 +13,8 @@ import {Catering} from './pages/catering/main.jsx'
 import {Orders} from './pages/catering/orders.jsx'
 import {OrderView} from './pages/catering/orderView.jsx'
 import {Beauty} from './pages/beauty/main.jsx'
-import {Rezervations} from './pages/beauty/rezervations.jsx'
+import {Reservations} from './pages/beauty/reservations.jsx'
+import {ReservationView} from './pages/beauty/reservationView.jsx'
 import {Report} from './pages/catering/report.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
@@ -81,7 +82,7 @@ function App(){
     }
 
     setUser(session.user)
-    const business=getUserBusiness(session.user.id)
+    const business=getUserBusiness(session.user)
     setUserBusiness(business)
 
     const correctPath=business ? `/${session.user.username}/${business.type}/${business.id}`:`/${session.user.username}`
@@ -92,14 +93,10 @@ function App(){
     setIsSessionLoading(false)
   },[])
 
-  function getUserBusiness(userId){
+  function getUserBusiness(user){
     const db=getDb()
 
-    const record=db.employees.find(e => e.userId===userId)
-    if(!record)
-      return null
-
-    const business=db.businesses.find(b => b.id===record.businessId)
+    const business=db.businesses.find(b => b.id===user.businessId)
     return business || null
   }
 
@@ -146,7 +143,7 @@ function App(){
 
     setIsPanelVisible(false)
 
-    const business=getUserBusiness(user.id)
+    const business=getUserBusiness(user)
     if(!business){
       navigate(`/${user.username}`)
       return
@@ -219,6 +216,13 @@ function App(){
     navigate(`/${user.username}/catering/${userBusiness.id}/orders/${id}`)
   }
 
+  function handleReservationOpening(id){
+    if(!userBusiness || !user)
+      return
+
+    navigate(`/${user.username}/beauty/${userBusiness.id}/reservations/${id}`)
+  }
+
   return(
     <div id="page">
       {isSessionLoading ? (
@@ -235,7 +239,8 @@ function App(){
               <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
               <Route path='/:username/catering/:id/orders/:orderId' element={<OrderView user={user} business={userBusiness}/>}/>
               <Route path='/:username/beauty/:id' element={<Beauty user={user} business={userBusiness}/>}/>
-              <Route path='/:username/beauty/:id/rezervations' element={<Rezervations user={user} business={userBusiness}/>}/>
+              <Route path='/:username/beauty/:id/reservations' element={<Reservations user={user} business={userBusiness} onReservationOpen={(reservationId) => handleReservationOpening(reservationId)}/>}/>
+              <Route path='/:username/beauty/:id/reservations/:reservationId' element={<ReservationView user={user} business={userBusiness}/>}/>
               <Route path='/:username/catering/:id/report' element={<Report user={user} business={userBusiness}/>}/>
             </Routes>
           </div>

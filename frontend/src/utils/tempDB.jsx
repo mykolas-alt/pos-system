@@ -6,15 +6,10 @@ const DEFAULT_DB={
         {id:2,ownerId:3,type:"beauty",name:"Test Beauty",address:"456 Test St, Test City, TC 12346",contactInfo:"testbeauty@gmail.com"}
     ],
     users:[
-        {id:1,email:"jonhdoe@gmail.com",username:"JonhDoe",password:"TestUser123"},
-        {id:2,email:"jonhsmith@gmail.com",username:"JonhSmith",password:"TestUser123"},
-        {id:3,email:"joshbrown@gmail.com",username:"JoshBrown",password:"TestUser123"},
-        {id:4,email:"alexgreen@gmail.com",username:"AlexGreen",password:"TestUser123"}
-    ],
-    employees:[
-        {id:1,userId:1,businessId:1,name:"Jonh Doe",role:"Savininkas"},
-        {id:2,userId:3,businessId:2,name:"Josh Brown",role:"Savininkas"},
-        {id:3,userId:4,businessId:2,name:"Alex Green",role:"Darbuotojas"}
+        {id:1,email:"jonhdoe@gmail.com",username:"JonhDoe",password:"TestUser123",businessId:1,name:"Jonh Doe",role:"Savininkas"},
+        {id:2,email:"jonhsmith@gmail.com",username:"JonhSmith",password:"TestUser123",businessId:null,name:"",role:""},
+        {id:3,email:"joshbrown@gmail.com",username:"JoshBrown",password:"TestUser123",businessId:2,name:"Josh Brown",role:"Savininkas"},
+        {id:4,email:"alexgreen@gmail.com",username:"AlexGreen",password:"TestUser123",businessId:2,name:"Alex Green",role:"Darbuotojas"}
     ],
     orders:[
         {id:1,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,30,15,8,54),closedAt:new Date(2025,10,30,15,29,38),comment:""},
@@ -57,11 +52,11 @@ const DEFAULT_DB={
         {id:3,businessId:1,name:"Greitas Maistas"}
     ],
     reservations:[
-        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),customerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Atvira",createdAt:new Date(2025,11,2,17,42,51),closedAt:""}
+        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),customerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Atvira",createdAt:new Date(2025,11,2,17,42,51),closedAt:"",comment:""}
     ],
     services:[
-        {id:1,businessId:2,employeesId:3,name:"Masažas",duration:"30 min",opensAt:"10:00",closesAt:"18:00",price:19.99},
-        {id:2,businessId:2,employeesId:3,name:"Plaukų Kirpimas",duration:"60 min",opensAt:"11:00",closesAt:"18:00",price:15.99}
+        {id:1,businessId:2,userId:4,name:"Masažas",duration:"30 min",opensAt:"10:00",closesAt:"18:00",price:19.99},
+        {id:2,businessId:2,userId:4,name:"Plaukų Kirpimas",duration:"60 min",opensAt:"11:00",closesAt:"18:00",price:15.99}
     ]
 }
 

@@ -1,13 +1,13 @@
 import React,{useEffect,useState} from "react"
 import {useParams,useNavigate} from "react-router-dom"
-import "./rezervations.css"
+import "./reservations.css"
 
-import {getDb, saveDb} from "../../utils/tempDB"
+import {getDb,saveDb} from "../../utils/tempDB"
 
-export const Rezervations=({user,business,onOrderOpen}) => {
+export const Reservations=({user,business,onReservationOpen}) => {
     const navigate=useNavigate()
 
-    const [rezervations,setRezervations]=useState([])
+    const [reservations,setReservations]=useState([])
 
     const [isResModalOpen,setIsResModalOpen]=useState(false)
     const [resForm,setResForm]=useState({customerName:'',customerPhone:'',serviceId:'',appointmentTime:''})
@@ -27,22 +27,22 @@ export const Rezervations=({user,business,onOrderOpen}) => {
             return
         }
 
-        loadRezervations()
+        loadReservations()
     },[user])
 
-    function loadRezervations(){
+    function loadReservations(){
         const db=getDb()
 
-        const rezervationsData=db.reservations
+        const reservationsData=db.reservations
             .filter(r => r.businessId===business.id)
 
-        rezervationsData.forEach(rezervation => {
-            const rezervationService=db.services.find(s => s.id===rezervation.serviceId)
+        reservationsData.forEach(reservation => {
+            const reservationService=db.services.find(s => s.id===reservation.serviceId)
             
-            rezervation.total=rezervationService.price!==undefined ? rezervationService.price:0
+            reservation.total=reservationService.price!==undefined ? reservationService.price:0
         });
 
-        setRezervations(rezervationsData)
+        setReservations(reservationsData)
     }
 
     function getNextId(arr){
@@ -127,22 +127,22 @@ export const Rezervations=({user,business,onOrderOpen}) => {
                 <button className="control_button create_button" onClick={handleCreateReservation}>Sukurti Rezervaciją</button>
             </div>
             <div className="item_list">
-                {rezervations.length===0 ? (
-                    <p id="rezervation_card_not_found">Nerasta rezervacijų</p>
+                {reservations.length===0 ? (
+                    <p id="reservation_card_not_found">Nerasta rezervacijų</p>
                 ):(
-                    rezervations.map(r => (
-                        <button key={r.id} className="rezervation_card col_align" /*onClick={() => onOrderOpen(r.id)}*/>
-                            <div className="rezervation_main_info row_align">
-                                <p className="rezervation_id">ID: {r.id}</p>
-                                <p className="rezervation_time">Užrašyta: {formatter.format(new Date(r.appointmentTime))}</p>
+                    reservations.map(r => (
+                        <button key={r.id} className="reservation_card col_align" onClick={() => onReservationOpen(r.id)}>
+                            <div className="reservation_main_info row_align">
+                                <p className="reservation_id">ID: {r.id}</p>
+                                <p className="reservation_time">Užrašyta: {formatter.format(new Date(r.appointmentTime))}</p>
                             </div>
-                            <p className="rezervation_created">Sukurtas: {formatter.format(new Date(r.createdAt))}</p>
+                            <p className="reservation_created">Sukurtas: {formatter.format(new Date(r.createdAt))}</p>
                             {r.closedAt!=="" && (
-                                <p className="rezervation_closed">Uždarytas: {formatter.format(new Date(r.closedAt))}</p>
+                                <p className="reservation_closed">Uždarytas: {formatter.format(new Date(r.closedAt))}</p>
                             )}
-                            <div className="rezervation_info row_align">
-                                <p className="rezervation_status">Būklė: {r.status}</p>
-                                <p className="rezervation_total">Iš viso: {r.total.toFixed(2)}€</p>
+                            <div className="reservation_info row_align">
+                                <p className="reservation_status">Būklė: {r.status}</p>
+                                <p className="reservation_total">Iš viso: {r.total.toFixed(2)}€</p>
                             </div>
                         </button>
                     ))
