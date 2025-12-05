@@ -110,13 +110,13 @@ function App(){
     const newErrors={}
 
     if(!loginInput.trim())
-      newErrors.loginInput="Enter username or email"
+      newErrors.loginInput="Įveskite vartotojo vardą arba email"
     if(!loginPassword.trim())
-      newErrors.loginPassword="Enter password"
+      newErrors.loginPassword="Įveskite slaptažodį"
 
     if(Object.keys(newErrors).length>0){
       setErrors(newErrors)
-      toast.error("Please fix the highlighted fields")
+      toast.error("Prašau pataisikit paryškintas vietas")
       return
     }
 
@@ -125,15 +125,15 @@ function App(){
     )
 
     if(!user){
-      toast.error("Invalid username/email or password")
+      toast.error("Neteisingas vartotojo vardas/email arba slaptažodis")
       setErrors({
-        loginInput:"Incorrect credentials",
-        loginPassword:"Incorrect credentials"
+        loginInput:"Neteisingi prisijungimo duomenys",
+        loginPassword:"Neteisingi prisijungimo duomenys"
       })
       return
     }
 
-    toast.success(`Welcome back, ${user.username}!`)
+    toast.success(`Sveiki sugriže, ${user.username}!`)
     setUser(user)
     const session={
       user,
@@ -160,23 +160,23 @@ function App(){
     const newErrors={}
 
     if(!regEmail.trim())
-      newErrors.regEmail="Enter email"
+      newErrors.regEmail="Įveskite Email"
     else if(!/\S+@\S+\.\S+/.test(regEmail))
-      newErrors.regEmail="Enter a valid email"
+      newErrors.regEmail="Įveskite veikianti Email"
     if(db.users.some(u => u.email===regEmail))
-      newErrors.regEmail="Email already in use"
+      newErrors.regEmail="Email jau naudojamas"
 
     if(regUsername.length<3)
-      newErrors.regUsername="Username must be at least 3 characters"
+      newErrors.regUsername="Vartotojo vardas turetu buti minimum 3 simboliai"
     if(db.users.some(u => u.username===regUsername))
-      newErrors.regUsername="Username already in use"
+      newErrors.regUsername="Vartotojo vardas jau naudojamas"
 
     if(regPassword.length<6)
-      newErrors.regPassword="Password must be at least 6 characters"
+      newErrors.regPassword="Slaptažodis turetu buti minimum 6 simboliai"
 
     if(Object.keys(newErrors).length>0){
       setErrors(newErrors)
-      toast.error("Please fix the highlighted fields")
+      toast.error("Prašau pataisikit paryškintas vietas")
       return
     }
 
@@ -190,7 +190,7 @@ function App(){
     db.users.push(newUser)
     saveDb(db)
 
-    toast.success(`Account created! Welcome, ${newUser.username}!`)
+    toast.success(`Paskira sukurta! Sveiki atvike, ${newUser.username}!`)
     setUser(newUser)
     const session={
       user: newUser,

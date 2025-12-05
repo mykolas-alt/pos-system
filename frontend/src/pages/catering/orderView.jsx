@@ -340,10 +340,8 @@ export const OrderView=({user,business}) => {
         const db=getDb()
 
         const orderData=db.orders.find(o => o.id===Number(orderId))
-        if(!orderData){
-            console.log(orderData)
+        if(!orderData)
             return
-        }
 
         orderData.comment=comment
 
@@ -503,13 +501,13 @@ export const OrderView=({user,business}) => {
                             <button className="order_comment_button" onClick={() => openComment()}>Pastaba</button>
                             {isCommentVisible && (
                                 <div className="order_comment_panel col_align">
-                                    <button className="order_comment_close_button" onClick={() => setIsCommentVisible(false)}>X</button>
+                                    <button className="comment_close_button" onClick={() => setIsCommentVisible(false)}>X</button>
                                     {order.status!=="Atvira" ? (
-                                        <textarea className="order_comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
+                                        <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
                                     ):(
                                         <>
-                                            <textarea className="order_comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
-                                            <button className="order_comment_save_button" onClick={() => saveComment()}>Išsaugoti</button>
+                                            <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
+                                            <button className="comment_save_button" onClick={() => saveComment()}>Išsaugoti</button>
                                         </>
                                     )}
                                 </div>
