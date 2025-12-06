@@ -652,7 +652,7 @@ export const OrderView=({user,business}) => {
                                         ))}
                                     </div>
                                 )}
-                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Grinais</button>
+                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Grynais</button>
                                 <button className="payment_panel_button" onClick={() => confirmPayment()}>Kortėle</button>
                                 <button className="payment_panel_button" onClick={() => openSplitCheck()}>Sąskaitos padalijimas</button>
                             </div>
