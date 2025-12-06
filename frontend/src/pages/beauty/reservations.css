@@ -212,6 +212,21 @@
         transform:scale(1.05);
     }
 
+#service_card_name{
+    font-size:1.4rem;
+    margin:0.2rem auto auto 0.2rem;
+}
+
+#service_card_specialist{
+    font-size:1.2rem;
+    margin:0.1rem 0.2rem 0.1rem 0.1rem;
+}
+
+#service_card_price{
+    font-size:1.2rem;
+    margin:0.1rem 0.1rem 0.1rem 0.2rem;
+}
+
 .create_reservation_time_table_controls{
     display:flex;
     align-items:center;
@@ -233,11 +248,98 @@
     transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
 }
 
+.create_reservation_date_picker{
+    display:flex;
+    flex-direction:row;
+    margin:0.5rem auto 0.5rem auto;
+}
+
+.create_reservation_date_picker_input{
+    padding:6px;
+    font-size:1rem;
+    border:2px solid var(--detail-color);
+    border-radius:6px;
+    margin-left:0.5rem;
+}
+
+.create_reservation_time_table{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    width:100%;
+}
+
+.create_reservation_time_table .time_row{
+    display:grid;
+    grid-template-columns:60px 1fr;
+    align-items:center;
+}
+
+.time_row .time_hour{
+    font-size:1.2rem;
+}
+
+.time_row .time_minutes{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:4px;
+}
+
+.time_minutes .time_slot{
+    border:1px solid var(--detail-color);
+    border-radius:4px;
+    cursor:pointer;
+    padding:6px;
+    text-align:center;
+    user-select:none;
+}
+
+.time_slot.free{
+    background-color:var(--free-time-color);
+}
+
+.time_slot.taken{
+    background-color:var(--taken-time-color);
+    cursor:not-allowed;
+}
+
+.time_slot.yourTaken{
+    background-color:var(--your-taken-time-color);
+}
+
+.time_slot.selected{
+    background-color:var(--selected-time-color);
+}
+
 .create_reservation_controls{
     margin:1rem 1rem 1rem auto;
     width:16%;
     height:28rem;
 }
+
+.create_reservation_load_button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--tertiary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:15px 16px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem auto 0.5rem auto;
+    width:10rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+    
+    .create_reservation_comment_button:hover{
+        background-color:var(--tertiary-background-color-hover);
+        transform:scale(1.05);
+    }
 
 .create_reservation_comment_button{
     display:flex;
@@ -277,7 +379,7 @@
     transition:background-color 0.3s ease,border-color 0.3s ease;
 }
 
-.create_reservation_button{
+.create_reservation_cancel_button{
     display:flex;
     align-items:center;
     justify-content:center;
@@ -297,10 +399,56 @@
     transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
     
+    .create_reservation_cancel_button:hover{
+        background-color:var(--tertiary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+.create_reservation_button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--tertiary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:15px 16px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0,5rem auto 0.5rem auto;
+    width:10rem;
+    height:3rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+    
     .create_reservation_button:hover{
         background-color:var(--tertiary-background-color-hover);
         transform:scale(1.05);
     }
+
+.load_reservations{
+    z-index:110 !important;
+}
+
+.reservations_selector{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(25rem,1fr));
+    gap:2px;
+    justify-self:center;
+    background-color:var(--primary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:16px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    position:absolute;
+    padding:15px 16px;
+    top:3rem;
+    width:90%;
+    z-index:110;
+    transition:background-color 0.3s ease,border-color 0.3s ease;
+}
 
 /* width */
 ::-webkit-scrollbar{

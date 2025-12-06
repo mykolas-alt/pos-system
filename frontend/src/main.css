@@ -13,6 +13,10 @@
   --detail-color:#296cd1;
   --focus-color:#1b4c94;
   --error-text-color:#ff0000;
+  --free-time-color:#8c8c8c;
+  --taken-time-color:#ff5c5c;
+  --your-taken-time-color:#5094fa;
+  --selected-time-color:#5cff6a;
   
   color-scheme:light dark;
   color:var(--text-color);
@@ -35,6 +39,10 @@
   --detail-color:#15458c;
   --focus-color:#1a5cbf;
   --error-text-color:#dc3636;
+  --free-time-color:#595959;
+  --taken-time-color:#d12a2a;
+  --your-taken-time-color:#1457bb;
+  --selected-time-color:#3bd12a;
 }
 
 html{

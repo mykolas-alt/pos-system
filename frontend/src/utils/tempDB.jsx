@@ -52,11 +52,12 @@ const DEFAULT_DB={
         {id:3,businessId:1,name:"Greitas Maistas"}
     ],
     reservations:[
-        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),customerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Atvira",createdAt:new Date(2025,11,2,17,42,51),closedAt:"",comment:""}
+        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),customerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Atvira",createdAt:new Date(2025,11,2,17,42,51),closedAt:"",comment:""},
+        {id:2,businessId:2,serviceId:1,appointmentTime:new Date(2025,11,9,12,30,0),customerName:"Marcy Wu",customerPhone:"+370 249 25756",status:"Atvira",createdAt:new Date(2025,11,2,15,12,45),closedAt:"",comment:""}
     ],
     services:[
-        {id:1,businessId:2,userId:4,name:"Masažas",duration:"30 min",opensAt:"10:00",closesAt:"18:00",price:19.99},
-        {id:2,businessId:2,userId:4,name:"Plaukų Kirpimas",duration:"60 min",opensAt:"11:00",closesAt:"18:00",price:15.99}
+        {id:1,businessId:2,userId:4,name:"Masažas",durationMin:30,opensAt:"10:00",closesAt:"18:00",price:19.99},
+        {id:2,businessId:2,userId:4,name:"Plaukų Kirpimas",durationMin:60,opensAt:"11:00",closesAt:"18:00",price:15.99}
     ]
 }
 

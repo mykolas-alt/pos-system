@@ -16,15 +16,15 @@ export const Reservations=({user,business,onReservationOpen}) => {
     const [services,setServices]=useState([])
     const [selectedService,setSelectedService]=useState(null)
     const [comment,setComment]=useState("")
+    const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0])
+    const [timeSlots,setTimeSlots]=useState([])
+    const [selectedTimeSlot,setSelectedTimeSlot]=useState(null)
 
     const [isPanelVisible,setIsPanelVisible]=useState(false)
     const [isCommentVisible,setIsCommentVisible]=useState(false)
+    const [isLoadingDataVisible,setIsLoadingDataVisible]=useState(false)
 
     const [errors,setErrors]=useState([])
-
-    const [isResModalOpen,setIsResModalOpen]=useState(false)
-    const [resForm,setResForm]=useState({customerName:'',customerPhone:'',serviceId:'',appointmentTime:''})
-    const [servicesList,setServicesList]=useState([])
 
     const formatter=new Intl.DateTimeFormat("lt-LT",{
         year:"numeric",
@@ -42,6 +42,11 @@ export const Reservations=({user,business,onReservationOpen}) => {
 
         loadReservations()
     },[user])
+
+    useEffect(() => {
+        if(isPanelVisible)
+            generateTimeTable()
+    },[selectedService,selectedDate,selectedTimeSlot])
 
     function loadReservations(){
         const db=getDb()
@@ -65,7 +70,12 @@ export const Reservations=({user,business,onReservationOpen}) => {
     function openReservationCreatePanel(){
         const db=getDb()
         setErrors([])
+        setCustomerName("")
+        setCustomerPhone("")
+        setTimeSlots([])
         setSelectedService(null)
+        setSelectedDate(new Date().toISOString().split("T")[0])
+        setSelectedTimeSlot(null)
 
         const nextId=getNextId(db.reservations)
         const newReservationData={
@@ -88,6 +98,113 @@ export const Reservations=({user,business,onReservationOpen}) => {
         setIsPanelVisible(true)
     }
 
+    function generateTimeTable(){
+        if(selectedService===null)
+            return
+
+        const db=getDb()
+        const service=db.services.find(s => s.id===selectedService)
+
+        const openHour=parseInt(service.opensAt.split(":")[0])
+        const closeHour=parseInt(service.closesAt.split(":")[0])
+
+        const slots=[]
+        for(let hour=openHour;hour<closeHour;hour++){
+            const minuteSlots=[]
+            for(let m=0;m<60;m+=10){
+                minuteSlots.push({
+                    hour,
+                    minute:m,
+                    taken:false
+                })
+            }
+            slots.push({hour,minuteSlots})
+        }
+
+        const markedSlots=markReservedSlots(slots,new Date(selectedDate))
+
+        setTimeSlots(markedSlots)
+    }
+
+    function markReservedSlots(slots,selectedDate){
+        const db=getDb()
+        const reservations=db.reservations.filter(r => r.businessId===business.id)
+
+        reservations
+            .filter(r => new Date(r.appointmentTime).toDateString()===selectedDate.toDateString())
+            .forEach(r => {
+                const service=db.services.find(s => s.id===r.serviceId)
+                const start=new Date(r.appointmentTime)
+                const reservedUntil=new Date(start.getTime()+service.durationMin*60000)
+
+                slots.forEach(row => {
+                    row.minuteSlots.forEach(slot => {
+                        const slotDate=new Date(selectedDate)
+                        slotDate.setHours(row.hour,slot.minute)
+
+                        if(slotDate>=start && slotDate<reservedUntil)
+                            slot.taken=true
+                    })
+                })
+            })
+
+        return slots
+    }
+
+    function handleSelectedTime(hour,minute,isTaken){
+        if(isTaken)
+            return
+
+        if(!selectedService){
+            toast.error("Pirma pasirinkite paslaugą")
+            return
+        }
+
+        const db=getDb()
+        const service=db.services.find(s => s.id===selectedService)
+        const duration=service.durationMin
+        const closedAt=parseInt(service.closesAt.split(":")[0])
+
+        const startTime=new Date(selectedDate)
+        startTime.setHours(hour,minute,0,0)
+
+        const endTime=new Date(startTime.getTime()+duration*60000)
+
+        const closingTime=new Date(selectedDate)
+        closingTime.setHours(closedAt,0,0,0);
+
+        if(endTime>closingTime){
+            toast.error("Paslauga per ilga šiam laikui")
+            return
+        }
+
+        const reservations=db.reservations.filter(r => r.businessId===business.id)
+
+        for(const r of reservations){
+            const rService=db.services.find(s => s.id===r.serviceId)
+            const rStart=new Date(r.appointmentTime)
+            const rEnd=new Date(rStart.getTime()+rService.durationMin*60000)
+
+            if(rStart.toDateString()!==startTime.toDateString())
+                continue
+
+            if(startTime<rEnd && endTime>rStart){
+                toast.error("Šis laikas jau rezervuotas")
+                return
+            }
+        }
+
+        const interval={
+            start:startTime.getTime(),
+            end:endTime.getTime(),
+            hour,
+            minute
+        }
+
+        setSelectedTimeSlot(interval)
+        newReservation.appointmentTime=startTime.toISOString()
+    }
+
     function openComment(){
         const reservationComment=newReservation.comment
 
@@ -101,11 +218,20 @@ export const Reservations=({user,business,onReservationOpen}) => {
         setIsCommentVisible(false)
     }
 
+    function loadReservationDataToNew(reservationId){
+        const db=getDb()
+        const selectedReservation=db.reservations.find(r => r.id===reservationId)
+
+        setCustomerName(selectedReservation.customerName)
+        setCustomerPhone(selectedReservation.customerPhone)
+
+        setIsLoadingDataVisible(false)
+    }
+
     function createReservation(){
+        setErrors([])
         const db=getDb()
         const newErrors={}
-
-        console.log(newReservation)
 
         if(!customerName.trim())
           newErrors.customerName="Įveskite kliento vardą ir pavarde"
@@ -113,6 +239,8 @@ export const Reservations=({user,business,onReservationOpen}) => {
           newErrors.customerPhone="Įveskite kliento telefono numerį"
         if(selectedService===null)
           newErrors.selectedService="Pasirinkite paslaugą"
+        if(!selectedTimeSlot)
+          newErrors.selectedTimeSlot="Pasirinkite laiką"
 
         if(Object.keys(newErrors).length>0){
           setErrors(newErrors)
@@ -120,67 +248,17 @@ export const Reservations=({user,business,onReservationOpen}) => {
           return
         }
 
+        newReservation.serviceId=selectedService
         newReservation.customerName=customerName
         newReservation.customerPhone=customerPhone
+        newReservation.createdAt=new Date().toISOString()
 
-        console.log(newReservation)
+        db.reservations.push(newReservation)
 
-        //saveDb(db)
-        //onReservationOpen(nextId)
-    }
-
-    function handleCreateReservation(){
-        if(!business){
-            alert('Nėra verslo informacijos')
-            return
-        }
-
-        const db = getDb()
-        const services = (db.services || []).filter(s => s.businessId===business.id)
-        setServicesList(services)
-        setResForm(prev => ({
-            ...prev,
-            serviceId: services.length>0 ? String(services[0].id) : ''
-        }))
-        setIsResModalOpen(true)
-    }
-
-    function handleResChange(e){
-        const {name,value} = e.target
-        setResForm(prev => ({...prev,[name]:value}))
-    }
-
-    function handleSubmitReservation(e){
-        e.preventDefault()
-        if(!business){
-            alert('Nėra verslo informacijos')
-            return
-        }
-
-        const db = getDb()
-        const nextId = getNextId(db.reservations || [])
-        const newRes = {
-            id: nextId,
-            businessId: business.id,
-            serviceId: resForm.serviceId ? Number(resForm.serviceId) : null,
-            appointmentTime: resForm.appointmentTime ? new Date(resForm.appointmentTime) : null,
-            customerName: resForm.customerName,
-            customerPhone: resForm.customerPhone,
-            status: "Atvira",
-            createdAt: new Date(),
-            closedAt: ""
-        }
-
-        db.reservations = db.reservations || []
-        db.reservations.push(newRes)
         saveDb(db)
-        const service = (db.services || []).find(s => s.id === newRes.serviceId)
-        const serviceName = service ? service.name : 'Nėra'
-        const timeStr = newRes.appointmentTime ? new Date(newRes.appointmentTime).toLocaleString() : 'Nenurodytas'
-        const message = `SMS žinutė išsiųsta\nRezervacijos ID: ${newRes.id}\nVardas: ${newRes.customerName}\nTelefonas: ${newRes.customerPhone}\nPaslauga: ${serviceName}\nLaikas: ${timeStr}`
-        alert(message)
-        setIsResModalOpen(false)
-        setResForm({customerName:'',customerPhone:'',serviceId:'',appointmentTime:''})
+
+        toast.success(`SMS žinutė išsiųsta\nRezervacijos ID: ${newReservation.id}\nVardas: ${newReservation.customerName}\nTelefonas: ${newReservation.customerPhone}\nPaslauga: ${db.services.find(s => s.id===newReservation.serviceId).name}\nLaikas: ${formatter.format(new Date(newReservation.appointmentTime))}`)
+        onReservationOpen(newReservation.id)
     }
 
     return(
@@ -235,7 +313,7 @@ export const Reservations=({user,business,onReservationOpen}) => {
                                     <p id="services_not_found">Nerasta paslaugų</p>
                                 ):(
                                     services.map(s => (
-                                        <button key={s.id} className={"service_card col_align"+(selectedService===s.id ? " selected":"")} onClick={() => setSelectedService(s.id)}>
+                                        <button key={s.id} className={"service_card col_align"+(selectedService===s.id ? " selected":"")} onClick={() => {setSelectedTimeSlot(null);setSelectedService(s.id)}}>
                                             <div id="service_card_name">{s.name}</div>
                                             <div className="row_align">
                                                 <div id="service_card_specialist">{getDb().users.find(u => u.id===s.userId).name}</div>
@@ -252,11 +330,44 @@ export const Reservations=({user,business,onReservationOpen}) => {
                             )}
                         </div>
                         <div className="create_reservation_time_table_controls col_align">
-                            <p>Calendar (Input date)</p>
-                            <p>Time Table</p>
-                            <p>Appointment Time</p>
+                            <div className="create_reservation_date_picker">
+                                <label>Pasirinkite datą:</label>
+                                <input className="create_reservation_date_picker_input" type="date" value={selectedDate} onChange={e => {setSelectedTimeSlot(null);setSelectedDate(e.target.value)}}/>
+                            </div>
+                            <div className="create_reservation_time_table">
+                                {timeSlots.length===0 ? (
+                                    <></>
+                                ):(
+                                    timeSlots.map(row => (
+                                        <div key={row.hour} className="time_row">
+                                            <div className="time_hour">{row.hour}:00</div>
+                                            <div className="time_minutes">
+                                                {row.minuteSlots.map(slot => (
+                                                    <div
+                                                        key={slot.minute}
+                                                        className={
+                                                            `time_slot
+                                                            ${slot.taken ? "taken":"free"}
+                                                            ${selectedTimeSlot &&
+                                                                (() => {
+                                                                    const slotTime=new Date(selectedDate)
+                                                                    slotTime.setHours(row.hour,slot.minute,0,0)
+                                                                    const t=slotTime.getTime()
+                                                                    return t>=selectedTimeSlot.start && t<selectedTimeSlot.end ? "selected":""
+                                                                })()
+                                                            }`}
+                                                        onClick={() => handleSelectedTime(row.hour,slot.minute,slot.taken)}>
+                                                        {slot.minute.toString().padStart(2,"0")}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                         <div className="create_reservation_controls col_align">
+                            <button className="create_reservation_load_button" onClick={() => setIsLoadingDataVisible(true)}>Duomenis iš kitos rezervacijos </button>
                             <button className="create_reservation_comment_button" onClick={() => openComment()}>Pastaba</button>
                             {isCommentVisible && (
                                 <div className="new_reservation_comment_panel col_align">
@@ -265,45 +376,30 @@ export const Reservations=({user,business,onReservationOpen}) => {
                                     <button className="comment_save_button" onClick={() => saveComment()}>Išsaugoti</button>
                                 </div>
                             )}
+                            <button className="create_reservation_cancel_button" onClick={() => setIsPanelVisible(false)}>Atšaukti</button>
                             <button className="create_reservation_button" onClick={() => createReservation()}>Sukurti</button>
                         </div>
+                    </div>
+                </>
+            )}
+            {isLoadingDataVisible && (
+                <>
+                    <div id="transparent_panel" className="load_reservations" onClick={() => setIsLoadingDataVisible(false)}/>
+                    <div className="reservations_selector">
+                        {reservations.length===0 ? (
+                            <p id="reservation_card_not_found">Nerasta rezervacijų</p>
+                        ):(
+                            reservations.map(r => (
+                                <button key={r.id} className="reservation_card col_align" onClick={() => loadReservationDataToNew(r.id)}>
+                                    <p className="reservation_id">ID: {r.id}</p>
+                                    <p className="reservation_created">Kliento vardas: {r.customerName}</p>
+                                    <p className="reservation_created">Kliento telefonas: {r.customerPhone}</p>
+                                </button>
+                            ))
+                        )}
                     </div>
                 </>
             )}
         </div>
     )
 }
-
-/*{isResModalOpen && (
-                <div className="modal_overlay" style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}}>
-                    <div className="modal" style={{background:'#fff',padding:20,borderRadius:6,width:400,maxWidth:'95%'}}>
-                        <h3>Sukurti rezervaciją - {business?.name || ''}</h3>
-                        <form onSubmit={handleSubmitReservation}>
-                            <div style={{marginBottom:8}}>
-                                <label>Vardas:<br/>
-                                    <input name="customerName" value={resForm.customerName} onChange={handleResChange} required style={{width:'100%'}}/>
-                                </label>
-                            </div>
-                            <div style={{marginBottom:8}}>
-                                <label>Telefonas:<br/>
-                                    <input name="customerPhone" value={resForm.customerPhone} onChange={handleResChange} required style={{width:'100%'}}/>
-                                </label>
-                            </div>
-                            <div style={{marginBottom:8}}>
-                                <label>Paslauga:<br/>
-                                    <input name="serviceId" value={resForm.serviceId} onChange={handleResChange} required style={{width:'100%'}}/>
-                                </label>
-                            </div>
-                            <div style={{marginBottom:8}}>
-                                <label>Laikas:<br/>
-                                    <input name="appointmentTime" type="datetime-local" value={resForm.appointmentTime} onChange={handleResChange} required style={{width:'100%'}}/>
-                                </label>
-                            </div>
-                            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                                <button type="button" onClick={() => setIsResModalOpen(false)}>Atšaukti</button>
-                                <button type="submit">Sukurti</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}*/
