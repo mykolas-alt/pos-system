@@ -12,10 +12,11 @@ const DEFAULT_DB={
         {id:4,email:"alexgreen@gmail.com",username:"AlexGreen",password:"TestUser123",businessId:2,name:"Alex Green",role:"Darbuotojas"}
     ],
     orders:[
-        {id:1,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,30,15,8,54),closedAt:new Date(2025,10,30,15,29,38),comment:""},
-        {id:2,businessId:1,status:"Uždaryta",createdAt:new Date(2025,10,30,15,10,11),closedAt:new Date(2025,10,30,15,12,43),comment:""},
-        {id:3,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,30,15,11,27),closedAt:new Date(2025,10,30,15,19,21),comment:""},
-        {id:4,businessId:1,status:"Atvira",createdAt:new Date(2025,10,30,15,14,20),closedAt:"",comment:""}
+        {id:1,businessId:1,status:"Apmokėta",createdAt:new Date(2025,5,26,15,7,54),closedAt:new Date(2025,5,26,15,29,38),comment:""},
+        {id:2,businessId:1,status:"Uždaryta",createdAt:new Date(2025,10,25,15,10,11),closedAt:new Date(2025,11,25,15,12,43),comment:""},
+        {id:3,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,20,15,11,27),closedAt:new Date(2025,11,20,15,19,21),comment:""},
+        {id:4,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,21,15,11,27),closedAt:new Date(2025,11,21,15,19,21),comment:""},
+        {id:5,businessId:1,status:"Atvira",createdAt:new Date(2025,10,30,15,14,20),closedAt:"",comment:""}
     ],
     orderProducts:[
         {id:1,orderId:1,productId:1,quantity:2},
