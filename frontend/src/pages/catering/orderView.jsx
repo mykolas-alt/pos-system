@@ -637,7 +637,11 @@ export const OrderView=({user,business}) => {
                     </div>
                     {isPaymentPanelVisible && (
                         <>
-                            <div id="transparent_panel" onClick={() => setIsPaymentPanelVisible(false)}/>
+                            {isSplitCheck ? (
+                                <div id="transparent_panel"/>
+                            ):(
+                                <div id="transparent_panel" onClick={() => setIsPaymentPanelVisible(false)}/>
+                            )}
                             <div id="payment_panel" className="col_align">
                                 {isSplitCheck && (
                                     <div id="payment_product_list" className="col_align">
