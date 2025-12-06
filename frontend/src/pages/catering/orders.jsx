@@ -33,15 +33,45 @@ export const Orders=({user,business,onOrderOpen}) => {
             .filter(o => o.businessId===business.id)
 
         ordersData.forEach(order => {
-            const orderProducts=db.orderProducts.filter(op => op.orderId===order.id)
-            
+            const orderProductsData=db.orderProducts.filter(op => op.orderId===order.id)
             let total=0
-            orderProducts.forEach(ordProd => {
-                const products=db.products.filter(p => p.id===ordProd.productId)
-                products.forEach(product => {
-                    total=product.price*ordProd.quantity+total
+            orderProductsData.forEach(orderProduct => {
+                const product=db.products.find(p => p.id===orderProduct.productId)
+                if(!product)
+                    return
+
+                const selectedOptionRows=db.orderProductSelectedOptions.filter(
+                    o => o.orderProductId===orderProduct.id
+                )
+
+                let selectedOptions={}
+                selectedOptionRows.forEach(row => {
+                    const group=db.productOptionGroups.find(g => g.id===row.productOptionGroupId)
+                    if(!group)
+                        return
+
+                    if(group.type==="slider" || group.type==="single"){
+                        selectedOptions[group.id]=row.value
+                    }else if(group.type==="multi"){
+                        if(!selectedOptions[group.id])
+                            selectedOptions[group.id]=[]
+                        if(Array.isArray(row.value)){
+                            selectedOptions[group.id]=row.value
+                        }else{
+                            selectedOptions[group.id].push(row.value)
+                        }
+                    }
                 })
-            })
+
+                const productOptions=db.productOptionGroups.filter(g => g.productId===product.id).map(group => {
+                    const selections=db.productOptionValues.filter(pov => pov.productOptionGroupId===group.id)
+                    return {...group,selections}
+                })
+
+                const priceWithOptions=recalcPrice(product,productOptions,selectedOptions,orderProduct.quantity)
+
+                total+=priceWithOptions
+            });
 
             order.total=total!==undefined ? total:0
         });
@@ -51,6 +81,37 @@ export const Orders=({user,business,onOrderOpen}) => {
 
     function getNextId(arr){
         return arr.reduce((m,it) => Math.max(m,(it && it.id) || 0),0)+1
+    }
+
+    function recalcPrice(product,productOptions,selectedOptions,quantity){
+        let price=product.price
+
+        const db=getDb()
+
+        productOptions.forEach(group => {
+            const value=selectedOptions[group.id]
+
+            if(group.type==="single"){
+                if(value!=null){
+                    const opValue=db.productOptionValues.find(v => v.id===value)
+                    if(opValue)
+                        price+=opValue.priceDelta
+                }
+                return
+            }
+
+            if(group.type==="multi" && Array.isArray(value)){
+                value.forEach(vId => {
+                    const opValue=db.productOptionValues.find(v => v.id===vId)
+                    if(opValue)
+                        price+=opValue.priceDelta
+                })
+            }
+        })
+
+        price=price*quantity
+
+        return price
     }
 
     function createOrder(){

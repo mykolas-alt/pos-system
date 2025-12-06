@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from "react"
 import {useParams,useNavigate} from "react-router-dom"
+import {toast} from 'react-hot-toast'
 import "./orderView.css"
 
 import {getDb,saveDb} from "../../utils/tempDB"
@@ -24,11 +25,17 @@ export const OrderView=({user,business}) => {
     const [selectedProductQuantity,setSelectedProductQuantity]=useState(1)
     const [selectedOptions,setSelectedOptions]=useState({})
 
+    const [productsToPay,setProductsToPay]=useState([])
+    const [selectedProductsToPay,setSelectedProductsToPay]=useState([])
+
     const [isOrderLoading,setIsOrderLoading]=useState(true)
     const [isPanelVisible,setIsPanelVisible]=useState(false)
     const [isCommentVisible,setIsCommentVisible]=useState(false)
+    const [isPaymentPanelVisible,setIsPaymentPanelVisible]=useState(false)
+
     const [addingNewProduct,setAddingNewProduct]=useState(false)
     const [editingOrderProductId,setEditingOrderProductId]=useState(null)
+    const [isSplitCheck,setIsSplitCheck]=useState(false)
 
     const filteredProducts=products.filter(p => {
         const matchesSearch=p.name.toLowerCase().includes(search.toLowerCase())
@@ -68,16 +75,49 @@ export const OrderView=({user,business}) => {
         let total=0
         let quantity=0
         orderProductsData.forEach(orderProduct => {
-            const products=db.products.filter(p => p.id===orderProduct.productId)
-            products.forEach(product => {
-                orderContent.push({
-                    ...product,
-                    quantity:orderProduct.quantity,
-                    orderProductId:orderProduct.id
-                })
-                total=product.price*orderProduct.quantity+total
+            const product=db.products.find(p => p.id===orderProduct.productId)
+            if(!product)
+                return
+
+            const selectedOptionRows=db.orderProductSelectedOptions.filter(
+                o => o.orderProductId===orderProduct.id
+            )
+
+            let selectedOptions={}
+            selectedOptionRows.forEach(row => {
+                const group=db.productOptionGroups.find(g => g.id===row.productOptionGroupId)
+                if(!group)
+                    return
+
+                if(group.type==="slider" || group.type==="single"){
+                    selectedOptions[group.id]=row.value
+                }else if(group.type==="multi"){
+                    if(!selectedOptions[group.id])
+                        selectedOptions[group.id]=[]
+                    if(Array.isArray(row.value)){
+                        selectedOptions[group.id]=row.value
+                    }else{
+                        selectedOptions[group.id].push(row.value)
+                    }
+                }
             })
-            quantity=orderProduct.quantity+quantity
+
+            const productOptions=db.productOptionGroups.filter(g => g.productId===product.id).map(group => {
+                const selections=db.productOptionValues.filter(pov => pov.productOptionGroupId===group.id)
+                return {...group,selections}
+            })
+
+            const priceWithOptions=recalcPrice(product,productOptions,selectedOptions)
+
+            orderContent.push({
+                ...product,
+                quantity:orderProduct.quantity,
+                orderProductId:orderProduct.id,
+                priceWithOptions
+            })
+            
+            total+=priceWithOptions
+            quantity+=orderProduct.quantity
         });
 
         orderData.total=total!==undefined ? total:0
@@ -177,6 +217,37 @@ export const OrderView=({user,business}) => {
 
         setIsPanelVisible(true)
     }
+    
+    function openSplitCheck(){
+        setIsSplitCheck(true)
+        const db=getDb()
+
+        const orderProductsData=db.orderProducts.filter(op => op.orderId===Number(orderId))
+        let orderContent=[]
+        orderProductsData.forEach(orderProduct => {
+            const products=db.products.filter(p => p.id===orderProduct.productId)
+            products.forEach(product => {
+                orderContent.push({
+                    ...product,
+                    quantity:orderProduct.quantity,
+                    orderProductId:orderProduct.id,
+                    price:recalcPrice(product,
+                                    db.productOptionGroups.filter(g => g.productId === product.id).map(group => {
+                                        const selections = db.productOptionValues.filter(pov => pov.productOptionGroupId === group.id);
+                                        return {...group, selections};
+                                    }),
+                                    db.orderProductSelectedOptions.filter(o => o.orderProductId === orderProduct.id)
+                                    .reduce((acc,row) => {
+                                        acc[row.productOptionGroupId] = row.value;
+                                        return acc;
+                                    }, {}))
+                })
+            })
+        });
+        
+        setProductsToPay(orderContent)
+        setSelectedProductsToPay([])
+    }
 
     function openComment(){
         const db=getDb()
@@ -213,6 +284,10 @@ export const OrderView=({user,business}) => {
         })
     }
 
+    function toggleProductSelection(orderProductId){
+        setSelectedProductsToPay(prev => prev.includes(orderProductId) ? prev.filter(id => id!==orderProductId):[...prev,orderProductId])
+    }
+
     function changeQuantity(delta){
         setSelectedProductQuantity(prev => {
             let value=prev+delta;
@@ -240,7 +315,7 @@ export const OrderView=({user,business}) => {
                 return
             }
 
-            if(group.type==="multi"){
+            if(group.type==="multi" && Array.isArray(value)){
                 value.forEach(vId => {
                     const opValue=db.productOptionValues.find(v => v.id===vId)
                     if(opValue)
@@ -348,6 +423,47 @@ export const OrderView=({user,business}) => {
         saveDb(db)
         loadOrderData()
         setIsCommentVisible(false)
+    }
+
+    function confirmPayment(){
+        const db=getDb()
+        
+        if(isSplitCheck){
+            if(selectedProductsToPay.length===0){
+                toast.error("Pasirinkite bent vieną produktą")
+                return
+            }
+
+            const remainingProducts=productsToPay.filter(p => !selectedProductsToPay.includes(p.orderProductId))
+            setProductsToPay(remainingProducts)
+            setSelectedProductsToPay([])
+            toast.success("Apmokėta")
+
+            if(remainingProducts.length===0){
+                const existing=db.orders.find(o => o.id===Number(orderId))
+
+                if(existing){
+                    existing.status="Apmokėta"
+                    saveDb(db)
+                }
+            
+                setIsPaymentPanelVisible(false)
+                loadOrderData()
+            }
+        }else{
+            const existing=db.orders.find(o => o.id===Number(orderId))
+
+            if(!existing){
+                toast.error("Klaida: užsakymas nerasta")
+                return
+            }
+
+            existing.status="Apmokėta"
+
+            saveDb(db)
+            setIsPaymentPanelVisible(false)
+            loadOrderData()
+        }
     }
 
     return(
@@ -516,9 +632,28 @@ export const OrderView=({user,business}) => {
                         {order.status!=="Atvira" ? (
                             <></>
                         ):(
-                            <button className="payment_button">Apmokėti</button>
+                            <button className="payment_button" onClick={() => {setIsSplitCheck(false);setIsPaymentPanelVisible(true)}}>Apmokėti</button>
                         )}
                     </div>
+                    {isPaymentPanelVisible && (
+                        <>
+                            <div id="transparent_panel" onClick={() => setIsPaymentPanelVisible(false)}/>
+                            <div id="payment_panel" className="col_align">
+                                {isSplitCheck && (
+                                    <div id="payment_product_list" className="col_align">
+                                        {productsToPay.map(p => (
+                                            <div key={p.orderProductId} className={"payment_product_card row_align"+(selectedProductsToPay.includes(p.orderProductId) ? " selected":"")} onClick={() => toggleProductSelection(p.orderProductId)}>
+                                                {p.name} {p.price.toFixed(2)}€
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Grinais</button>
+                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Kortėle</button>
+                                <button className="payment_panel_button" onClick={() => openSplitCheck()}>Sąskaitos padalijimas</button>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
         </div>

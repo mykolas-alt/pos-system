@@ -386,6 +386,7 @@ export const Reservations=({user,business,onReservationOpen}) => {
                 <>
                     <div id="transparent_panel" className="load_reservations" onClick={() => setIsLoadingDataVisible(false)}/>
                     <div className="reservations_selector">
+                        <button className="comment_close_button" onClick={() => setIsLoadingDataVisible(false)}>X</button>
                         {reservations.length===0 ? (
                             <p id="reservation_card_not_found">Nerasta rezervacijų</p>
                         ):(

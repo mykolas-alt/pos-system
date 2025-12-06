@@ -533,6 +533,88 @@
         transform:scale(1.05);
     }
 
+#payment_panel{
+    justify-self:center;
+    background-color:var(--primary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:16px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    position:fixed;
+    top:3rem;
+    width:30rem;
+    z-index:110;
+    transition:background-color 0.3s ease,border-color 0.3s ease;
+}
+
+.payment_panel_button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:5px 10px;
+    text-decoration:none;
+    font-size:1.8rem;
+    font-weight:bold;
+    margin:1rem auto 1rem auto;
+    width:85%;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .payment_panel_button:hover{
+        background-color:var(--secondary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+#payment_product_list{
+    display:flex;
+    align-items:center;
+    justify-content:left;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    padding:5px 10px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem auto 0rem auto;
+    width:80%;
+    height:16rem;
+    overflow-x:hidden;
+    overflow-y:scroll;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
+}
+
+.payment_product_card{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--tertiary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:5px 10px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem auto 0rem auto;
+    width:90%;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .payment_product_card.selected{
+        background-color:var(--tertiary-background-color-hover);
+        transform:scale(1.05);
+    }
+
 /* width */
 ::-webkit-scrollbar{
     width:8px;

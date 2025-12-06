@@ -34,13 +34,20 @@ const DEFAULT_DB={
     productOptionGroups:[
         {id:1,productId:1,name:"Saldumas",type:"slider",minSelect:0,maxSelect:5},
         {id:2,productId:1,name:"Pienas",type:"single",minSelect:1,maxSelect:1},
-        {id:3,productId:1,name:"Papildai",type:"multi",minSelect:0,maxSelect:1}
+        {id:3,productId:1,name:"Papildai",type:"multi",minSelect:0,maxSelect:1},
+        {id:4,productId:2,name:"Saldumas",type:"slider",minSelect:0,maxSelect:5},
+        {id:5,productId:2,name:"Pienas",type:"single",minSelect:1,maxSelect:1},
+        {id:6,productId:2,name:"Papildai",type:"multi",minSelect:0,maxSelect:1}
     ],
     productOptionValues:[
         {id:1,productOptionGroupId:2,name:"Karvės Pienas",priceDelta:0},
         {id:2,productOptionGroupId:2,name:"Sojų Pienas",priceDelta:0.5},
         {id:3,productOptionGroupId:3,name:"Šokolado Gabaliukai",priceDelta:0.75},
-        {id:4,productOptionGroupId:3,name:"Zefiras",priceDelta:0.6}
+        {id:4,productOptionGroupId:3,name:"Zefiras",priceDelta:0.6},
+        {id:5,productOptionGroupId:5,name:"Karvės Pienas",priceDelta:0},
+        {id:6,productOptionGroupId:5,name:"Sojų Pienas",priceDelta:0.5},
+        {id:7,productOptionGroupId:6,name:"Šokolado Gabaliukai",priceDelta:0.75},
+        {id:8,productOptionGroupId:6,name:"Zefiras",priceDelta:0.6}
     ],
     orderProductSelectedOptions:[
         {id:1,orderProductId:1,productOptionGroupId:1,value:3},
