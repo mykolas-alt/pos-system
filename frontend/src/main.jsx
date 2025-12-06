@@ -6,9 +6,11 @@ import App from './App.jsx'
 
 import {ThemeProvider} from './utils/themeContext.jsx'
 
+const base = import.meta.env.VITE_BASE_URL
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={base}>
       <ThemeProvider>
         <App/>
       </ThemeProvider>
