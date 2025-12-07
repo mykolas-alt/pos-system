@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Employee;
+import com.ffive.pos_system.model.POSUser;
 import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ProductRepository;
@@ -54,8 +55,17 @@ public class ProductServiceTest {
 
     @Test
     void testGetAllProducts() {
-        productService.getAllProducts();
+        UUID businessId = UUID.randomUUID();
+        productService.getAllProducts(POSUserDetails.builder()
+                .user(POSUser.builder()
+                        .employee(Employee.builder()
+                                .business(Business.builder()
+                                        .id(businessId)
+                                        .build())
+                                .build())
+                        .build())
+                .build());
 
-        verify(productRepository).findAll();
+        verify(productRepository).findAllByBusiness(businessId);
     }
 }

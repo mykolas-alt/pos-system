@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ffive.pos_system.dto.GUIProduct;
 import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.ProductService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @Operation(summary = "Create a new product")
     @PostMapping
     public String createProduct(@RequestBody Product product,
             @AuthenticationPrincipal POSUserDetails userDetails) {
@@ -37,6 +40,7 @@ public class ProductController {
         return "Product created";
     }
 
+    @Operation(summary = "Update an existing product")
     @PutMapping("/{productId}")
     public String updateProduct(@RequestBody Product product, @RequestParam UUID productId,
             @AuthenticationPrincipal POSUserDetails userDetails) {
@@ -46,8 +50,9 @@ public class ProductController {
         return "Product created";
     }
 
+    @Operation(summary = "Get all products for the authenticated user's business")
     @GetMapping
-    public List<Product> getProducts() {
-        return productService.getAllProducts();
+    public List<GUIProduct> getProducts(@AuthenticationPrincipal POSUserDetails userDetails) {
+        return productService.getAllProducts(userDetails);
     }
 }

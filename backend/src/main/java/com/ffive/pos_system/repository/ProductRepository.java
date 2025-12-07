@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.hibernate.cache.spi.support.AbstractReadWriteAccess.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,14 +13,14 @@ import com.ffive.pos_system.model.Product;
 public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query("""
             SELECT p FROM Product p
-            WHERE p.id = :itemId AND p.business.id = :businessId
+            WHERE p.id = :productId AND p.business.id = :businessId
             """)
-    Optional<Item> findByIdAndBusiness(@Param("itemId") UUID itemId,
+    Optional<Product> findByIdAndBusiness(@Param("productId") UUID productId,
             @Param("businessId") UUID businessId);
 
     @Query("""
             SELECT p FROM Product p
             WHERE p.business.id = :businessId
             """)
-    List<Item> findAllByBusiness(@Param("businessId") UUID businessId);
+    List<Product> findAllByBusiness(@Param("businessId") UUID businessId);
 }

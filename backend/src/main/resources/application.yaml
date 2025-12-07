@@ -1,7 +1,7 @@
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:posdb}
-    username: ${DB_USER:arturas}
+    username: ${DB_USER:pos_user}
     password: ${DB_PASSWORD:pos_user}
   jpa:
     hibernate:
