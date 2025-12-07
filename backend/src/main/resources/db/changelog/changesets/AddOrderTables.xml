@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addOrderTable" author="mykolas">
+        <createTable tableName="order">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="created_at" type="TIMESTAMP" />
+            <column name="closed_at" type="TIMESTAMP" />
+            <column name="status" type="SMALLINT" />
+            <column name="total" type="DECIMAL(10,2)" />
+            <column name="business_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_order_business"
+                    references="business(id)" />
+            </column>
+            <column name="employee_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_order_employee"
+                    references="employee(id)" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addOrderItemTable" author="mykolas">
+        <createTable tableName="order_item">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_orderitem_order"
+                    references="order(id)" />
+            </column>
+            <column name="product_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_orderitem_product"
+                    references="product(id)" />
+            </column>
+            <column name="quantity" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="product_name_snapshot" type="VARCHAR(255)" />
+            <column name="unit_price_snapshot" type="DECIMAL(10,2)" />
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
