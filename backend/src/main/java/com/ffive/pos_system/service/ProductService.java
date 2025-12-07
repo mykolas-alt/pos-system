@@ -34,7 +34,7 @@ public class ProductService {
     public Product createProduct(Product product, POSUserDetails userDetails) {
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
         Employee employee = EmployeeHelper.resolveEmployeeFromUserDetails(userDetails);
-        productCreateValidator.validate(product);
+        productCreateValidator.validate(product, null);
 
         // TODO: handler
         product.setBusiness(employee.getBusiness());
@@ -51,7 +51,7 @@ public class ProductService {
                 .ifPresent(oldProduct -> product.setBusiness(oldProduct.getBusiness()));
 
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
-        productCreateValidator.validate(product);
+        productCreateValidator.validate(product, null);
 
         return productRepository.save(product);
     }
@@ -73,6 +73,7 @@ public class ProductService {
                         .name(product.getName())
                         .price(product.getPrice())
                         .build())
+                .limit(100)
                 .toList();
     }
 }

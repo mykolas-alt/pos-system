@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ffive.pos_system.dto.AddProductToOrderRequest;
 import com.ffive.pos_system.dto.GUIOrder;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
+import com.ffive.pos_system.dto.ModifyOrderRequest;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.OrderService;
 
@@ -43,6 +44,31 @@ public class OrderController {
     @GetMapping
     public List<GUIOrder> getOrders(@AuthenticationPrincipal POSUserDetails userDetails) {
         return orderService.getAllOrders(userDetails);
+    }
+
+    @Operation(summary = "Complete an existing order")
+    @PostMapping("/{orderId}")
+    public ResponseEntity<Void> completeOrder(@AuthenticationPrincipal POSUserDetails userDetails,
+            @PathVariable UUID orderId) {
+        orderService.completeOrder(userDetails, orderId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Modify an existing order item")
+    @PutMapping("/{orderId}")
+    public ResponseEntity<Void> modifyOrder(@AuthenticationPrincipal POSUserDetails userDetails,
+            @PathVariable UUID orderId,
+            @RequestBody ModifyOrderRequest modificationRequest) {
+        orderService.modifyOrder(userDetails, orderId, modificationRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Cancel an existing order")
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<Void> cancelOrder(@AuthenticationPrincipal POSUserDetails userDetails,
+            @PathVariable UUID orderId) {
+        orderService.cancelOrder(userDetails, orderId);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Add product to an existing order")

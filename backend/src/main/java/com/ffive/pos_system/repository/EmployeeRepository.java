@@ -17,12 +17,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     // """)
     // Optional<Employee> findByIdAndBusiness(@Param("employeeId") UUID employeeId,
     // @Param("businessId") UUID businessId);
-    //
-    // @Query("""
-    // SELECT e FROM Employee e
-    // WHERE e.business.id = :businessId
-    // """)
-    // List<Employee> findAllByBusiness(@Param("businessId") UUID businessId);
+
+    @Query("""
+            SELECT e FROM Employee e
+            WHERE e.business.id = :businessId
+            """)
+    List<Employee> findAllByBusiness(@Param("businessId") UUID businessId);
     //
     // @Query("""
     // SELECT e FROM Employee e

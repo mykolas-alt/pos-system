@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -29,13 +30,15 @@ public class Order {
     @Schema(hidden = true)
     private UUID id;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
     private OrderStatus status;
 
-    private BigDecimal total;
+    private String note;
 
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)
@@ -44,4 +47,11 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+
+    // snapshot fields
+    private BigDecimal total;
+    private BigDecimal tip;
+
+    @Column(name = "service_charge")
+    private BigDecimal serviceCharge;
 }
