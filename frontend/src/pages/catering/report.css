@@ -1,0 +1,90 @@
+.report-container {
+	padding: 16px;
+}
+
+.report-title {
+	margin: 0 0 12px;
+}
+
+.report-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.filter-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: flex-end;
+}
+
+.filter-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 160px;
+}
+
+.filter-field label {
+	font-size: 14px;
+	color: #333;
+}
+
+.filter-field input,
+.filter-field select {
+	padding: 6px 8px;
+	border: 1px solid #d0d5dd;
+	border-radius: 4px;
+}
+
+.dark .filter-field label {
+	color: #f5f5f5;
+}
+
+.dark .filter-field input,
+.dark .filter-field select {
+	color: #f5f5f5;
+	background: #1f2933;
+	border-color: #475467;
+}
+
+.filter-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.report-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.report-table th,
+.report-table td {
+	padding: 8px;
+	text-align: left;
+}
+
+.report-head-row {
+	border-bottom: 2px solid #ddd;
+}
+
+.report-row {
+	border-bottom: 1px solid #eee;
+}
+
+.report-empty {
+	padding: 12px;
+}
+
+.report-total-row td {
+	padding: 8px;
+	font-weight: 700;
+	text-align: right;
+}
+
+.report-total-row td:nth-child(6) {
+	text-align: left;
+}
