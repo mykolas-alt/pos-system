@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.21.xsd">
+
+    <changeSet id="revinfo-seq" author="mykolas">
+        <createSequence sequenceName="revinfo_seq" startValue="1" incrementBy="50" />
+    </changeSet>
+
+    <changeSet id="revinfo-table" author="mykolas">
+        <createTable tableName="revinfo">
+            <column name="rev" type="INT">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="revtstmp" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="employee-aud" author="mykolas">
+        <createTable tableName="employee_aud">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="business_id" type="UUID" />
+            <column name="manager_id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="email" type="VARCHAR(255)" />
+            <column name="rev" type="INT">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="revtype" type="SMALLINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="business-aud" author="mykolas">
+        <createTable tableName="business_aud">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="owner_id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="address" type="VARCHAR(255)" />
+            <column name="contact_info" type="VARCHAR(255)" />
+            <column name="rev" type="INT">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="revtype" type="SMALLINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="product-aud" author="mykolas">
+        <createTable tableName="product_aud">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="business_id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="price" type="NUMERIC(19,2)" />
+            <column name="rev" type="INT">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="revtype" type="SMALLINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

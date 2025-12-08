@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addEmployeeTable" author="mykolas">
+        <createTable tableName="employee">
+
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="business_id" type="UUID" />
+
+            <column name="manager_id" type="UUID">
+                <constraints
+                    nullable="true"
+                    foreignKeyName="fk_employee_manager"
+                    referencedTableName="employee"
+                    referencedColumnNames="id" />
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="name_not_null" />
+            </column>
+
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="email_not_null" />
+            </column>
+
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
