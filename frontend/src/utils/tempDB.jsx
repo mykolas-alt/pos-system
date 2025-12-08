@@ -1,15 +1,20 @@
 const SESSION_KEY="dev_session_started"
 
 const DEFAULT_DB={
+    users:[
+        {id:1,email:"jonhdoe@gmail.com",username:"JonhDoe",password:"TestUser123"},
+        {id:2,email:"jonhsmith@gmail.com",username:"JonhSmith",password:"TestUser123"},
+        {id:3,email:"joshbrown@gmail.com",username:"JoshBrown",password:"TestUser123"},
+        {id:4,email:"alexgreen@gmail.com",username:"AlexGreen",password:"TestUser123"}
+    ],
     businesses:[
         {id:1,ownerId:1,type:"catering",name:"Test Catering",address:"123 Test St, Test City, TC 12345",contactInfo:"testcatering@gmail.com"},
         {id:2,ownerId:3,type:"beauty",name:"Test Beauty",address:"456 Test St, Test City, TC 12346",contactInfo:"testbeauty@gmail.com"}
     ],
-    users:[
-        {id:1,email:"jonhdoe@gmail.com",username:"JonhDoe",password:"TestUser123",businessId:1,name:"Jonh Doe",role:"Savininkas"},
-        {id:2,email:"jonhsmith@gmail.com",username:"JonhSmith",password:"TestUser123",businessId:null,name:"",role:""},
-        {id:3,email:"joshbrown@gmail.com",username:"JoshBrown",password:"TestUser123",businessId:2,name:"Josh Brown",role:"Savininkas"},
-        {id:4,email:"alexgreen@gmail.com",username:"AlexGreen",password:"TestUser123",businessId:2,name:"Alex Green",role:"Darbuotojas"}
+    employees:[
+        {id:1,userId:1,businessId:1,name:"Jonh Doe",role:"Savininkas"},
+        {id:2,userId:3,businessId:2,name:"Josh Brown",role:"Savininkas"},
+        {id:3,userId:4,businessId:2,name:"Alex Green",role:"Darbuotojas"}
     ],
     orders:[
         {id:1,businessId:1,status:"Apmokėta",createdAt:new Date(2025,5,26,15,7,54),closedAt:new Date(2025,5,26,15,29,38),comment:""},

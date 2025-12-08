@@ -3,9 +3,7 @@ import {useEffect,useState} from "react"
 import {Toaster,toast} from 'react-hot-toast'
 import './App.css'
 
-import {MainNav} from './components/navbars/mainNav.jsx'
-import {CateringNav} from './components/navbars/cateringNav.jsx'
-import {BeautyNav} from './components/navbars/beautyNav.jsx'
+import {NavBar} from './components/navbars/navBar.jsx'
 
 import {Main} from './pages/main.jsx'
 import {BusinessCreate} from './pages/businessCreate.jsx'
@@ -44,20 +42,11 @@ function App(){
   const [errors,setErrors]=useState([])
 
   const [isSessionLoading,setIsSessionLoading]=useState(true)
+
   const [user,setUser]=useState(null)
   const [userBusiness,setUserBusiness]=useState(null)
 
-  let NavBarToShow=MainNav
-  if(user){
-    if(location.pathname.includes("/catering/")){
-      NavBarToShow=CateringNav
-    }else if(location.pathname.includes("/beauty/")){
-      NavBarToShow=BeautyNav
-    }
-  }
-
   useEffect(() => {
-    const db=getDb()
     const saved=localStorage.getItem("session")
     if(!saved){
       navigate("/")
@@ -81,23 +70,34 @@ function App(){
       return
     }
 
-    setUser(session.user)
-    const business=getUserBusiness(session.user)
-    setUserBusiness(business)
+    const business=loadUserData(session)
 
     const correctPath=business ? `/${session.user.username}/${business.type}/${business.id}`:`/${session.user.username}`
 
-    if(location.pathname!==correctPath)
+    if(!location.pathname.includes(correctPath))
       navigate(correctPath)
 
     setIsSessionLoading(false)
   },[])
 
-  function getUserBusiness(user){
+  function loadUserData(session){
     const db=getDb()
 
-    const business=db.businesses.find(b => b.id===user.businessId)
-    return business || null
+    setUser(session.user)
+
+    let business=db.businesses.find(b => b.ownerId===session.user.id)
+    if(!business){
+      const employee=db.employees.find(e => e.userId===session.user.id)
+      
+      if(employee)
+        business=db.businesses.find(b => b.id===employee.businessId)
+      else
+        business=null
+    }
+
+    setUserBusiness(business)
+
+    return business
   }
 
   function resetErrors(){
@@ -134,22 +134,20 @@ function App(){
     }
 
     toast.success(`Sveiki sugriže, ${user.username}!`)
-    setUser(user)
     const session={
       user,
       expiresAt:Date.now()+30*60*1000
     }
     localStorage.setItem("session",JSON.stringify(session))
 
+    const business=loadUserData(session)
+
     setIsPanelVisible(false)
 
-    const business=getUserBusiness(user)
     if(!business){
       navigate(`/${user.username}`)
       return
     }
-
-    setUserBusiness(business)
 
     navigate(`/${user.username}/${business.type}/${business.id}`)
   }
@@ -226,11 +224,32 @@ function App(){
   return(
     <div id="page">
       {isSessionLoading ? (
-        <div className="loading_anim"/>
+        <div id="loading_anim"/>
       ):(
         <>
-          <Toaster position="top-right"/>
-          <NavBarToShow onLoginClick={() => setIsPanelVisible(true)} user={user} business={userBusiness} onLogout={() => handleLogOut()}/>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style:{
+                color:"var(--text-color)",
+                background:"var(--tertiary-background-color)",
+                border:"2px solid var(--detail-color)",
+                borderRadius:"10px",
+                boxShadow:"0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)",
+                padding:"12px 18px",
+                textDecoration:"none",
+                fontSize:"1.1rem",
+                transition:"background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease"
+              },
+
+              error:{
+                style:{
+                  border:"2px solid var(--error-text-color)"
+                }
+              }
+            }}
+          />
+          <NavBar onLoginClick={() => setIsPanelVisible(true)} user={user} business={userBusiness} onLogout={() => handleLogOut()}/>
           <div id="main_body">
             <Routes>
               <Route path='/' element={<Main/>}/>
@@ -248,14 +267,15 @@ function App(){
             <>
               <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
               <div id="login_panel">
+                <button id="close_button" onClick={() => setIsPanelVisible(false)}>X</button>
                 <div id="acc_options" className="row_align">
-                  <button className="acc_button" onClick={() => {resetErrors();setIsRegister(false)}}>Prisijungti</button>
-                  <button className="acc_button" onClick={() => {resetErrors();setIsRegister(true)}}>Registracija</button>
+                  <button id="acc_button" onClick={() => {resetErrors();setIsPasswordVisible(false);setIsRegister(false)}}>Prisijungti</button>
+                  <button id="acc_button" onClick={() => {resetErrors();setIsPasswordVisible(false);setIsRegister(true)}}>Registracija</button>
                 </div>
                 <hr/>
                 {isRegister ? (
                   <>
-                    <div className="acc_input_fields">
+                    <div id="acc_input_fields">
                       <input className={"acc_input_field "+(errors.regEmail ? "invalid":"")} type="text" placeholder="Email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} autoFocus/>
                       {errors.regEmail && (
                         <div className="error_text">
@@ -268,8 +288,8 @@ function App(){
                           {errors.regUsername}
                         </div>
                       )}
-                      <div className="password_wrapper">
-                        <input className={"acc_password_field "+(errors.regPassword ? "invalid":"")} type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
+                      <div className={"password_wrapper "+(errors.regPassword ? "invalid":"")}>
+                        <input className="acc_password_field" type={isPasswordVisible ? "text":"password"} placeholder="Slaptažodis" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
                         <button className="password_toggle_button" onClick={() => setIsPasswordVisible(prev => !prev)}>
                           {isPasswordVisible ? 
                             theme ? <img id="theme_icon" src={Visible_Light} alt="Visible Icon"/>:<img id="theme_icon" src={Visible_Dark} alt="Visible Icon"/>:
@@ -282,11 +302,11 @@ function App(){
                         </div>
                       )}
                     </div>
-                    <button className="acc_submit_button" onClick={handleRegister}>Registruotis</button>
+                    <button id="acc_submit_button" onClick={handleRegister}>Registruotis</button>
                   </>
                 ):(
                   <>
-                    <div className="acc_input_fields">
+                    <div id="acc_input_fields">
                       <input className={"acc_input_field "+(errors.loginInput ? "invalid":"")} type="text" placeholder="Vartotojo Vardas ar Email" value={loginInput} onChange={(e) => setLoginInput(e.target.value)} autoFocus/>
                       {errors.loginInput && (
                         <div className="error_text">
@@ -307,7 +327,7 @@ function App(){
                         </div>
                       )}
                     </div>
-                    <button className="acc_submit_button" onClick={handleLogin}>Prisijungti</button>
+                    <button id="acc_submit_button" onClick={handleLogin}>Prisijungti</button>
                   </>
                 )}
               </div>

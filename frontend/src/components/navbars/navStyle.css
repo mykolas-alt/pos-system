@@ -1,34 +1,16 @@
-#main_navbar{
+#navbar{
+  display:flex;
+  align-items:center;
+  flex-direction:row;
+  justify-content:flex-start;
+  box-sizing:border-box;
   background-color:var(--secondary-background-color);
   border-bottom:4px solid var(--detail-color);
   box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-  display:flex;
-  flex-direction:row;
-  justify-content:flex-start;
-  align-items:center;
-  width:100%;
   padding:1rem;
-  box-sizing:border-box;
+  width:100%;
   overflow:hidden;
   transition:background-color 0.3s ease,border-color 0.3s ease;
-}
-
-#home_icon{
-  width:2.5rem;
-  height:2.5rem;
-}
-
-#theme_icon{
-  width:2.5rem;
-  height:2.5rem;
-  margin-right:1rem;
-}
-
-.nav_item_positioning{
-  display:flex;
-  justify-content:flex-start;
-  align-items:center;
-  width:100%;
 }
 
 .nav_button{
@@ -55,30 +37,46 @@
     transform:scale(1.05);
   }
 
-
-.home_button{
-    margin-left:0.1rem;
-    margin-right:0.1rem;
+.nav_item_positioning{
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  width:100%;
 }
 
-.logo_icon{
+#home_button{
+  margin-left:0.1rem;
+  margin-right:0.1rem;
+}
+
+#home_icon{
+  width:2.5rem;
+  height:2.5rem;
+}
+
+#logo_icon{
     margin-top:-0.3rem;
     margin-left:2rem;
     margin-right:auto;
 }
 
-.nav_center_title{
+#nav_title{
   justify-self:center;
   font-weight:bold;
   font-size:1.5rem;
 }
 
-.theme_button{
+#theme_button{
     margin-left:auto;
     margin-right:0rem;
 }
 
-.account_button{
+#theme_icon{
+  width:2.5rem;
+  height:2.5rem;
+}
+
+#account_button{
     margin-left:1rem;
     margin-right:2rem;
 }
@@ -128,7 +126,11 @@
     transform:scale(1.05);
   }
 
-.business_nav_button{
+#logout_button{
+  margin:0.2rem 0.5rem;
+}
+
+#business_nav_button{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -149,7 +151,7 @@
   transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
 
-  .business_nav_button:hover{
+  #business_nav_button:hover{
     background-color:var(--tertiary-background-color-hover);
     transform:scale(1.05) translateY(-0.05rem);
   }
