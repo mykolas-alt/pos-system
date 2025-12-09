@@ -7,6 +7,7 @@ import {NavBar} from './components/navbars/navBar.jsx'
 
 import {Main} from './pages/main.jsx'
 import {BusinessCreate} from './pages/businessCreate.jsx'
+import {EmployeeCreate} from './pages/employeeCreate.jsx'
 import {Catering} from './pages/catering/main.jsx'
 import {Orders} from './pages/catering/orders.jsx'
 import {OrderView} from './pages/catering/orderView.jsx'
@@ -35,7 +36,6 @@ function App(){
   const [loginInput,setLoginInput]=useState("")
   const [loginPassword,setLoginPassword]=useState("")
   
-  const [regEmail,setRegEmail]=useState("")
   const [regUsername,setRegUsername]=useState("")
   const [regPassword,setRegPassword]=useState("")
 
@@ -72,7 +72,19 @@ function App(){
 
     const business=loadUserData(session)
 
-    const correctPath=business ? `/${session.user.username}/${business.type}/${business.id}`:`/${session.user.username}`
+    let correctPath
+    if(business){
+      const db=getDb()
+      const employee=db.employees.find(e => e.userId===session.user.id)
+      
+      if(employee){
+        correctPath=`/${session.user.username}/${business.type}/${business.id}`
+      }else{
+        correctPath=`/${session.user.username}/register/employee`
+      }
+    }else{
+      correctPath=`/${session.user.username}/register/business`
+    }
 
     if(!location.pathname.includes(correctPath))
       navigate(correctPath)
@@ -121,7 +133,9 @@ function App(){
     }
 
     const user=db.users.find(
-      (u) => (u.username===loginInput || u.email===loginInput) && u.password===loginPassword
+      u => u.username===loginInput ||
+      (db.employees.find(e => e.userId===u.id) && db.employees.find(e => e.userId===u.id).email===loginInput) &&
+      u.password===loginPassword
     )
 
     if(!user){
@@ -144,12 +158,21 @@ function App(){
 
     setIsPanelVisible(false)
 
-    if(!business){
-      navigate(`/${user.username}`)
-      return
+    let correctPath
+    if(business){
+      const db=getDb()
+      const employee=db.employees.find(e => e.userId===session.user.id)
+      
+      if(employee){
+        correctPath=`/${session.user.username}/${business.type}/${business.id}`
+      }else{
+        correctPath=`/${session.user.username}/register/employee`
+      }
+    }else{
+      correctPath=`/${session.user.username}/register/business`
     }
 
-    navigate(`/${user.username}/${business.type}/${business.id}`)
+    navigate(correctPath)
   }
 
   function handleRegister(){
@@ -197,7 +220,7 @@ function App(){
     localStorage.setItem("session",JSON.stringify(session))
 
     setIsPanelVisible(false)
-    navigate(`/${newUser.username}`)
+    navigate(`/${newUser.username}/register/business`)
   }
 
   function handleLogOut(){
@@ -253,7 +276,8 @@ function App(){
           <div id="main_body">
             <Routes>
               <Route path='/' element={<Main/>}/>
-              <Route path='/:username' element={<BusinessCreate setUserBusiness={setUserBusiness} user={user}/>}/>
+              <Route path='/:username/register/business' element={<BusinessCreate setUserBusiness={setUserBusiness} user={user}/>}/>
+              <Route path='/:username/register/employee' element={<EmployeeCreate user={user} business={userBusiness}/>}/>
               <Route path='/:username/catering/:id' element={<Catering user={user} business={userBusiness}/>}/>
               <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
               <Route path='/:username/catering/:id/orders/:orderId' element={<OrderView user={user} business={userBusiness}/>}/>
@@ -276,12 +300,6 @@ function App(){
                 {isRegister ? (
                   <>
                     <div id="acc_input_fields">
-                      <input className={"acc_input_field "+(errors.regEmail ? "invalid":"")} type="text" placeholder="Email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} autoFocus/>
-                      {errors.regEmail && (
-                        <div className="error_text">
-                          {errors.regEmail}
-                        </div>
-                      )}
                       <input className={"acc_input_field "+(errors.regUsername ? "invalid":"")} type="text" placeholder="Vartotojo Vardas" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}/>
                       {errors.regUsername && (
                         <div className="error_text">

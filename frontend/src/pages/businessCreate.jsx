@@ -55,33 +55,40 @@ export const BusinessCreate=({setUserBusiness,user}) => {
     }
     
     return(
-        <div className="new_business_info col_align">
-            <div className="new_business_info_item">
-                <label>Business Type:</label>
+        <div id="new_register_info" className="col_align">
+            <div id="new_register_label">New Business</div>
+            <hr/>
+            <div id="new_register_info_item">
+                <label>Type:</label>
                 <div className="row_align">
-                    <div className="radio_option">
+                    <div id="new_register_radio_option">
                         <input type="radio" name="business_type" checked={businessType==="catering"} onChange={() => setBusinessType("catering")}/>
                         Catering
                     </div>
-                    <div className="radio_option">
+                    <div id="new_register_radio_option">
                         <input type="radio" name="business_type" checked={businessType==="beauty"} onChange={() => setBusinessType("beauty")}/>
                         Beauty
                     </div>
                 </div>
             </div>
-            <div className="new_business_info_item">
-                <label>New Business Name:</label>
+            <div id="new_register_info_item">
+                <label>Name:</label>
                 <input className={errors.businessName ? "invalid":""} type="text" name="business_name" value={businessName} onChange={(e) => setBusinessName(e.target.value)}/>
             </div>
-            <div className="new_business_info_item">
-                <label>Business Address:</label>
+            {errors.businessName && (
+                <div className="error_text">
+                    {errors.businessName}
+                </div>
+            )}
+            <div id="new_register_info_item">
+                <label>Address:</label>
                 <input type="text" name="business_address" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)}/>
             </div>
-            <div className="new_business_info_item">
-                <label>Business Contact Info:</label>
+            <div id="new_register_info_item">
+                <label>Contact Info:</label>
                 <input type="text" name="business_contact_info" value={businessContactInfo} onChange={(e) => setBusinessContactInfo(e.target.value)}/>
             </div>
-            <button className="register_business_button" onClick={() => registerBusiness()}>Create Business</button>
+            <button id="new_register_button" onClick={() => registerBusiness()}>Register Business</button>
         </div>
     )
 }
