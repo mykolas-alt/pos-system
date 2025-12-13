@@ -17,10 +17,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 @Entity
 @Getter
 @Setter
+@Audited
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -57,7 +59,12 @@ public class Reservation{
 
     @Column(nullable = false)
     private LocalDateTime closedAt;
-
-
+    
+    @Override
+    public String toString() {
+        return "Reservation [id=" + id + ", business=" + business + ", employee=" + employee + ", apointmentTime="
+                + apointmentTime + ", customerName=" + customerName + ", customerPhone=" + customerPhone + ", status="
+                + status + ", createdAt=" + createdAt + ", closedAt=" + closedAt + "]";
+    }
 
 }

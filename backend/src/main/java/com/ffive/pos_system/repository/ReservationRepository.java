@@ -27,4 +27,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             """)
     List<Reservation>findAllByCustomerId(String customerName, String customerPhone);
 
+
+    @Query("""
+            SELECT r from Reservation r
+            WHERE r.id = :reservationId
+            """)
+    Reservation findByReservationId(UUID reservationId);
 }

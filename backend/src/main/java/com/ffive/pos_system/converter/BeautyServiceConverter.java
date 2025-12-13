@@ -19,4 +19,14 @@ public class BeautyServiceConverter {
         .build();
     }
     
+    public BeautyService convertToEntity(GUIBeautyService guiService) {
+        BeautyService service = new BeautyService();
+        service.setName(guiService.getName());
+        //SpecialistId should be set separately after fetching Employee entity and adding the employee id to this
+        service.setDuration(guiService.getDuration());
+        service.setOpensAt(guiService.getOpensAt());
+        service.setClosesAt(guiService.getClosesAt());
+        service.setPrice(guiService.getPrice());
+        return service;
+    }
 }
