@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.ffive.pos_system.converter.EmployeeConverter;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.dto.GUIEmployee;
 import com.ffive.pos_system.handler.EmployeeHandler;
@@ -34,7 +33,7 @@ public class EmployeeService {
         }
 
         // TODO: add role check for business owner / super admin
-        if (executingEmployee.getBusiness().getId() != executingEmployee.getId()) {
+        if (executingEmployee.getBusiness().getOwner().getId() != executingEmployee.getId()) {
             throw new ValidationException("Only business owners can create new employees");
         }
 

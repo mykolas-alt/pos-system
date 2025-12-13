@@ -42,7 +42,7 @@ public class EmployeeHandler {
                 .employee(employee)
                 .build();
 
-        userRepository.save(userAccount);
         employeeRepository.save(employee);
+        userRepository.save(userAccount);
     }
 }

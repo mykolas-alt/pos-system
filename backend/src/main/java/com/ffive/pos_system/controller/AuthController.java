@@ -1,6 +1,8 @@
 package com.ffive.pos_system.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ffive.pos_system.dto.AuthResponse;
 import com.ffive.pos_system.dto.LoginRequest;
 import com.ffive.pos_system.dto.UserCreationRequest;
+import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.AuthService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,5 +37,13 @@ public class AuthController {
         return authService.authenticate(loginRequest.getUsername(), loginRequest.getPassword())
                 .map(token -> ResponseEntity.ok(new AuthResponse(token)))
                 .orElse(ResponseEntity.status(401).build());
+    }
+
+    @GetMapping("/whoami")
+    public ResponseEntity<String> whoAmI(@AuthenticationPrincipal POSUserDetails userDetails) {
+
+        return userDetails != null
+                ? ResponseEntity.ok("You are: " + userDetails.getUsername())
+                : ResponseEntity.status(401).build();
     }
 }

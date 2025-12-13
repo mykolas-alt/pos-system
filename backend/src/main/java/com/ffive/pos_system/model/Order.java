@@ -2,6 +2,7 @@ package com.ffive.pos_system.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +41,9 @@ public class Order {
     private OrderStatus status;
 
     private String note;
+
+    @OneToMany(mappedBy = "order_id")
+    private List<OrderItem> items;
 
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)
