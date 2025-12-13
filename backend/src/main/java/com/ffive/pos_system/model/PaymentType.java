@@ -5,12 +5,9 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum OrderStatus {
-    OPEN((byte) 1),
-    IN_PROGRESS((byte) 2),
-    PAID((byte) 3),
-    CANCELLED((byte) 4),
-    PARTIALLY_PAID((byte) 5);
-
+public enum PaymentType {
+    CASH((byte) 1),
+    CARD((byte) 2),
+    GIFT_CARD((byte) 3);
     private final byte key;
 }
