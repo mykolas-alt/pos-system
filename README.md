@@ -20,6 +20,7 @@ For this method you need to use both Windows and WSL. In both WSL and Windows ma
 ### PostgreSQL Database
 To create and launch database could be used **provided script "run-postgres.sh"** inside **/backend** folder and **Docker**. 
 Might need to run command do delete return symbol : **sed -i 's/\r$//' run-postgres.sh**
+Be careful if you run and for the first time BUT there pgdata, it might skip init and not register user. If that happens you will need to delete pgdata and/or temppgdata and start it again.
 
 **Before** using the script create **.env** file to configure the database connection. **Sample** file **".env.sample"** could be found in **/backend** folder.
 
