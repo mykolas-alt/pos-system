@@ -53,9 +53,9 @@ public class BeautyServiceService {
 
     public void createService(GUIBeautyService beautyService) {
 
-        
+        BeautyService newService = beautyServiceConverter.convertToEntity(beautyService);
 
-        //beautyServiceRepository.save(beautyService);
+        beautyServiceRepository.save(newService);
     }
 
     public BeautyService updateService(UUID serviceId, GUIBeautyService guiObj){
