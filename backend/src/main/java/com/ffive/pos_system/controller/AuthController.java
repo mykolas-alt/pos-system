@@ -1,15 +1,18 @@
 package com.ffive.pos_system.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ffive.pos_system.dto.AuthResponse;
 import com.ffive.pos_system.dto.LoginRequest;
+import com.ffive.pos_system.dto.PasswordChangeRequest;
 import com.ffive.pos_system.dto.UserCreationRequest;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.AuthService;
@@ -40,10 +43,22 @@ public class AuthController {
     }
 
     @GetMapping("/whoami")
+    @PreAuthorize("@authorizationHelper.isAuthenticated(authentication)")
     public ResponseEntity<String> whoAmI(@AuthenticationPrincipal POSUserDetails userDetails) {
 
         return userDetails != null
                 ? ResponseEntity.ok("You are: " + userDetails.getUsername())
                 : ResponseEntity.status(401).build();
+    }
+
+    @PutMapping("/change-password")
+    @PreAuthorize("@authorizationHelper.isAuthenticated(authentication)")
+    public ResponseEntity<Void> changePassword(@AuthenticationPrincipal POSUserDetails userDetails,
+            @RequestBody PasswordChangeRequest passwordChangeRequest) {
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build();
+        }
+        authService.changePassword(userDetails.getUser(), passwordChangeRequest);
+        return ResponseEntity.ok().build();
     }
 }

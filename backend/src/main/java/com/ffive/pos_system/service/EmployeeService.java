@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.ffive.pos_system.converter.gui.GUIEmployeeConverter;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.dto.GUIEmployee;
 import com.ffive.pos_system.handler.EmployeeHandler;
@@ -25,6 +26,7 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeHandler employeeHandler;
+    private final GUIEmployeeConverter guiEmployeeConverter;
 
     public void createEmployeeForBusiness(POSUserDetails userDetails, EmployeeCreationRequest creationRequest) {
         var executingEmployee = userDetails.getUser().getEmployee();
@@ -51,11 +53,7 @@ public class EmployeeService {
         }
 
         return employeeRepository.findAllByBusiness(id.get()).stream()
-                .map(employee -> GUIEmployee.builder()
-                        .id(employee.getId())
-                        .name(employee.getName())
-                        .email(employee.getEmail())
-                        .build())
+                .map(guiEmployeeConverter::convertToGUIEmployee)
                 .limit(100)
                 .toList();
     }

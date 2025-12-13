@@ -1,11 +1,12 @@
 package com.ffive.pos_system.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.ffive.pos_system.converter.gui.OrderConverter;
+import com.ffive.pos_system.converter.gui.GUIOrderConverter;
 import com.ffive.pos_system.dto.AddProductToOrderRequest;
 import com.ffive.pos_system.dto.GUIOrder;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
@@ -32,7 +33,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final OrderConverter orderConverter;
+    private final GUIOrderConverter orderConverter;
 
     private final OrderStateHandler orderStateHandler;
     private final OrderModificationHandler orderModificationHandler;
@@ -55,7 +56,7 @@ public class OrderService {
         return orderRepository.findByBusinessId(business.getId()).stream()
                 .skip(pagingHelper.calculateOffset(page, size))
                 .limit(size)
-                .map(orderConverter::convertOrder)
+                .map(this::convertToGuiOrder)
                 .toList();
     }
 
@@ -94,8 +95,16 @@ public class OrderService {
     public GUIOrder getOrder(POSUserDetails userDetails, UUID orderId) {
         Order order = fetchOrderById(orderId);
 
-        return order.getStatus() == OrderStatus.OPEN ? orderConverter.convertOrder(order)
-                : orderConverter.convertOrderFromSnapshot(order);
+        return convertToGuiOrder(order);
+    }
+
+    private GUIOrder convertToGuiOrder(Order order) {
+        if (Objects.equals(order.getStatus(), OrderStatus.OPEN)) {
+            return orderConverter.convertOrderFromCurrentState(order);
+        } else {
+            return orderConverter.convertOrderFromSnapshot(order);
+
+        }
     }
 
     private OrderItem fetchOrderItemById(UUID orderItemId) {

@@ -1,7 +1,7 @@
 package com.ffive.pos_system.handler;
 
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
 
@@ -43,9 +43,7 @@ public class OrderModificationHandler {
         Product product = productRepository.findById(addProductToOrderRequest.getProductId())
                 .orElseThrow(() -> new ValidationException("Product not found"));
 
-        var orderItem = orderItemRepository.findByOrderIdAndProductId(order.getId(), product.getId())
-                .map(addToExistingOrderItem(addProductToOrderRequest))
-                .orElseGet(() -> createNew(order, product, addProductToOrderRequest));
+        var orderItem = createNew(order, product, addProductToOrderRequest);
 
         orderItemRepository.save(orderItem);
     }
@@ -87,23 +85,15 @@ public class OrderModificationHandler {
     }
 
     private void validateOrderAndEmployeeBusinessesAreEqual(Order order, Employee employee) {
-        if (order.getBusiness().getId() != employee.getBusiness().getId()) {
+        if (!Objects.equals(order.getBusiness().getId(), employee.getBusiness().getId())) {
             throw new ValidationException("Employee does not belong to the same business as the order");
         }
     }
 
     private void validateOrderIsOpenToModification(Order order) {
-        if (OPEN_TO_MODIFICATION_STATUSES.contains(order.getStatus())) {
-            throw new ValidationException("Cannot add products to a closed order");
+        if (!OPEN_TO_MODIFICATION_STATUSES.contains(order.getStatus())) {
+            throw new ValidationException("Cannot modify products for a closed order");
         }
-    }
-
-    private Function<OrderItem, OrderItem> addToExistingOrderItem(
-            AddProductToOrderRequest addProductToOrderRequest) {
-        return orderItem -> {
-            orderItem.setQuantity(orderItem.getQuantity() + addProductToOrderRequest.getQuantity());
-            return orderItemRepository.save(orderItem);
-        };
     }
 
     private OrderItem createNew(Order order, Product product, AddProductToOrderRequest addProductToOrderRequest) {

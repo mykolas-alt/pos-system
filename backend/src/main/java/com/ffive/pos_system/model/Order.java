@@ -42,7 +42,7 @@ public class Order {
 
     private String note;
 
-    @OneToMany(mappedBy = "order_id")
+    @OneToMany(mappedBy = "order")
     private List<OrderItem> items;
 
     @ManyToOne

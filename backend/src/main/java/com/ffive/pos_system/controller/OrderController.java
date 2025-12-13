@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/order")
 @Tag(name = "Order", description = "Order management endpoints")
 @RequiredArgsConstructor
+@PreAuthorize("@authorizationHelper.hasEmployee(authentication)")
 public class OrderController {
 
     private final OrderService orderService;

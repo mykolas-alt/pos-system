@@ -1,5 +1,7 @@
 package com.ffive.pos_system.handler;
 
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -7,8 +9,10 @@ import com.ffive.pos_system.converter.EmployeeConverter;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.POSUser;
+import com.ffive.pos_system.model.UserRoleType;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.UserRepository;
+import com.ffive.pos_system.repository.UserRoleRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
 
@@ -21,6 +25,7 @@ public class EmployeeHandler {
     private final PasswordEncoder passwordEncoder;
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final EmployeeConverter employeeConverter;
 
     public void handleNewEmployeeForBusiness(POSUserDetails userDetails, EmployeeCreationRequest creationRequest) {
@@ -36,10 +41,14 @@ public class EmployeeHandler {
             throw new ValidationException("Employee email cannot exceed 255 characters");
         }
 
+        var employeeRole = userRoleRepository.findByRoleType(UserRoleType.EMPLOYEE)
+                .orElseThrow(() -> new IllegalStateException("Employee role not found in the system"));
+
         POSUser userAccount = POSUser.builder()
                 .username(employee.getEmail())
                 .passwordHash(passwordEncoder.encode(creationRequest.getPassword()))
                 .employee(employee)
+                .roles(List.of(employeeRole))
                 .build();
 
         employeeRepository.save(employee);

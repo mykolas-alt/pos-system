@@ -10,7 +10,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.ffive.pos_system.filter.JwtAuthFilter;
-import com.ffive.pos_system.service.POSUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final AuthProperties authProperties;
-    private final POSUserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
 
     @Bean

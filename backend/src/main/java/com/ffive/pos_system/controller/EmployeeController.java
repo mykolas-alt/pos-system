@@ -3,6 +3,7 @@ package com.ffive.pos_system.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/employee")
 @Tag(name = "Employee", description = "Employee management endpoints")
 @RequiredArgsConstructor
+@PreAuthorize("@authorizationHelper.hasEmployee(authentication)")
 public class EmployeeController {
 
     private final EmployeeService employeeService;

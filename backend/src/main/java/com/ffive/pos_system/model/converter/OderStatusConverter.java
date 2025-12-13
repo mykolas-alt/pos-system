@@ -1,10 +1,11 @@
-
-package com.ffive.pos_system.model.conteverter;
+package com.ffive.pos_system.model.converter;
 
 import com.ffive.pos_system.model.OrderStatus;
 
 import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
+@Converter(autoApply = true)
 public class OderStatusConverter implements AttributeConverter<OrderStatus, Byte> {
 
     @Override

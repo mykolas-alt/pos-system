@@ -1,32 +1,27 @@
 package com.ffive.pos_system.converter.gui;
 
-import java.util.Optional;
-
 import org.springframework.stereotype.Component;
 
 import com.ffive.pos_system.dto.GUIOrder;
 import com.ffive.pos_system.dto.GUIOrderItem;
 import com.ffive.pos_system.dto.GUIProduct;
 import com.ffive.pos_system.model.Order;
-import com.ffive.pos_system.service.OrderService;
-
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
-public class OrderConverter {
+public class GUIOrderConverter {
 
-    private final OrderService orderService;
-
-    public GUIOrder convertOrder(Order order) {
+    public GUIOrder convertOrderFromCurrentState(Order order) {
         return GUIOrder.builder()
                 .id(order.getId())
                 .createdAt(order.getCreatedAt())
                 .closedAt(order.getClosedAt())
                 .status(order.getStatus())
-                .total(order.getTotal())
+                .total(order.getItems().stream()
+                        .map(item -> item.getProduct().getPrice().multiply(
+                                java.math.BigDecimal.valueOf(item.getQuantity())))
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add))
                 .identEmployee(order.getEmployee().getId())
-                .items(orderService.orderItemRepository.findByOrderId(order.getId()).stream()
+                .items(order.getItems().stream()
                         .map(orderItem -> GUIOrderItem.builder()
                                 .id(orderItem.getId())
                                 .product(GUIProduct.builder()
@@ -48,7 +43,7 @@ public class OrderConverter {
                 .status(order.getStatus())
                 .total(order.getTotal())
                 .identEmployee(order.getEmployee().getId())
-                .items(orderService.orderItemRepository.findByOrderId(order.getId()).stream()
+                .items(order.getItems().stream()
                         .map(orderItem -> GUIOrderItem.builder()
                                 .id(orderItem.getId())
                                 .product(GUIProduct.builder()

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class PagingHelper {
 
     private static final int DEFAULT_PAGE_SIZE = 10;
-    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_PAGE = 1;
     private static final int MAX_PAGE_SIZE = 200;
 
     public int calculateOffset(int pageNumber, int pageSize) {
@@ -21,7 +21,7 @@ public class PagingHelper {
         }
 
         return pageNumber
-                .filter(num -> num >= 0)
+                .filter(num -> num > 0)
                 .orElse(DEFAULT_PAGE);
     }
 

@@ -2,6 +2,7 @@ package com.ffive.pos_system.handler;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -67,7 +68,7 @@ public class OrderStateHandler {
     }
 
     private void validateOrderAndEmployeeBusinessesAreEqual(Order order, Employee employee) {
-        if (order.getBusiness().getId() != employee.getBusiness().getId()) {
+        if (!Objects.equals(order.getBusiness().getId(), employee.getBusiness().getId())) {
             throw new ValidationException("Employee does not belong to the same business as the order");
         }
     }
