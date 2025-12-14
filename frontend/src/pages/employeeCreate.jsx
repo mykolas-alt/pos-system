@@ -58,10 +58,10 @@ export const EmployeeCreate=({user,business}) => {
     
     return(
         <div id="new_register_info" className="col_align">
-            <div id="new_register_label">New Employee</div>
+            <div id="new_register_label">Naujas Darbuotojas</div>
             <hr/>
             <div id="new_register_info_item">
-                <label>First Name:</label>
+                <label>Vardas:</label>
                 <input className={errors.employeeFirstName ? "invalid":""} type="text" name="employee_first_name" value={employeeFirstName} onChange={(e) => setEmployeeFirstName(e.target.value)}/>
             </div>
             {errors.employeeFirstName && (
@@ -70,7 +70,7 @@ export const EmployeeCreate=({user,business}) => {
                 </div>
             )}
             <div id="new_register_info_item">
-                <label>Last Name:</label>
+                <label>Pavardė:</label>
                 <input className={errors.employeeLastName ? "invalid":""} type="text" name="employee_last_name" value={employeeLastName} onChange={(e) => setEmployeeLastName(e.target.value)}/>
             </div>
             {errors.employeeLastName && (
@@ -87,7 +87,7 @@ export const EmployeeCreate=({user,business}) => {
                     {errors.employeeEmail}
                 </div>
             )}
-            <button id="new_register_button" onClick={() => registerEmployee()}>Register Employee</button>
+            <button id="new_register_button" onClick={() => registerEmployee()}>Registruoti Darbuotoją</button>
         </div>
     )
 }

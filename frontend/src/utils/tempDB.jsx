@@ -19,11 +19,11 @@ const DEFAULT_DB={
         {id:3,userId:4,businessId:2,name:"Alex Green",email:"alexgreen@gmail.com",role:"Darbuotojas"}
     ],
     orders:[
-        {id:1,businessId:1,status:"Apmokėta",createdAt:new Date(2025,5,26,15,7,54),closedAt:new Date(2025,5,26,15,29,38),comment:""},
-        {id:2,businessId:1,status:"Uždaryta",createdAt:new Date(2025,10,25,15,10,11),closedAt:new Date(2025,11,25,15,12,43),comment:""},
-        {id:3,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,20,15,11,27),closedAt:new Date(2025,11,20,15,19,21),comment:""},
-        {id:4,businessId:1,status:"Apmokėta",createdAt:new Date(2025,10,21,15,11,27),closedAt:new Date(2025,11,21,15,19,21),comment:""},
-        {id:5,businessId:1,status:"Atvira",createdAt:new Date(2025,10,30,15,14,20),closedAt:"",comment:""}
+        {id:1,businessId:1,status:"paid",createdAt:new Date(2025,5,26,15,7,54),closedAt:new Date(2025,5,26,15,29,38),comment:""},
+        {id:2,businessId:1,status:"closed",createdAt:new Date(2025,10,25,15,10,11),closedAt:new Date(2025,11,25,15,12,43),comment:""},
+        {id:3,businessId:1,status:"paid",createdAt:new Date(2025,10,20,15,11,27),closedAt:new Date(2025,11,20,15,19,21),comment:""},
+        {id:4,businessId:1,status:"paid",createdAt:new Date(2025,10,21,15,11,27),closedAt:new Date(2025,11,21,15,19,21),comment:""},
+        {id:5,businessId:1,status:"open",createdAt:new Date(2025,10,30,15,14,20),closedAt:"",comment:""}
     ],
     orderProducts:[
         {id:1,orderId:1,productId:1,quantity:2},
@@ -67,12 +67,13 @@ const DEFAULT_DB={
         {id:3,businessId:1,name:"Greitas Maistas"}
     ],
     reservations:[
-        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),customerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"Atvira",createdAt:new Date(2025,11,2,17,42,51),closedAt:"",comment:""},
-        {id:2,businessId:2,serviceId:1,appointmentTime:new Date(2025,11,9,12,30,0),customerName:"Marcy Wu",customerPhone:"+370 249 25756",status:"Atvira",createdAt:new Date(2025,11,2,15,12,45),closedAt:"",comment:""}
+        {id:1,businessId:2,serviceId:2,appointmentTime:new Date(2025,11,9,15,0,0),customerName:"Anne Boonchuy",customerPhone:"+370 279 25415",status:"open",createdAt:new Date(2025,11,2,17,42,51),closedAt:"",comment:""},
+        {id:2,businessId:2,serviceId:1,appointmentTime:new Date(2025,11,9,12,30,0),customerName:"Marcy Wu",customerPhone:"+370 249 25756",status:"closed",createdAt:new Date(2025,11,2,15,12,45),closedAt:new Date(2025,11,6,17,9,12),comment:""},
+        {id:3,businessId:2,serviceId:1,appointmentTime:new Date(2025,11,12,14,40,0),customerName:"Marcy Wu",customerPhone:"+370 249 25756",status:"open",createdAt:new Date(2025,11,8,12,45,47),closedAt:"",comment:""}
     ],
     services:[
-        {id:1,businessId:2,userId:4,name:"Masažas",durationMin:30,opensAt:"10:00",closesAt:"18:00",price:19.99},
-        {id:2,businessId:2,userId:4,name:"Plaukų Kirpimas",durationMin:60,opensAt:"11:00",closesAt:"18:00",price:15.99}
+        {id:1,businessId:2,employeeId:3,name:"Masažas",durationMin:30,opensAt:"10:00",closesAt:"18:00",price:19.99},
+        {id:2,businessId:2,employeeId:3,name:"Plaukų Kirpimas",durationMin:60,opensAt:"11:00",closesAt:"18:00",price:15.99}
     ]
 }
 
@@ -90,4 +91,8 @@ export function getDb(){
 
 export function saveDb(db){
     localStorage.setItem("temp_db",JSON.stringify(db))
+}
+
+export function getNextId(arr){
+    return arr.reduce((m,it) => Math.max(m,(it && it.id) || 0),0)+1
 }

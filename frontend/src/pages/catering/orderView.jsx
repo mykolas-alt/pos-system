@@ -1,9 +1,11 @@
-import React,{useEffect,useState} from "react"
+import {useEffect,useState} from "react"
 import {useParams,useNavigate} from "react-router-dom"
 import {toast} from 'react-hot-toast'
 import "./orderView.css"
 
-import {getDb,saveDb} from "../../utils/tempDB"
+import {getDb,saveDb,getNextId} from "../../utils/tempDB"
+import {calcProductPrice} from "../../utils/priceCalculations"
+import {filterSearchList,filterCategoryList,filterList,sortBy} from "../../utils/filtering"
 
 export const OrderView=({user,business}) => {
     const {orderId}=useParams()
@@ -15,6 +17,10 @@ export const OrderView=({user,business}) => {
     const [search,setSearch]=useState("")
     const [categories,setCategories]=useState([])
     const [selectedCategories,setSelectedCategories]=useState([])
+    const [totalMin,setTotalMin]=useState("")
+    const [totalMax,setTotalMax]=useState("")
+    const [sortType,setSortType]=useState("name_increase")
+    const [filteredProducts,setFilteredProducts]=useState([])
 
     const [products,setProducts]=useState([])
     const [comment,setComment]=useState("")
@@ -30,20 +36,13 @@ export const OrderView=({user,business}) => {
 
     const [isOrderLoading,setIsOrderLoading]=useState(true)
     const [isPanelVisible,setIsPanelVisible]=useState(false)
+    const [isOptionsVisible,setIsOptionsVisible]=useState(false)
     const [isCommentVisible,setIsCommentVisible]=useState(false)
     const [isPaymentPanelVisible,setIsPaymentPanelVisible]=useState(false)
 
     const [addingNewProduct,setAddingNewProduct]=useState(false)
     const [editingOrderProductId,setEditingOrderProductId]=useState(null)
     const [isSplitCheck,setIsSplitCheck]=useState(false)
-
-    const filteredProducts=products.filter(p => {
-        const matchesSearch=p.name.toLowerCase().includes(search.toLowerCase())
-
-        const matchesCategory=selectedCategories.length===0 || selectedCategories.includes(p.categoryId)
-
-        return matchesSearch && matchesCategory
-    })
 
     useEffect(() => {
         if(!user){
@@ -57,12 +56,22 @@ export const OrderView=({user,business}) => {
     },[user])
 
     useEffect(() => {
-        if(!selectedProduct || selectedProductOptions.length===0)
+        if(!selectedProduct)
             return
 
-        const newPrice=recalcPrice(selectedProduct,selectedProductOptions,selectedOptions)
+        const newPrice=calcProductPrice(selectedProduct,selectedProductOptions,selectedOptions,selectedProductQuantity)
         setSelectedProductPrice(newPrice)
     },[selectedOptions,selectedProductQuantity])
+
+
+    useEffect(() => {
+        const filterBySearchList=filterSearchList(products,search)
+        const filterByCategoriesList=filterCategoryList(filterBySearchList,selectedCategories)
+        const filteredList=filterList(filterByCategoriesList,"","",totalMin,totalMax)
+        const sortedList=sortBy(filteredList,sortType)
+
+        setFilteredProducts(sortedList)
+    },[products,selectedCategories,sortType,totalMin,totalMax])
 
     function loadOrderData(){
         const db=getDb()
@@ -107,7 +116,7 @@ export const OrderView=({user,business}) => {
                 return {...group,selections}
             })
 
-            const priceWithOptions=recalcPrice(product,productOptions,selectedOptions)
+            const priceWithOptions=calcProductPrice(product,productOptions,selectedOptions,orderProduct.quantity)
 
             orderContent.push({
                 ...product,
@@ -127,10 +136,6 @@ export const OrderView=({user,business}) => {
         setProducts(productsData)
         setProductsInOrder(orderContent)
         setCategories(categoriesData)
-    }
-
-    function getNextId(arr){
-        return arr.reduce((m,it) => Math.max(m,(it && it.id) || 0),0)+1
     }
 
     function toggleCategory(id){
@@ -212,8 +217,8 @@ export const OrderView=({user,business}) => {
         setSelectedProductOptions(productOptions)
         setSelectedOptions(initialSelections)
 
-        setSelectedProductPrice(recalcPrice(product,productOptions,initialSelections))
         setSelectedProductQuantity(quantity)
+        setSelectedProductPrice(calcProductPrice(product,productOptions,initialSelections,quantity))
 
         setIsPanelVisible(true)
     }
@@ -231,7 +236,7 @@ export const OrderView=({user,business}) => {
                     ...product,
                     quantity:orderProduct.quantity,
                     orderProductId:orderProduct.id,
-                    price:recalcPrice(product,
+                    price:calcProductPrice(product,
                                     db.productOptionGroups.filter(g => g.productId === product.id).map(group => {
                                         const selections = db.productOptionValues.filter(pov => pov.productOptionGroupId === group.id);
                                         return {...group, selections};
@@ -297,38 +302,7 @@ export const OrderView=({user,business}) => {
             return value
         })
     }
-
-    function recalcPrice(product,productOptions,selectedOptions){
-        let price=product.price
-
-        const db=getDb()
-
-        productOptions.forEach(group => {
-            const value=selectedOptions[group.id]
-
-            if(group.type==="single"){
-                if(value!=null){
-                    const opValue=db.productOptionValues.find(v => v.id===value)
-                    if(opValue)
-                        price+=opValue.priceDelta
-                }
-                return
-            }
-
-            if(group.type==="multi" && Array.isArray(value)){
-                value.forEach(vId => {
-                    const opValue=db.productOptionValues.find(v => v.id===vId)
-                    if(opValue)
-                        price+=opValue.priceDelta
-                })
-            }
-        })
-
-        price=price*selectedProductQuantity
-
-        return price
-    }
-
+    
     function addProductToOrder(){
         const db=getDb()
 
@@ -411,6 +385,28 @@ export const OrderView=({user,business}) => {
         loadOrderData()
     }
 
+    function clearFilters(){
+        setSelectedCategories([])
+        setTotalMin("")
+        setTotalMax("")
+    }
+
+    function cancelOrder(){
+        const db=getDb()
+        const existing=db.orders.find(o => o.id===Number(orderId))
+
+        if(!existing){
+            toast.error("Klaida: užsakymas nerasta")
+            return
+        }
+
+        existing.status="closed"
+
+        saveDb(db)
+        setIsOptionsVisible(false)
+        loadOrderData()
+    }
+
     function saveComment(){
         const db=getDb()
 
@@ -443,7 +439,7 @@ export const OrderView=({user,business}) => {
                 const existing=db.orders.find(o => o.id===Number(orderId))
 
                 if(existing){
-                    existing.status="Apmokėta"
+                    existing.status="paid"
                     saveDb(db)
                 }
             
@@ -458,7 +454,7 @@ export const OrderView=({user,business}) => {
                 return
             }
 
-            existing.status="Apmokėta"
+            existing.status="paid"
 
             saveDb(db)
             setIsPaymentPanelVisible(false)
@@ -476,7 +472,7 @@ export const OrderView=({user,business}) => {
                         <>
                             <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
                             <div id="product_options" className="col_align">
-                                <button className="product_exit_button" onClick={() => setIsPanelVisible(false)}>X</button>
+                                <button id="product_close_button" className="close_button" onClick={() => setIsPanelVisible(false)}>X</button>
                                 <p className="product_name">{selectedProduct.name}</p>
                                 <hr/>
                                 {selectedProductOptions.length===0 ? (
@@ -553,54 +549,79 @@ export const OrderView=({user,business}) => {
                             </div>
                         </>
                     )}
-                    {order.status!=="Atvira" ? (
+                    {order.status!=="open" ? (
                         <></>
                     ):(
                         <>
                             <div id="order_filters" className="col_align">
                                 <input id="order_search" type="text" placeholder="Pieška" value={search} onChange={(e) => setSearch(e.target.value)}/>
+                                <div id="order_sort_button" className="control_button">Rikiavimas
+                                    <div id="sort_content">
+                                        <button id="sort_item_button" onClick={() => setSortType("name_increase")}>Pavadinimas: A-Z</button>
+                                        <button id="sort_item_button" onClick={() => setSortType("name_decrease")}>Pavadinimas: Z-A</button>
+                                        <button id="sort_item_button" onClick={() => setSortType("price_increase")}>Kaina: Didėjančiai</button>
+                                        <button id="sort_item_button" onClick={() => setSortType("price_decrease")}>Kaina: Mažėjančiai</button>
+                                    </div>
+                                </div>
                                 {categories.length===0 ? (
                                     <></>
                                 ):(
-                                    <div id="order_category_list" className="col_align">
-                                        Kategorijos
+                                    <div id="order_filter_options" className="col_align">
+                                        <p id="order_filter_title">Kategorijos:</p>
                                         <hr/>
                                         {categories.map(c => (
-                                            <div key={c.id} className="order_category row_align">
+                                            <div key={c.id} id="order_filter_option" className="row_align">
                                                 <input type="checkbox" checked={selectedCategories.includes(c.id)} onChange={() => toggleCategory(c.id)}/>{c.name}
                                             </div>
                                         ))}
                                     </div>
                                 )}
+                                <div id="order_filter_options" className="col_align">
+                                    <p id="order_filter_title">Kaina:</p>
+                                    <hr/>
+                                    <label id="order_filter_label">Min:</label>
+                                    <input className="order_filter_input_field" type="number" value={totalMin} onChange={(e) => setTotalMin(e.target.value)}/>
+                                    <label id="order_filter_label">Max:</label>
+                                    <input className="order_filter_input_field" type="number" value={totalMax} onChange={(e) => setTotalMax(e.target.value)}/>
+                                </div>
+                                <button id="clear_button" className="control_button" onClick={() => clearFilters()}>Išvalyti Filtrus</button>
                             </div>
-                            <div id="order_products">
+                            <div id="products_to_add">
                                 {filteredProducts.length===0 ? (
-                                    <p id="product_card_not_found">Nerasta pozicijų</p>
+                                    <p id="product_card_to_add_not_found">Nerasta pozicijų</p>
                                 ):(
                                     filteredProducts.map(p => (
-                                        <button key={p.id} className="product_card col_align" onClick={() => {setAddingNewProduct(true);openProductOptions(p.id,false)}}>
-                                            <div id="product_card_name">{p.name}</div>
-                                            <div id="product_card_price">{p.price.toFixed(2)}€</div>
+                                        <button key={p.id} id="product_card_to_add" className="col_align" onClick={() => {setAddingNewProduct(true);openProductOptions(p.id,false)}}>
+                                            <div id="product_card_to_add_name">{p.name}</div>
+                                            <div id="product_card_to_add_price">{p.price.toFixed(2)}€</div>
                                         </button>
                                     ))
                                 )}
                             </div>
                         </>
                     )}
-                    <div id="order_info" className={(order.status!=="Atvira" ? "closed_order":"")+" col_align"}>
-                        <div id="order_info_id">Užsakymo ID: {order.id}</div>
+                    <div id="order_info" className={(order.status!=="open" ? "closed_order":"")+" col_align"}>
+                        <div id="order_info_top" className="row_align">
+                            <div id="order_info_id">ID: {order.id}</div>
+                            <div id="order_info_status">{
+                                order.status==="open" ? "Atviras":
+                                order.status==="closed" ? "Uždarytas":
+                                order.status==="paid" ? "Apmokėtas":
+                                order.status==="refund" ? "Gražintas":""
+                            }</div>
+                        </div>
                         <div id="order_product_list" className="col_align">
                             {productsInOrder.length===0 ? (
                                 <></>
                             ):(
                                 productsInOrder.map(op => (
-                                    order.status!=="Atvira" ? (
+                                    order.status!=="open" ? (
                                         <div key={op.orderProductId} className="order_product_card row_align">
-                                            {op.name} * {op.quantity}
+                                            {op.name} * {op.quantity} - {op.priceWithOptions.toFixed(2)}€
                                         </div>
                                     ):(
                                         <div key={op.orderProductId} className="order_product_card row_align">
-                                            {op.name} * {op.quantity}
+                                            {op.name} * {op.quantity} - {op.priceWithOptions.toFixed(2)}€
                                             <button className="order_product_card_edit_button" onClick={() => {setAddingNewProduct(false);openProductOptions(op.orderProductId,true)}}>Keisti</button>
                                             <button className="order_product_card_delete_button" onClick={() => deleteProductInOrder(op.orderProductId)}>X</button>
                                         </div>
@@ -613,12 +634,26 @@ export const OrderView=({user,business}) => {
                             <p id="order_quantity">Kiekis: {order.quantity}</p>
                         </div>
                         <div className="order_more_functions row_align">
-                            <button className="order_options_button">Opcijos</button>
+                            <button id="order_options_button" onClick={() => setIsOptionsVisible(true)}>Opcijos</button>
+                            {isOptionsVisible && (
+                                <>
+                                    <div id="invisible_panel" onClick={() => setIsOptionsVisible(false)}/>
+                                    <div id="order_options_panel">
+                                        <button id="order_option_button">Nuolaidos</button>
+                                        {order.status!=="closed" && order.status!=="paid" && (
+                                            <button id="order_option_button" onClick={() => cancelOrder()}>Atšaukti</button>
+                                        )}
+                                        {order.status==="paid" && (
+                                            <button id="order_option_button">Grąžinimas</button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                             <button className="order_comment_button" onClick={() => openComment()}>Pastaba</button>
                             {isCommentVisible && (
-                                <div className="order_comment_panel col_align">
-                                    <button className="comment_close_button" onClick={() => setIsCommentVisible(false)}>X</button>
-                                    {order.status!=="Atvira" ? (
+                                <div id="order_comment_panel" className="col_align">
+                                    <div id="invisible_panel" onClick={() => setIsCommentVisible(false)}/>
+                                    {order.status!=="open" ? (
                                         <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
                                     ):(
                                         <>
@@ -629,7 +664,7 @@ export const OrderView=({user,business}) => {
                                 </div>
                             )}
                         </div>
-                        {order.status!=="Atvira" ? (
+                        {order.status!=="open" ? (
                             <></>
                         ):(
                             <button className="payment_button" onClick={() => {setIsSplitCheck(false);setIsPaymentPanelVisible(true)}}>Apmokėti</button>

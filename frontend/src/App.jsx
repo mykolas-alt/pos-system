@@ -291,7 +291,7 @@ function App(){
             <>
               <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
               <div id="login_panel">
-                <button id="close_button" onClick={() => setIsPanelVisible(false)}>X</button>
+                <button className="close_button" onClick={() => setIsPanelVisible(false)}>X</button>
                 <div id="acc_options" className="row_align">
                   <button id="acc_button" onClick={() => {resetErrors();setIsPasswordVisible(false);setIsRegister(false)}}>Prisijungti</button>
                   <button id="acc_button" onClick={() => {resetErrors();setIsPasswordVisible(false);setIsRegister(true)}}>Registracija</button>

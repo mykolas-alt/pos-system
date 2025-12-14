@@ -56,23 +56,23 @@ export const BusinessCreate=({setUserBusiness,user}) => {
     
     return(
         <div id="new_register_info" className="col_align">
-            <div id="new_register_label">New Business</div>
+            <div id="new_register_label">Naujas versla</div>
             <hr/>
             <div id="new_register_info_item">
-                <label>Type:</label>
+                <label>Tipas:</label>
                 <div className="row_align">
                     <div id="new_register_radio_option">
                         <input type="radio" name="business_type" checked={businessType==="catering"} onChange={() => setBusinessType("catering")}/>
-                        Catering
+                        Maitinimas
                     </div>
                     <div id="new_register_radio_option">
                         <input type="radio" name="business_type" checked={businessType==="beauty"} onChange={() => setBusinessType("beauty")}/>
-                        Beauty
+                        Grožis
                     </div>
                 </div>
             </div>
             <div id="new_register_info_item">
-                <label>Name:</label>
+                <label>Pavadinimas:</label>
                 <input className={errors.businessName ? "invalid":""} type="text" name="business_name" value={businessName} onChange={(e) => setBusinessName(e.target.value)}/>
             </div>
             {errors.businessName && (
@@ -81,14 +81,14 @@ export const BusinessCreate=({setUserBusiness,user}) => {
                 </div>
             )}
             <div id="new_register_info_item">
-                <label>Address:</label>
+                <label>Adresas:</label>
                 <input type="text" name="business_address" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)}/>
             </div>
             <div id="new_register_info_item">
-                <label>Contact Info:</label>
+                <label>Kontaktinė informacija:</label>
                 <input type="text" name="business_contact_info" value={businessContactInfo} onChange={(e) => setBusinessContactInfo(e.target.value)}/>
             </div>
-            <button id="new_register_button" onClick={() => registerBusiness()}>Register Business</button>
+            <button id="new_register_button" onClick={() => registerBusiness()}>Registruoti Verslą</button>
         </div>
     )
 }
