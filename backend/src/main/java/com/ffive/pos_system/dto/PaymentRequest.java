@@ -18,6 +18,7 @@ public class PaymentRequest {
     private PaymentType paymentType;
     private BigDecimal amount;
     private BigDecimal tip;
+    private BigDecimal serviceCharge;
 
     private String stripeToken;
     private String giftCardCode;

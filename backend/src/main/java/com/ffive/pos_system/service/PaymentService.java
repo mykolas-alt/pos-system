@@ -65,6 +65,11 @@ public class PaymentService {
                 if (request.getTip() != null) {
                     totalToCharge = totalToCharge.add(request.getTip());
                 }
+
+                if (request.getServiceCharge() != null) {
+                    totalToCharge = totalToCharge.add(request.getServiceCharge());
+                }
+
                 transactionId = stripeService.chargeCard(request.getStripeToken(), totalToCharge);
             } catch (Exception e) {
                 throw new RuntimeException("Card payment failed: " + e.getMessage());
