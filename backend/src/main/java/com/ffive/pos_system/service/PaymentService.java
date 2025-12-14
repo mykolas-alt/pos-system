@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -123,4 +124,31 @@ public class PaymentService {
         // ? we did not agree how this format should look, but I can create whatever
         return code.startsWith("GiftCard-");
     }
+
+    @Transactional
+    public void refundOrder(UUID orderID) {
+        Order order = orderRepository.findById(orderID)
+                .orElseThrow(() -> new PaymentException("Order not found for refund", null, null));
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new PaymentException("Only paid orders can be refunded.", orderID, null);
+        }
+
+        List<Payment> payments = paymentRepository.findByOrderId(orderID);
+
+        for (Payment payment : payments) {
+            if (payment.getPaymentType() == PaymentType.CARD) {
+                try {
+                    stripeService.refundCharge(payment.getId().toString());
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to refund through Stripe: " + e.getMessage());
+                }
+            }
+        }
+
+        order.setStatus(OrderStatus.REFUNDED);
+        orderRepository.save(order);
+
+    }
+
 }

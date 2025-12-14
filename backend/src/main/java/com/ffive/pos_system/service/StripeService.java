@@ -3,6 +3,7 @@ package com.ffive.pos_system.service;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
+import com.stripe.model.Refund;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -34,5 +35,12 @@ public class StripeService {
 
         Charge charge = Charge.create(chargeParams);
         return charge.getId(); // returning stripe's transaction ID
+    }
+
+    public void refundCharge(String chargeId) throws StripeException {
+        Map<String, Object> refundParams = new HashMap<>();
+        refundParams.put("charge", chargeId);
+
+        Refund.create(refundParams);
     }
 }
