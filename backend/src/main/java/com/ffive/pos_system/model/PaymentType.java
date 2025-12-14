@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PaymentType {
-    CASH((byte) 1),
-    CARD((byte) 2),
-    GIFT_CARD((byte) 3);
+    CASH((byte) 0),
+    CARD((byte) 1),
+    GIFT_CARD((byte) 2);
     private final byte key;
 }
