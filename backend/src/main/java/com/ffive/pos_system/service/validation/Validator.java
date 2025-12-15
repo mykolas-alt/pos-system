@@ -15,9 +15,9 @@ public class Validator<T> {
         this.rules = rules;
     }
 
-    public void validate(T entity) {
+    public void validate(T entity, ValidationContext context) {
         rules.stream()
-                .map(rule -> rule.test(entity))
+                .map(rule -> rule.test(entity, context))
                 .filter(result -> !result.isValid())
                 .findFirst()
                 .ifPresent(res -> {

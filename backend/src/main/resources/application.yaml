@@ -32,9 +32,9 @@ springdoc:
     version: 1.0.0
 
 auth:
-  # "/auth/**,/swagger,/swagger/**,/swagger-ui,/swagger-ui/**,/v3/api-docs,/v3/api-docs/**"
   unsecured-endpoints:
-    - "/auth/**"
+    - "/auth/register"
+    - "/auth/login"
     - "/swagger"
     - "/swagger/**"
     - "/api-docs"

@@ -49,4 +49,11 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="addNoteTipAndServiceChargeToOrder" author="mykolas">
+        <addColumn tableName="order">
+            <column name="note" type="VARCHAR(255)" />
+            <column name="tip" type="DECIMAL(10,2)" />
+            <column name="service_charge" type="DECIMAL(10,2)" />
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
