@@ -20,18 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.ffive.pos_system.dto.GUIBeautyService;
 import com.ffive.pos_system.dto.GUIReservation;
-import com.ffive.pos_system.model.BeautyService;
-import com.ffive.pos_system.model.OrderStatus;
-import com.ffive.pos_system.model.Reservation;
-import com.ffive.pos_system.repository.BeautyServiceRepository;
+import com.ffive.pos_system.dto.ServiceResponse;
+import com.ffive.pos_system.dto.ServiceRequest;
 import com.ffive.pos_system.repository.ReservationRepository;
 import com.ffive.pos_system.model.Reservation;
 import com.ffive.pos_system.service.ReservationService;
-import com.ffive.pos_system.service.BeautyServiceService;
-import com.ffive.pos_system.converter.BeautyServiceConverter;
 import com.ffive.pos_system.converter.ReservationConverter;
 
 import lombok.RequiredArgsConstructor;

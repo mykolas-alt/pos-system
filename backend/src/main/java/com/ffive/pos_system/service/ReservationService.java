@@ -9,25 +9,12 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.ffive.pos_system.dto.GUIProduct;
-import com.ffive.pos_system.dto.GUIBeautyService;
-import com.ffive.pos_system.dto.GUIReservation;
 import com.ffive.pos_system.model.Business;
-import com.ffive.pos_system.model.BeautyService;
+import com.ffive.pos_system.model.POSService;
 import com.ffive.pos_system.model.Reservation;
-import com.ffive.pos_system.model.Employee;
-import com.ffive.pos_system.model.POSUser;
-import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.repository.EmployeeRepository;
-import com.ffive.pos_system.repository.ProductRepository;
-import com.ffive.pos_system.repository.BeautyServiceRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
-import com.ffive.pos_system.converter.BeautyServiceConverter;
-import com.ffive.pos_system.dto.GUIBeautyService;
 import com.ffive.pos_system.dto.GUIReservation;
-import com.ffive.pos_system.security.POSUserDetails;
-import com.ffive.pos_system.service.validation.ProductCreateValidator;
-import com.ffive.pos_system.util.EmployeeHelper;
 
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;

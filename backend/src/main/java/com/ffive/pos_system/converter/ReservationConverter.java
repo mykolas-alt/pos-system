@@ -13,7 +13,6 @@ public class ReservationConverter {
         return GUIReservation.builder()
         .id(reservation.getId())
         .businessId(reservation.getBusiness().getId())
-       // 
         .apointmentTime(reservation.getApointmentTime())
         .customerName(reservation.getCustomerName())
         .customerPhone(reservation.getCustomerPhone())
