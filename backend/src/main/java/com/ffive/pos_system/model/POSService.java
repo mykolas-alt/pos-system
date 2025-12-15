@@ -8,6 +8,8 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,8 +23,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Audited
-public class BeautyService {
-    
+@AllArgsConstructor
+@NoArgsConstructor
+public class POSService {
 
     @Id
     @GeneratedValue
@@ -44,7 +47,7 @@ public class BeautyService {
 
     @ManyToOne
     @JoinColumn (name = "specialist_id", nullable = false)
-    private Employee specialistId;
+    private Employee specialist;
 
     @Column(nullable = false)
     private long duration;
@@ -59,24 +62,9 @@ public class BeautyService {
     @Column(nullable = false)
     private BigDecimal price;
 
-     // snapshot fields
-    @Column(name = "beautyservice_name_snapshot")
-    private String productNameSnapshot;
-
-    @Column(name = "duration_price_snapshot")
-    private BigDecimal unitPriceSnapshot;
-
-    public BeautyService(String name, Employee specialist, long duration, LocalDateTime openAt, LocalDateTime closedAt, BigDecimal price) {
-        this.name = name;
-        this.specialistId = specialist;
-        this.duration = duration;
-        this.opensAt = openAt;
-        this.closesAt = closedAt;
-        this.price = price;
-    }
-    public BeautyService() {
-    }
-
+    @Column(nullable = false)
+    private Boolean isActive = true;
+    
     @Override
     public String toString(){
         return name + " ($" + price + ")" + " " + opensAt + " - " + closesAt;

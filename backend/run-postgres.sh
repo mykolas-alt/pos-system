@@ -3,6 +3,8 @@
 # Load environment variables from .env
 if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
+    echo ${POSTGRES_USER}
+    echo ${POSTGRES_PASSWORD}
 else
     echo ".env file not found! Exiting."
     exit 1
