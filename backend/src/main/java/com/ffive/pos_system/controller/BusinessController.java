@@ -3,6 +3,7 @@ package com.ffive.pos_system.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,7 @@ public class BusinessController {
     private final PagingHelper pagingHelper;
 
     @PostMapping
-    @PreAuthorize("@authorizationHelper.hasEmployee(authentication)")
+    @PreAuthorize("@authorizationHelper.isAuthenticated(authentication)")
     public String createBusiness(@RequestBody BusinessCreationRequest businessCreationRequest,
             @AuthenticationPrincipal POSUserDetails userDetails) {
         businessService.createBusiness(businessCreationRequest, userDetails);
@@ -39,6 +40,14 @@ public class BusinessController {
     }
 
     @GetMapping
+    @PreAuthorize("@authorizationHelper.hasEmployee(authentication)")
+    public ResponseEntity<GUIBusiness> getBusinesses(@AuthenticationPrincipal POSUserDetails userDetails) {
+        return businessService.getBusinessForExecutingUser(userDetails.getUser().getEmployee())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/all")
     public List<GUIBusiness> getBusinesses(@AuthenticationPrincipal POSUserDetails userDetails,
             @RequestParam Optional<Integer> page, @RequestParam Optional<Integer> size) {
         return businessService.getBusinessesAllBusinesses(userDetails,

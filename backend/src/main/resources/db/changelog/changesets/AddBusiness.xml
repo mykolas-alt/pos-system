@@ -34,4 +34,12 @@
 
         </createTable>
     </changeSet>
+
+    <changeSet id="addBusinessType" author="mykolas">
+        <addColumn tableName="business">
+            <column name="type" type="VARCHAR(100)" value="CATERING">
+                <constraints nullable="false" notNullConstraintName="type_not_null" />
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

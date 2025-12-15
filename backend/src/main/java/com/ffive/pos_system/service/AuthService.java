@@ -34,7 +34,13 @@ public class AuthService {
         log.info("Authenticating user: {}", username);
         return userRepository.findByUsername(username)
                 .filter(user -> passwordEncoder.matches(password, user.getPasswordHash()))
-                .map(user -> jwtService.generateToken(user.getUsername()));
+                .map(user -> {
+                    if (user.isSuperAdmin()) {
+                        user.setEmployee(null);
+                        userRepository.save(user);
+                    }
+                    return jwtService.generateToken(user.getUsername());
+                });
     }
 
     public void changePassword(POSUser user, PasswordChangeRequest passwordChangeRequest) {

@@ -12,6 +12,7 @@ import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.UserRepository;
 import com.ffive.pos_system.security.POSUserDetails;
+import com.ffive.pos_system.service.validation.ValidationException;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,9 @@ public class NewBusinessHandler {
     private final EmployeeConverter employeeConverter;
 
     public Business handle(BusinessCreationRequest businessCreationRequest, POSUserDetails userDetails) {
-        // TODO: add handler with validations inside
-
+        if (userDetails.getUser().getEmployee() != null && userDetails.getUser().getEmployee().getBusiness() != null) {
+            throw new ValidationException("User is already associated with a business.");
+        }
         Employee owner = employeeConverter.fromBusinessCreationRequest(businessCreationRequest);
         Business business = businessConverter.convertToBusiness(businessCreationRequest);
 

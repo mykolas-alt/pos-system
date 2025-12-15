@@ -21,6 +21,7 @@ public class GUIBusinessConverter {
         return GUIBusiness.builder()
                 .id(business.getId())
                 .owner(employeeConverter.convertToGUIEmployee(business.getOwner()))
+                .businessType(business.getBusinessType())
                 .name(business.getName())
                 .address(business.getAddress())
                 .build();

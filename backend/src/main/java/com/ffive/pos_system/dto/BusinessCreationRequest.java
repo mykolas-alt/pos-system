@@ -11,4 +11,5 @@ public class BusinessCreationRequest {
     private String businessName;
     private String address;
     private String contactInfo;
+    private BusinessType businessType;
 }
