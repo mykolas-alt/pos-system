@@ -29,14 +29,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ServiceController {
 
-	private final POSServiceService beautyServiceService;
-	private final ServiceConverter beautyServiceConverter;
+	private final POSServiceService serviceService;
 
 	@Operation(summary = "List all services for a given business")
 	@GetMapping
 		public ResponseEntity<List<ServiceResponse>> listByBusiness(
 			@AuthenticationPrincipal POSUserDetails userDetails){
-			List<ServiceResponse> result = beautyServiceService.listServicesByBusiness(userDetails);
+			List<ServiceResponse> result = serviceService.listServicesByBusiness(userDetails);
 			return ResponseEntity.ok(result);
 	}
 
@@ -46,7 +45,7 @@ public class ServiceController {
 			@PathVariable UUID specialistId,
 			@RequestBody ServiceRequest beautyService) {
 		
-		beautyServiceService.createService(userDetails, specialistId, beautyService);
+		serviceService.createService(userDetails, specialistId, beautyService);
 		
 		return " Service created";
 	}
@@ -56,7 +55,7 @@ public class ServiceController {
 		@AuthenticationPrincipal POSUserDetails userDetails,
 		@PathVariable UUID serviceId) {
 		
-		return beautyServiceService.getServiceByIdAndBusiness(userDetails, serviceId);
+		return serviceService.getServiceByIdAndBusiness(userDetails, serviceId);
 	}
 	@Operation(summary = "Update an existing service")
 	@PutMapping("/{serviceId}")
@@ -64,7 +63,7 @@ public class ServiceController {
 			@PathVariable UUID serviceId,
 			@RequestBody ServiceRequest guiBeautyService) {
 			
-				beautyServiceService.updateService(userDetails, serviceId, guiBeautyService);
+				serviceService.updateService(userDetails, serviceId, guiBeautyService);
 			
 			return " Service updated";
 			}
@@ -74,7 +73,7 @@ public class ServiceController {
 	public ResponseEntity<Void> deleteService(
 		@AuthenticationPrincipal POSUserDetails userDetails,
 		@PathVariable UUID serviceId) {
-		beautyServiceService.deleteService(userDetails, serviceId);
+		serviceService.deleteService(userDetails, serviceId);
 		
 		return ResponseEntity.ok().build();
 	}
