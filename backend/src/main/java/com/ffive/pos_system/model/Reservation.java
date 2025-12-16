@@ -40,7 +40,6 @@ public class Reservation{
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
-    
     private Employee employee;
     @Column(nullable = false)
     private LocalDateTime apointmentTime;

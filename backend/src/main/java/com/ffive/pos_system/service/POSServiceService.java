@@ -1,16 +1,12 @@
 package com.ffive.pos_system.service;
 
-import static com.ffive.pos_system.service.validation.ValidationMessageConstants.MODIFYING_NON_EXISTENT_ENTITY;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.UUID;
-import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import com.ffive.pos_system.model.POSService;
-import com.ffive.pos_system.dto.GUIBeautyService;
 import com.ffive.pos_system.dto.ServiceRequest;
 import com.ffive.pos_system.dto.ServiceResponse;
 import com.ffive.pos_system.model.Business;

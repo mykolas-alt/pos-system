@@ -9,12 +9,10 @@ import lombok.Data;
 
 @Data
 @Builder
-
 public class GUIReservation {
     
     private UUID id;
     private UUID businessId;
-    private UUID serviceId;
     private LocalDateTime apointmentTime;
     private String customerName;
     private String customerPhone;

@@ -15,7 +15,6 @@ public class ReservationConverter {
         .businessId(reservation.getBusiness().getId())
         .apointmentTime(reservation.getApointmentTime())
         .customerName(reservation.getCustomerName())
-        .customerPhone(reservation.getCustomerPhone())
         .status(reservation.getStatus())
         .createdAt(reservation.getCreatedAt())
         .closedAt(reservation.getClosedAt())
@@ -24,10 +23,12 @@ public class ReservationConverter {
 
     public Reservation convertToEntity(GUIReservation guiReservation) {
         Reservation reservation = new Reservation();
+        reservation.setId(guiReservation.getId());
         reservation.setApointmentTime(guiReservation.getApointmentTime());
         reservation.setCustomerName(guiReservation.getCustomerName());
-        reservation.setCustomerPhone(guiReservation.getCustomerPhone());
         reservation.setStatus(guiReservation.getStatus());
+        reservation.setCreatedAt(guiReservation.getCreatedAt());
+        reservation.setClosedAt(guiReservation.getClosedAt());
         return reservation;
     }
 }

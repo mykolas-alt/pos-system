@@ -5,9 +5,7 @@ import static com.ffive.pos_system.service.validation.ValidationMessageConstants
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.time.LocalDateTime;
-
-import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.POSService;
@@ -15,8 +13,10 @@ import com.ffive.pos_system.model.Reservation;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
 import com.ffive.pos_system.dto.GUIReservation;
-
-import jakarta.validation.ValidationException;
+import com.ffive.pos_system.security.POSUserDetails;
+import com.ffive.pos_system.converter.ReservationConverter;
+import com.ffive.pos_system.service.validation.ValidationException;
+import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,36 +29,43 @@ public class ReservationService {
     
     private final ReservationRepository reservationRepository;
     private final EmployeeRepository employeeRepository;
-    //private final ReservationConverter beautyServiceConverter;
+    private final ReservationConverter reservationConverter;
 
 
-    public List<Reservation> listServicesByBusiness(UUID businessId) {
-      return  reservationRepository.findAllByBusinessId(businessId);
-        
+    public List<GUIReservation> listServicesByBusiness(POSUserDetails userDetails){
+        Business business = userDetails.getUser().getEmployee().getBusiness();
+        List<GUIReservation> result = new ArrayList<GUIReservation>();  
+
+        List<Reservation> found = reservationRepository.findAllByBusinessId(business.getId()).stream().toList();
+        for (Reservation res : found){
+            GUIReservation guiObj = reservationConverter.convertToGUI(res);
+            result.add(guiObj);
+        }
+        return result;
     }
 
-    public void createReservation(GUIReservation reservation) {
+    public void createReservation(POSUserDetails userDetails, GUIReservation reservation, UUID employeeId) {
 
-        // Reservation newService = beautyServiceConverter.convertToEntity(reservation);
-        // need to fetch employees by name or id to set in reservation
-        // reservationRepository.save(reservation);
+        Reservation newService = reservationConverter.convertToEntity(reservation);
+        Business business = userDetails.getUser().getEmployee().getBusiness();
+        newService.setBusiness(business);
+        //newService.employeeId = employeeRepository.findByUserId(employeeId).get();
+        reservationRepository.save(newService);
 
-        //beautyServiceRepository.save(beautyService);
     }
 
-    public void deleteReservationById(UUID reservationId){
+    public void deleteReservationById(POSUserDetails userDetails , UUID reservationId){
         reservationRepository.deleteById(reservationId);
     }
 
-    public Reservation updateReservation(UUID reservationId, GUIReservation guiObj){
-        Optional<Reservation> existingReservationOpt = reservationRepository.findById(reservationId);
-        if (existingReservationOpt.isEmpty()) {
+    public void updateReservation(POSUserDetails userDetails , UUID reservationId, GUIReservation guiObj){
+
+        if (reservationId == null || guiObj == null) {
             throw new ValidationException(MODIFYING_NON_EXISTENT_ENTITY);
         }
 
-        try {
-            Reservation found = existingReservationOpt.get();
-
+        Reservation found = reservationRepository.findById(reservationId).orElseThrow(() -> new ValidationException("Service not found"));
+        
             if (found.getCustomerName() == null) {
                 log.warn("Customer name is null for reservaion ID: {}", reservationId);
             }
@@ -81,17 +88,17 @@ public class ReservationService {
             found.setCreatedAt(guiObj.getCreatedAt());
         
          }
+
+        if (found != null)
         reservationRepository.save(found);
-        return found;
          
-        } catch (Exception e) {
-            log.error("Error updating reservation: {}", e.getMessage());
-            throw e;
-        }
+      
     }
 
 
-    public Optional<Reservation> getReservationById(UUID reservationId) {
-        return reservationRepository.findById(reservationId);
+    public GUIReservation getReservationById(POSUserDetails userDetails , UUID reservationId) {
+
+        Reservation found = reservationRepository.findByReservationId(reservationId);
+        return reservationConverter.convertToGUI(found);
     }
 }
