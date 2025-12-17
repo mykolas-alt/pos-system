@@ -85,10 +85,20 @@ public class SplitCheckHandler {
 
         if (newTotalPaidAmount.compareTo(order.getTotal()) >= 0) {
             order.setStatus(OrderStatus.PAID);
+            markAllSplitChecksAsPaid(order);
         } else {
             order.setStatus(OrderStatus.PARTIALLY_PAID);
         }
+    }
 
+    public void markAllSplitChecksAsPaid(Order order) {
+        List<SplitCheck> splitChecks = splitCheckRepository.findByOrderId(order.getId());
+        for (SplitCheck splitCheck : splitChecks) {
+            if (splitCheck.getStatus() != SplitCheckStatus.PAID) {
+                splitCheck.setStatus(SplitCheckStatus.PAID);
+                splitCheckRepository.save(splitCheck);
+            }
+        }
     }
 
 }

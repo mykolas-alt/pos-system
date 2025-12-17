@@ -53,6 +53,17 @@ public class PaymentService {
         // 2. processing stripe payment
         String transactionId = UUID.randomUUID().toString(); // transaction ID must also be present for cash/gift-card payments
         PaymentType paymentType = request.getPaymentType();
+
+        BigDecimal totalToCharge = request.getAmount();
+        if (request.getTip() != null) {
+            totalToCharge = totalToCharge.add(request.getTip());
+        }
+
+        if (request.getServiceCharge() != null) {
+            totalToCharge = totalToCharge.add(request.getServiceCharge());
+        }
+
+
         if (paymentType == PaymentType.CARD) {
 
             if (request.getStripeToken() == null || request.getStripeToken().isEmpty()) {
@@ -62,15 +73,6 @@ public class PaymentService {
             try {
                 // using stripe api
                 // adding tip as well
-
-                BigDecimal totalToCharge = request.getAmount();
-                if (request.getTip() != null) {
-                    totalToCharge = totalToCharge.add(request.getTip());
-                }
-
-                if (request.getServiceCharge() != null) {
-                    totalToCharge = totalToCharge.add(request.getServiceCharge());
-                }
 
                 transactionId = stripeService.chargeCard(request.getStripeToken(), totalToCharge);
             } catch (Exception e) {
