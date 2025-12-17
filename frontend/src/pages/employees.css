@@ -1,0 +1,138 @@
+#employees_search{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--tertiary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:16px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:15px 10px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:-0.5rem 0.5rem auto 0.5rem;
+    width:50%;
+    height:1rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
+}
+
+    #employees_search:focus{
+        border-color:var(--focus-color);
+        outline:none;
+    }
+
+#employee_card_not_found{
+    justify-self:center;
+    font-size:1.5rem;
+    font-weight:bold;
+    margin:1rem;
+}
+
+#employee_card{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--tertiary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:5px 10px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem auto 0 auto;
+    width:25rem;
+    height:8rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    #employee_card:hover{
+        background-color:var(--tertiary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+#employee_card_id{
+    font-size:1.2rem;
+    margin:0.3rem auto 0.2rem 0.5rem;
+}
+
+#employee_card_name{
+    font-size:1.6rem;
+    margin:0.2rem auto 0.2rem auto;
+}
+
+#employee_card_email{
+    font-size:1.4rem;
+    margin:0.2rem 0.5rem 0.2rem auto;
+}
+
+#employee_create_edit_panel{
+    justify-self:center;
+    background-color:var(--primary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:16px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    position:absolute;
+    top:3rem;
+    width:30rem;
+    z-index:110;
+    transition:background-color 0.3s ease,border-color 0.3s ease;
+}
+
+#employee_create_edit_panel label{
+    font-size:1.4rem;
+    font-weight:bold;
+    margin:0.5rem auto 0.5rem 1.5rem;
+}
+
+.employee_create_edit_input_field{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    justify-self:center;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:15px 16px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0rem auto 0.5rem auto;
+    width:75%;
+    height:1rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .employee_create_edit_input_field:hover{
+        background-color:var(--secondary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+    .employee_create_edit_input_field:focus{
+        border-color:var(--focus-color);
+        outline:none;
+    }
+
+#employee_create_edit_controls{
+    width:90%;
+    margin:auto auto 0.5rem auto;
+}
+
+#employee_create_edit_cancel_button{
+    margin:auto 0.5rem 0.5rem auto;
+}
+
+#employee_create_edit_confirm_button{
+    margin:auto 0.5rem 0.5rem 0.5rem;
+}
+
+#employee_create_edit_delete_button{
+    margin:auto auto 0.5rem 0.5rem;
+}

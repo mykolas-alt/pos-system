@@ -18,6 +18,7 @@ import {Reservations} from './pages/beauty/reservations.jsx'
 import {ReservationView} from './pages/beauty/reservationView.jsx'
 import {Services} from './pages/beauty/services.jsx'
 
+import {Employees} from './pages/employees.jsx'
 import {Report} from './pages/catering/report.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
@@ -290,6 +291,7 @@ function App(){
               <Route path='/:username/beauty/:id/reservations' element={<Reservations user={user} business={userBusiness} onReservationOpen={(reservationId) => handleReservationOpening(reservationId)}/>}/>
               <Route path='/:username/beauty/:id/reservations/:reservationId' element={<ReservationView user={user} business={userBusiness}/>}/>
               <Route path='/:username/beauty/:id/services' element={<Services user={user} business={userBusiness}/>}/>
+              <Route path='/:username/catering/:id/employees' element={<Employees user={user} business={userBusiness}/>}/>
               <Route path='/:username/catering/:id/report' element={<Report user={user} business={userBusiness}/>}/>
             </Routes>
           </div>

@@ -157,7 +157,7 @@ export const Services=({user,business}) => {
         const existing=db.services.find(s => s.id===selectedService)
 
         if(!existing){
-            toast.error("Klaida: paslauga nerastas")
+            toast.error("Klaida: paslauga nerasta")
             return
         }
 
