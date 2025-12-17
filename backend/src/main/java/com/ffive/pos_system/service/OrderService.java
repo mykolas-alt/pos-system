@@ -1,14 +1,20 @@
 package com.ffive.pos_system.service;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Supplier;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.ffive.pos_system.converter.gui.GUIOrderConverter;
+import com.ffive.pos_system.converter.gui.GUIPageConverter;
+import com.ffive.pos_system.dto.AddItemOptionToOrderRequest;
 import com.ffive.pos_system.dto.AddProductToOrderRequest;
 import com.ffive.pos_system.dto.GUIOrder;
+import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
 import com.ffive.pos_system.dto.ModifyOrderRequest;
 import com.ffive.pos_system.handler.OrderModificationHandler;
@@ -21,7 +27,6 @@ import com.ffive.pos_system.repository.OrderItemRepository;
 import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
-import com.ffive.pos_system.util.PagingHelper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,11 +34,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final PagingHelper pagingHelper;
-
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+
     private final GUIOrderConverter orderConverter;
+    private final GUIPageConverter pageConverter;
 
     private final OrderStateHandler orderStateHandler;
     private final OrderModificationHandler orderModificationHandler;
@@ -50,14 +55,12 @@ public class OrderService {
                 addProductToOrderRequest);
     }
 
-    public List<GUIOrder> getAllOrders(POSUserDetails userDetails, int page, int size) {
+    public GUIPage<GUIOrder> getAllOrders(POSUserDetails userDetails, int pageNumber, int size) {
         Business business = userDetails.getUser().getEmployee().getBusiness();
 
-        return orderRepository.findByBusinessId(business.getId()).stream()
-                .skip(pagingHelper.calculateOffset(page, size))
-                .limit(size)
-                .map(this::convertToGuiOrder)
-                .toList();
+        Pageable pageable = PageRequest.of(pageNumber, size);
+        Page<Order> page = orderRepository.findAllByBusiness(business, pageable);
+        return pageConverter.convertToGUIPage(page, this::convertToGuiOrder);
     }
 
     public void removeProductFromOrder(POSUserDetails userDetails, UUID orderId, UUID orderItemId) {
@@ -98,24 +101,51 @@ public class OrderService {
         return convertToGuiOrder(order);
     }
 
+    public void addOptionToOrderItem(POSUserDetails userDetails, UUID orderId, UUID orderItemId,
+            AddItemOptionToOrderRequest addItemOptionToOrderRequest) {
+        Order order = fetchOrderById(orderId);
+        OrderItem orderItem = fetchOrderItemById(orderItemId);
+
+        orderModificationHandler.addOptionToOrderItem(
+                userDetails.getUser().getEmployee(),
+                order,
+                orderItem,
+                addItemOptionToOrderRequest);
+    }
+
+    public void removeOptionFromOrderItem(POSUserDetails userDetails, UUID orderId, UUID orderItemId,
+            UUID orderItemOptionId) {
+        Order order = fetchOrderById(orderId);
+        OrderItem orderItem = fetchOrderItemById(orderItemId);
+
+        orderModificationHandler.removeOptionFromOrderItem(
+                userDetails.getUser().getEmployee(),
+                order,
+                orderItem,
+                orderItemOptionId);
+    }
+
     private GUIOrder convertToGuiOrder(Order order) {
         if (Objects.equals(order.getStatus(), OrderStatus.OPEN)) {
             return orderConverter.convertOrderFromCurrentState(order);
         } else {
             return orderConverter.convertOrderFromSnapshot(order);
-
         }
     }
 
     private OrderItem fetchOrderItemById(UUID orderItemId) {
         var orderItem = orderItemRepository.findById(orderItemId)
-                .orElseThrow(() -> new ValidationException("Order item not found"));
+                .orElseThrow(validationException("Order item not found"));
         return orderItem;
     }
 
     private Order fetchOrderById(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ValidationException("Order not found"));
+                .orElseThrow(validationException("Order not found"));
         return order;
+    }
+
+    private Supplier<ValidationException> validationException(String message) {
+        return () -> new ValidationException(message);
     }
 }

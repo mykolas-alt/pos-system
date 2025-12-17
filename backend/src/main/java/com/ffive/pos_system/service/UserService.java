@@ -15,8 +15,8 @@ import com.ffive.pos_system.model.UserRole;
 import com.ffive.pos_system.model.UserRoleType;
 import com.ffive.pos_system.repository.UserRepository;
 import com.ffive.pos_system.repository.UserRoleRepository;
+import com.ffive.pos_system.service.validation.ValidationException;
 
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
