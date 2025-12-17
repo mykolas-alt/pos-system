@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addPaymentTable" author="elvinukas">
+        <createTable tableName="payment">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_payment_order"
+                    references="order(id)" />
+            </column>
+            <column name="payment_type" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false" />
+            </column>
+            <column name="tip" type="DECIMAL(10,2)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addSplitCheckTable" author="elvinukas">
+        <createTable tableName="split_check">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_splitcheck_order"
+                    references="order(id)" />
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
+
