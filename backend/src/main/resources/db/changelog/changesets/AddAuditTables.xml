@@ -72,4 +72,10 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="addBusinessTypeToHistoryTable" author="mykolas">
+        <addColumn tableName="business_aud">
+            <column name="type" type="VARCHAR(100)" />
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

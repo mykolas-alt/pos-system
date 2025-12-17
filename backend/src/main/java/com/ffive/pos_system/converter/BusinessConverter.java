@@ -11,6 +11,7 @@ public class BusinessConverter {
     public Business convertToBusiness(BusinessCreationRequest request) {
         return Business.builder()
                 .name(request.getBusinessName())
+                .businessType(request.getBusinessType())
                 .address(request.getAddress())
                 .contactInfo(request.getContactInfo())
                 .build();

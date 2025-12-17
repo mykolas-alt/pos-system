@@ -5,10 +5,14 @@ import java.util.UUID;
 
 import org.hibernate.envers.Audited;
 
+import com.ffive.pos_system.dto.BusinessType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -49,6 +53,10 @@ public class Business {
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
     @Schema(hidden = true)
     private List<Employee> employees;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private BusinessType businessType;
 
     public Business() {
     }
