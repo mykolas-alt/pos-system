@@ -31,6 +31,10 @@ public class AuthService {
 
     public Optional<String> registerUser(UserCreationRequest request) {
         log.info("Registering new employee with username: {}", request);
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ValidationException("Username already exists");
+        }
+
         return Optional.ofNullable(userService.createUser(request))
                 .map(POSUser::getUsername)
                 .map(jwtService::generateToken);

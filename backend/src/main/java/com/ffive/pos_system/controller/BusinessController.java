@@ -20,6 +20,7 @@ import com.ffive.pos_system.service.BusinessService;
 import com.ffive.pos_system.util.PagingHelper;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,7 +34,7 @@ public class BusinessController {
 
     @PostMapping
     @PreAuthorize("@authorizationHelper.isAuthenticated(authentication)")
-    public String createBusiness(@RequestBody BusinessCreationRequest businessCreationRequest,
+    public String createBusiness(@Valid @RequestBody BusinessCreationRequest businessCreationRequest,
             @AuthenticationPrincipal POSUserDetails userDetails) {
         businessService.createBusiness(businessCreationRequest, userDetails);
         return "Business created";
