@@ -28,7 +28,6 @@ public class EmployeeHandler {
     private final UserRoleRepository userRoleRepository;
     private final EmployeeConverter employeeConverter;
 
-<<<<<<< HEAD
     public void handleNewEmployeeForBusiness(POSUserDetails userDetails, EmployeeCreationRequest creationRequest) {
         Employee employee = employeeConverter.fromCreationRequest(creationRequest);
 
@@ -44,13 +43,6 @@ public class EmployeeHandler {
 
         var employeeRole = userRoleRepository.findByRoleType(UserRoleType.EMPLOYEE)
                 .orElseThrow(() -> new IllegalStateException("Employee role not found in the system"));
-=======
-    public Employee handleNewEmployeeForBusiness(Employee employee) {
-        // TODO: add validation
-
-        // POSUser userAccount = employee.getUserAccount();
-        // userAccount.setPasswordHash(passwordEncoder.encode(userAccount.getPassword()));
->>>>>>> 59cedff (added hibernate for auditing, employee creation still WIP)
 
         POSUser userAccount = POSUser.builder()
                 .username(employee.getEmail())

@@ -27,9 +27,12 @@ import lombok.Setter;
 @Audited
 public class Business {
 
+    @Id
     @GeneratedValue
     @Schema(hidden = true)
     private UUID id;
+
+    @OneToOne
     @JoinColumn(name = "owner_id")
     @Schema(hidden = true)
     private Employee owner;

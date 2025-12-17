@@ -7,10 +7,6 @@ import org.springframework.stereotype.Component;
 import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.model.Employee;
-<<<<<<< HEAD
-=======
-import com.ffive.pos_system.repository.BusinessRepository;
->>>>>>> 59cedff (added hibernate for auditing, employee creation still WIP)
 import com.ffive.pos_system.repository.EmployeeRepository;
 
 import lombok.RequiredArgsConstructor;

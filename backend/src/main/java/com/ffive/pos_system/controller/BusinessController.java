@@ -1,13 +1,10 @@
 package com.ffive.pos_system.controller;
 
-<<<<<<< HEAD
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-=======
->>>>>>> 59cedff (added hibernate for auditing, employee creation still WIP)
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
