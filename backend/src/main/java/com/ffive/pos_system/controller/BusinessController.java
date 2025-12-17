@@ -5,8 +5,9 @@ import java.util.Optional;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,7 +32,7 @@ public class BusinessController {
     private final PagingHelper pagingHelper;
 
     @PostMapping
-    @PreAuthorize("@authorizationHelper.hasEmployee(authentication)")
+    @PreAuthorize("@authorizationHelper.isAuthenticated(authentication)")
     public String createBusiness(@RequestBody BusinessCreationRequest businessCreationRequest,
             @AuthenticationPrincipal POSUserDetails userDetails) {
         businessService.createBusiness(businessCreationRequest, userDetails);
