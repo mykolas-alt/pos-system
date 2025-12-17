@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ffive.pos_system.dto.AuthResponse;
+import com.ffive.pos_system.dto.GUIUserInfo;
 import com.ffive.pos_system.dto.LoginRequest;
 import com.ffive.pos_system.dto.PasswordChangeRequest;
 import com.ffive.pos_system.dto.UserCreationRequest;
@@ -33,6 +34,12 @@ public class AuthController {
         return authService.registerUser(userCreationRequest)
                 .map(token -> ResponseEntity.ok(new AuthResponse(token)))
                 .orElse(ResponseEntity.status(401).build());
+    }
+
+    @GetMapping("/user")
+    @PreAuthorize("@authorizationHelper.isAuthenticated(authentication)")
+    public ResponseEntity<GUIUserInfo> getUserInfo(@AuthenticationPrincipal POSUserDetails userDetails) {
+        return ResponseEntity.ok(authService.getUserInfo(userDetails));
     }
 
     @PostMapping("/login")
