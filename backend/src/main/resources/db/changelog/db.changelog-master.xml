@@ -14,4 +14,6 @@
     <include file="changesets/AddOrderTables.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddUserRoles.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddReservationTables.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddServiceAudit.xml" relativeToChangelogFile="true" />    
+    <include file="changesets/AddReservationAudit.xml" relativeToChangelogFile="true" />    
 </databaseChangeLog>

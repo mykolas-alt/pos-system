@@ -4,46 +4,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
-
-    <changeSet id="addReservationTable" author="arturas">
-        <createTable tableName="reservation">
-            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="business_id" type="UUID">
-                <constraints nullable="false" foreignKeyName="fk_reservation_business" references="business(id)"/>
-            </column>
-            <column name="employee_id" type="UUID">
-                <constraints nullable="false" foreignKeyName="fk_reservation_employee" references="employee(id)"/>
-            </column>
-            <column name="apointment_time" type="TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="customer_name" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="customer_phone" type="VARCHAR(20)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="status" type="VARCHAR(50)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_at" type="TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="closed_at" type="TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-
+    
     <changeSet id="addBeautyServiceTable" author="arturas">
         <createTable tableName="service">
             <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="reservation_id" type="UUID">
-                <constraints nullable="false" foreignKeyName="fk_beauty_service_reservation" references="reservation(id)"/>
             </column>
             <column name="business_id" type="UUID">
                 <constraints nullable="false" foreignKeyName="fk_service_business" referencedTableName="business" referencedColumnNames="id"/>
@@ -66,9 +31,45 @@
             <column name="price" type="DECIMAL(10,2)">
                 <constraints nullable="false"/>
             </column>
-                <column name="isActive" type="BOOLEAN"> 
+            <column name="is_active" type="BOOLEAN"> 
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="addReservationTable" author="arturas">
+        <createTable tableName="reservation">
+            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="business_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_reservation_business" references="business(id)"/>
+            </column>
+            <column name="employee_id" type="UUID">
+                <constraints nullable="true" foreignKeyName="fk_reservation_employee" references="employee(id)"/>
+            </column>
+            <column name="service_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_reservation_service" references="service(id)"/>
+            </column>
+            <column name="apointment_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customer_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customer_phone" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="SMALLINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="closed_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    
 
 </databaseChangeLog>
