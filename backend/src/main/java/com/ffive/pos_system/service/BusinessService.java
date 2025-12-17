@@ -15,15 +15,8 @@ import com.ffive.pos_system.handler.NewBusinessHandler;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.security.POSUserDetails;
-<<<<<<< HEAD
 import com.ffive.pos_system.service.validation.ValidationException;
 import com.ffive.pos_system.util.PagingHelper;
-
-=======
-import com.ffive.pos_system.service.validation.ValidationException;
-
-import jakarta.validation.ValidationException;
->>>>>>> ce953e9 (added executing user injection)
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
