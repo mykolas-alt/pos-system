@@ -15,4 +15,11 @@ public class AuthorizationHelper {
         POSUserDetails userDetails = (POSUserDetails) authentication.getPrincipal();
         return userDetails != null && userDetails.getUser() != null;
     }
+
+    public boolean isSuperAdminOrBusinessOwner(Authentication authentication) {
+        POSUserDetails userDetails = (POSUserDetails) authentication.getPrincipal();
+        return userDetails != null
+                && userDetails.getUser() != null
+                && (userDetails.getUser().isSuperAdmin() || userDetails.getUser().isBusinessOwner());
+    }
 }

@@ -10,7 +10,8 @@ public enum OrderStatus {
     IN_PROGRESS((byte) 2),
     PAID((byte) 3),
     REFUNDED((byte) 4),
-    CANCELLED((byte) 5);
+    CANCELLED((byte) 5),
+    PARTIALLY_PAID((byte) 6);
 
     private final byte key;
 }

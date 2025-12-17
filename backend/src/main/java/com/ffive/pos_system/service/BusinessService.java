@@ -3,6 +3,7 @@ package com.ffive.pos_system.service;
 import static com.ffive.pos_system.service.validation.ValidationMessageConstants.MODIFYING_NON_EXISTENT_ENTITY;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import com.ffive.pos_system.handler.NewBusinessHandler;
 import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.handler.NewBusinessHandler;
 import com.ffive.pos_system.model.Business;
+import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
@@ -79,4 +81,9 @@ public class BusinessService {
                 .toList();
     }
 
+    public Optional<GUIBusiness> getBusinessForExecutingUser(Employee employee) {
+        return Optional.ofNullable(employee)
+                .map(Employee::getBusiness)
+                .map(businessConverter::convertToGUIBusiness);
+    }
 }

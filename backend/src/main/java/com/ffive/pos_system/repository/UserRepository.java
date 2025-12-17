@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.POSUser;
 
 public interface UserRepository extends JpaRepository<POSUser, UUID> {
@@ -15,4 +16,12 @@ public interface UserRepository extends JpaRepository<POSUser, UUID> {
             WHERE u.username = :username
             """)
     Optional<POSUser> findByUsername(String username);
+
+    @Query("""
+            SELECT u FROM POSUser u
+            WHERE u.employee = :employee
+            """)
+    Optional<POSUser> findByEmployee(Employee employee);
+
+    boolean existsByUsername(String username);
 }
