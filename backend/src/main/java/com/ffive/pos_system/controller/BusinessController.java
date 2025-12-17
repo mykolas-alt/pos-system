@@ -1,14 +1,11 @@
 package com.ffive.pos_system.controller;
 
 import java.util.List;
-<<<<<<< HEAD
 import java.util.Optional;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-=======
-
->>>>>>> e7706a6 (added jwt auth, business, employee, user tables)
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,3 +46,4 @@ public class BusinessController {
                 pagingHelper.getValidPageNumber(page),
     }
 
+}
