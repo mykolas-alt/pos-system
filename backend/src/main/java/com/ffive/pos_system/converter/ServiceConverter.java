@@ -18,6 +18,8 @@ public class ServiceConverter {
         .opensAt(service.getOpensAt())
         .closesAt(service.getClosesAt())
         .price(service.getPrice())
+        .isActive(service.getIsActive())
+        .specialistId(service.getSpecialist().getId())
         .build();
     }
     

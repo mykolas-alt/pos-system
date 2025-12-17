@@ -15,7 +15,6 @@ import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ServiceRepository;
 import com.ffive.pos_system.service.validation.ValidationException;
 import com.ffive.pos_system.converter.ServiceConverter;
-import com.ffive.pos_system.dto.GUIBeautyService;
 import com.ffive.pos_system.dto.ServiceRequest;
 import com.ffive.pos_system.dto.ServiceResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,41 +30,50 @@ public class POSServiceService {
     
     private final ServiceRepository serviceRepository;
     private final EmployeeRepository employeeRepository;
-    private final ServiceConverter beautyServiceConverter;
+    private final ServiceConverter serviceConverter;
 
 
     public List<ServiceResponse> listServicesByBusiness(POSUserDetails userDetails) {
         
-        Business business = userDetails.getUser().getEmployee().getBusiness();
-       
-        List<ServiceResponse> result = new ArrayList<ServiceResponse>();
-        List<POSService> allFound = serviceRepository.findAllByBusiness(business.getId());
-        if (allFound.isEmpty()){
-            return result;
-        }
-        for (POSService bs : allFound){
-            ServiceResponse guiObj = beautyServiceConverter.convertToGUI(bs);
-            result.add(guiObj);
-        }
-
-        return result;   
-    }
-    public ServiceResponse getServiceByIdAndBusiness(POSUserDetails userDetails, UUID serviceId) {
-        Business business = userDetails.getUser().getEmployee().getBusiness();
-        POSService found = serviceRepository.findByIdAndBusiness(serviceId, business.getId()).getFirst();
-        ServiceResponse guiObj = beautyServiceConverter.convertToGUI(found);
-        return guiObj;
+        Business business = userDetails.getUser().getEmployee().getBusiness();    
+        return serviceRepository.findAllByBusiness(business.getId())
+        .orElseGet(List::of)
+        .stream()
+        .map(serviceConverter::convertToGUI)
+        .toList();
+        
+        
         
     }
-    
-    public void createService(POSUserDetails userDetails, UUID specialsitId, ServiceRequest service) {
-        //POSService newService = beautyServiceConverter.convertToEntity(service, specialsitId);
+    public POSService getServiceEntityByIdAndBusiness(POSUserDetails userDetails, UUID serviceId) {
+    Business business = userDetails.getUser().getEmployee().getBusiness();
 
+    return serviceRepository
+        .findByIdAndBusiness(serviceId, business.getId())
+        .orElseThrow(() -> new ValidationException("Service not found"));
+    }
+
+    public ServiceResponse getServiceByIdAndBusiness(POSUserDetails userDetails, UUID serviceId) {
+    POSService service = getServiceEntityByIdAndBusiness(userDetails, serviceId);
+    return serviceConverter.convertToGUI(service);
+    }
+    
+    public void createService(POSUserDetails userDetails, ServiceRequest service) {
+       
 
         POSService newService = new POSService();
+        newService.setBusiness(userDetails.getUser().getEmployee().getBusiness());
+        newService.setSpecialist(
+            employeeRepository.findById(service.getSpecialistId())
+            .orElseThrow(() -> new ValidationException("Specialist not found"))
+        );
         newService.setName(service.getName());
         newService.setDuration(service.getDuration());
         newService.setOpensAt(service.getOpensAt());
+        newService.setClosesAt(service.getClosesAt());
+        newService.setIsActive(true);
+        newService.setPrice(service.getPrice());
+
         serviceRepository.save(newService);
     }
 

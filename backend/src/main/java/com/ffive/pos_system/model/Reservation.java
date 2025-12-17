@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import javax.management.MXBean;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,8 +43,14 @@ public class Reservation{
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+
+    @ManyToOne
+    @JoinColumn(name = "service_id", nullable = false)
+    private POSService service;
+
     @Column(nullable = false)
     private LocalDateTime apointmentTime;
+
 
     @Column(nullable = false)
     private String customerName;

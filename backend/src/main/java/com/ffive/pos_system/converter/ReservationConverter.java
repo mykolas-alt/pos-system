@@ -1,6 +1,7 @@
 package com.ffive.pos_system.converter;
 
-import com.ffive.pos_system.dto.GUIReservation;
+import com.ffive.pos_system.dto.ReservationRequest;
+import com.ffive.pos_system.dto.ReservationResponse;
 import com.ffive.pos_system.model.Reservation;
 import org.springframework.stereotype.Component;
 
@@ -9,21 +10,21 @@ public class ReservationConverter {
     
 
 
-    public GUIReservation convertToGUI(Reservation reservation) {
-        return GUIReservation.builder()
+    public ReservationResponse convertToGUI(Reservation reservation) {
+        return ReservationResponse.builder()
         .id(reservation.getId())
-        .businessId(reservation.getBusiness().getId())
+        .employeeId(reservation.getEmployee().getId())
+        .serviceId(reservation.getService().getId())
         .apointmentTime(reservation.getApointmentTime())
         .customerName(reservation.getCustomerName())
-        .status(reservation.getStatus())
         .createdAt(reservation.getCreatedAt())
+        .status(reservation.getStatus())
         .closedAt(reservation.getClosedAt())
         .build();
     }
 
-    public Reservation convertToEntity(GUIReservation guiReservation) {
+    public Reservation convertToEntity(ReservationRequest guiReservation) {
         Reservation reservation = new Reservation();
-        reservation.setId(guiReservation.getId());
         reservation.setApointmentTime(guiReservation.getApointmentTime());
         reservation.setCustomerName(guiReservation.getCustomerName());
         reservation.setStatus(guiReservation.getStatus());

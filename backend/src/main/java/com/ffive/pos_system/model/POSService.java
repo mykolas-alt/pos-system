@@ -16,6 +16,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +26,7 @@ import lombok.Setter;
 @Audited
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "service", schema = "pos")
 public class POSService {
 
     @Id
@@ -32,11 +34,7 @@ public class POSService {
     @Schema(hidden = true)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "reservation_id", nullable = false)
-    @Audited(targetAuditMode =  RelationTargetAuditMode.NOT_AUDITED)
-    private Reservation reservation;
-
+    
     @Schema(hidden = true)
     @ManyToOne
     @JoinColumn(name = "business_id", nullable = false)

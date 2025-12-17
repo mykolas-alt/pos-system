@@ -16,5 +16,6 @@ public class ServiceResponse {
     private long duration;
     private LocalDateTime opensAt;
     private LocalDateTime closesAt;
+    private boolean  isActive;
     private BigDecimal price;
 }

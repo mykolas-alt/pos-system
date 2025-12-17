@@ -41,11 +41,11 @@ public class ServiceController {
 
 	@Operation(summary = "Create a new service")
 	@PostMapping
-	public String createService(@AuthenticationPrincipal POSUserDetails userDetails,
-			@PathVariable UUID specialistId,
-			@RequestBody ServiceRequest beautyService) {
+	public String createService(
+		@AuthenticationPrincipal POSUserDetails userDetails,
+		@RequestBody ServiceRequest beautyService) {
 		
-		serviceService.createService(userDetails, specialistId, beautyService);
+		serviceService.createService(userDetails, beautyService);
 		
 		return " Service created";
 	}

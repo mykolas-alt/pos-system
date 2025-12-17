@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import com.ffive.pos_system.dto.GUIReservation;
+import com.ffive.pos_system.dto.ReservationRequest;
+import com.ffive.pos_system.dto.ReservationResponse;
 import com.ffive.pos_system.service.ReservationService;
 import com.ffive.pos_system.security.POSUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,9 +35,9 @@ public class ReservationController {
 
     @Operation(summary = "List all reservations for a given business")
     @GetMapping
-    public ResponseEntity<List<GUIReservation>> listByBusiness(
+    public ResponseEntity<List<ReservationResponse>> listByBusiness(
         @AuthenticationPrincipal POSUserDetails userDetails){
-        List<GUIReservation> result = reservationService.listServicesByBusiness(userDetails);
+        List<ReservationResponse> result = reservationService.listServicesByBusiness(userDetails);
         return ResponseEntity.ok(result);
     }
 
@@ -44,17 +45,16 @@ public class ReservationController {
     @PostMapping
     public ResponseEntity<Void> createReservation(
         @AuthenticationPrincipal POSUserDetails userDetails,
-        @PathVariable UUID employeeId,
-        @RequestBody GUIReservation reservation) {
+        @RequestBody ReservationRequest reservation) {
 
-        reservationService.createReservation(userDetails, reservation, employeeId);
+        reservationService.createReservation(userDetails, reservation);
 
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Get a reservation details")
     @GetMapping("/{reservationId}")
-    public GUIReservation getReservationById(
+    public ReservationResponse getReservationById(
         @AuthenticationPrincipal POSUserDetails userDetails,
         @PathVariable UUID reservationId){
         
@@ -77,7 +77,7 @@ public class ReservationController {
     public ResponseEntity<Void> updateReservation(
         @AuthenticationPrincipal POSUserDetails userDetails,
         @PathVariable UUID reservationId,
-        @RequestBody GUIReservation guiObj){
+        @RequestBody ReservationRequest guiObj){
         
         reservationService.updateReservation(userDetails, reservationId, guiObj);
         return ResponseEntity.ok().build();
