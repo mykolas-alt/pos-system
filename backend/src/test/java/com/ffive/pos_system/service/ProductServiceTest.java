@@ -40,6 +40,9 @@ public class ProductServiceTest {
         Product product = new Product("Test Product", BigDecimal.TEN);
         UUID randomUUID = UUID.randomUUID();
         // when(posUserDetails.getEmployeeId()).thenReturn(randomUUID);
+        when(employeeRepository.findById(randomUUID))
+                .thenReturn(Optional.of(Employee.builder()
+                        .business(Business.builder().build())
                         .build()));
 
         POSUserDetails userDetails = POSUserDetails.builder()

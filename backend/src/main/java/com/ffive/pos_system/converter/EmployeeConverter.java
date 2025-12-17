@@ -4,8 +4,13 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.model.Employee;
+<<<<<<< HEAD
+=======
+import com.ffive.pos_system.repository.BusinessRepository;
+>>>>>>> 59cedff (added hibernate for auditing, employee creation still WIP)
 import com.ffive.pos_system.repository.EmployeeRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -32,10 +37,14 @@ public class EmployeeConverter {
         return employee;
     }
 
-    private POSUser toUserAccount(EmployeeCreationRequest creationRequest) {
-        return POSUser.builder()
-                .username(creationRequest.getEmail())
-                .password(creationRequest.getPassword())
+    public Employee fromBusinessCreationRequest(BusinessCreationRequest creationRequest) {
+        if (creationRequest == null) {
+            return null;
+        }
+
+        return Employee.builder()
+                .name(creationRequest.getOwnerName())
+                .email(creationRequest.getOwnerEmail())
                 .build();
     }
 }
