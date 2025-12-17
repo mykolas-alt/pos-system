@@ -10,13 +10,8 @@ import java.util.UUID;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class PaymentException extends RuntimeException {
 
-    private final UUID orderId;
-    private final UUID paymentId;
-
-    public PaymentException(String message, UUID orderId, UUID paymentId) {
+    public PaymentException(String message) {
         super(message);
-        this.orderId = orderId;
-        this.paymentId = paymentId;
     }
 
 }

@@ -33,7 +33,7 @@ public class SplitCheckHandler {
         }
 
         if (totalSplitAmount.compareTo(order.getTotal()) != 0) {
-            throw new PaymentException("Total split amount is not the same as total order amount", order.getId(), null);
+            throw new PaymentException("Total split amount is not the same as total order amount");
         }
 
         int count = 1;
@@ -57,15 +57,15 @@ public class SplitCheckHandler {
         }
 
         SplitCheck splitCheck = splitCheckRepository.findById(request.getSplitCheckId())
-                .orElseThrow(() -> new PaymentException("Split check not found", null, null));
+                .orElseThrow(() -> new PaymentException("Split check not found"));
 
         if (splitCheck.getStatus() == SplitCheckStatus.PAID) {
-            throw new PaymentException("This split check is already paid.", request.getOrderId(), splitCheck.getId());
+            throw new PaymentException("This split check is already paid.");
         }
 
         if (request.getAmount().compareTo(splitCheck.getAmount()) < 0) {
             if (request.getAmount().compareTo(splitCheck.getAmount()) != 0) {
-                throw new RuntimeException("Payment amount must match split check amount (" + splitCheck.getAmount() + ")");
+                throw new PaymentException("Payment amount must match split check amount (" + splitCheck.getAmount() + ")");
             }
         }
 

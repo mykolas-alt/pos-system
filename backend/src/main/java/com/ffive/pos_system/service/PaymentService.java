@@ -12,6 +12,7 @@ import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.repository.PaymentRepository;
 
 
+import com.ffive.pos_system.service.validation.ValidationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class PaymentService {
     public Payment processPayment(PaymentRequest request) {
 
         if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new PaymentException("Payment amount must be positive.", null, null);
+            throw new ValidationException("Payment amount must be positive.");
         }
 
         // 1. fetching the order from the repository
@@ -41,12 +42,12 @@ public class PaymentService {
                  .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (order.getStatus() == OrderStatus.PAID) {
-            throw new PaymentException("Order is already fully paid", null, null);
+            throw new ValidationException("Order is already fully paid");
         }
 
         BigDecimal newPaidAmount = order.getPaidAmount().add(request.getAmount());
         if (newPaidAmount.compareTo(order.getTotal()) > 0) {
-            throw new RuntimeException("Payment amount exceeds remaining balance");
+            throw new ValidationException("Payment amount exceeds remaining balance");
         }
 
         // 2. processing stripe payment
@@ -55,7 +56,7 @@ public class PaymentService {
         if (paymentType == PaymentType.CARD) {
 
             if (request.getStripeToken() == null || request.getStripeToken().isEmpty()) {
-                throw new RuntimeException("Stripe token required for CARD payment");
+                throw new ValidationException("Stripe token required for CARD payment");
             }
 
             try {
@@ -73,16 +74,16 @@ public class PaymentService {
 
                 transactionId = stripeService.chargeCard(request.getStripeToken(), totalToCharge);
             } catch (Exception e) {
-                throw new RuntimeException("Card payment failed: " + e.getMessage());
+                throw new ValidationException("Card payment failed: " + e.getMessage());
             }
         } else if (paymentType == PaymentType.GIFT_CARD) {
             if (request.getGiftCardCode() == null || request.getGiftCardCode().isEmpty()) {
-                throw new PaymentException("Gift card code required.", null, null);
+                throw new ValidationException("Gift card code required.");
             }
 
             // mocking validation of gift-cards
             if (!isValidGiftCard(request.getGiftCardCode())) {
-                throw new PaymentException("Invalid gift card code.", null, null);
+                throw new ValidationException("Invalid gift card code.");
             }
 
         } else if (paymentType == PaymentType.CASH) {
@@ -110,10 +111,10 @@ public class PaymentService {
 
     public void splitOrder(OrderSplitRequest splitRequest) {
         Order order = orderRepository.findById(splitRequest.getOrderId())
-                .orElseThrow(() -> new PaymentException("Order not found", null, null));
+                .orElseThrow(() -> new ValidationException("Order not found"));
 
         if (order.getStatus() == OrderStatus.PAID) {
-            throw new RuntimeException("Cannot split an already paid order");
+            throw new ValidationException("Cannot split an already paid order");
         }
 
         splitCheckHandler.createSplits(order, splitRequest.getSplitAmounts());
@@ -128,10 +129,10 @@ public class PaymentService {
     @Transactional
     public void refundOrder(UUID orderID) {
         Order order = orderRepository.findById(orderID)
-                .orElseThrow(() -> new PaymentException("Order not found for refund", null, null));
+                .orElseThrow(() -> new ValidationException("Order not found for refund"));
 
         if (order.getStatus() != OrderStatus.PAID) {
-            throw new PaymentException("Only paid orders can be refunded.", orderID, null);
+            throw new ValidationException("Only paid orders can be refunded.");
         }
 
         List<Payment> payments = paymentRepository.findByOrderId(orderID);
@@ -141,7 +142,7 @@ public class PaymentService {
                 try {
                     stripeService.refundCharge(payment.getId().toString());
                 } catch (Exception e) {
-                    throw new RuntimeException("Failed to refund through Stripe: " + e.getMessage());
+                    throw new ValidationException("Failed to refund through Stripe: " + e.getMessage());
                 }
             }
         }
