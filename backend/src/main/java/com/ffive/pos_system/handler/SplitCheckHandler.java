@@ -50,7 +50,7 @@ public class SplitCheckHandler {
     }
 
 
-    //
+
     public Optional<SplitCheck> processSplitPayment(PaymentRequest request) {
         if (request.getSplitCheckId() == null) {
             return Optional.empty();
@@ -91,7 +91,4 @@ public class SplitCheckHandler {
 
     }
 
-
-///  atskiras kiekis tipsai (kiekvienas splittintas zmogus gali prisideti savu tipsu)
-    ///
 }
