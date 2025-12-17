@@ -155,3 +155,34 @@
     background-color:var(--tertiary-background-color-hover);
     transform:scale(1.05) translateY(-0.05rem);
   }
+
+.business_nav_button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-color);
+  background-color:var(--tertiary-background-color);
+  border:2px solid var(--detail-color);
+  border-bottom:none;
+  border-radius:8px 8px 0 0;
+  box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  cursor:pointer;
+  padding:15px 16px;
+  text-decoration:none;
+  font-size:1.2rem;
+  font-weight:bold;
+  margin:1rem 0.5rem -1rem 0.5rem;
+  width:10rem;
+  height:1rem;
+  transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+  .business_nav_button.active{
+    background-color:var(--tertiary-background-color-hover);
+    transform:scale(1.02) translateY(-0.03rem);
+  }
+
+  .business_nav_button:hover{
+    background-color:var(--tertiary-background-color-hover);
+    transform:scale(1.05) translateY(-0.05rem);
+  }

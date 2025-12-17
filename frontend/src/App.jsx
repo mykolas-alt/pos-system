@@ -11,9 +11,13 @@ import {EmployeeCreate} from './pages/employeeCreate.jsx'
 import {Catering} from './pages/catering/main.jsx'
 import {Orders} from './pages/catering/orders.jsx'
 import {OrderView} from './pages/catering/orderView.jsx'
+import {Products} from './pages/catering/products.jsx'
+
 import {Beauty} from './pages/beauty/main.jsx'
 import {Reservations} from './pages/beauty/reservations.jsx'
 import {ReservationView} from './pages/beauty/reservationView.jsx'
+import {Services} from './pages/beauty/services.jsx'
+
 import {Report} from './pages/catering/report.jsx'
 
 import {getDb,saveDb} from './utils/tempDB.jsx'
@@ -226,8 +230,8 @@ function App(){
   function handleLogOut(){
     localStorage.removeItem("session")
     navigate("/")
-    setUser(null)
     setUserBusiness(null)
+    setUser(null)
   }
 
   function handleOrderOpening(id){
@@ -281,9 +285,11 @@ function App(){
               <Route path='/:username/catering/:id' element={<Catering user={user} business={userBusiness}/>}/>
               <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
               <Route path='/:username/catering/:id/orders/:orderId' element={<OrderView user={user} business={userBusiness}/>}/>
+              <Route path='/:username/catering/:id/products' element={<Products user={user} business={userBusiness}/>}/>
               <Route path='/:username/beauty/:id' element={<Beauty user={user} business={userBusiness}/>}/>
               <Route path='/:username/beauty/:id/reservations' element={<Reservations user={user} business={userBusiness} onReservationOpen={(reservationId) => handleReservationOpening(reservationId)}/>}/>
               <Route path='/:username/beauty/:id/reservations/:reservationId' element={<ReservationView user={user} business={userBusiness}/>}/>
+              <Route path='/:username/beauty/:id/services' element={<Services user={user} business={userBusiness}/>}/>
               <Route path='/:username/catering/:id/report' element={<Report user={user} business={userBusiness}/>}/>
             </Routes>
           </div>

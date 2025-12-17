@@ -95,17 +95,17 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
                     <div className="row_align">
                         {business.type==="catering" ? (
                             <>
-                                <button id="business_nav_button" onClick={() => navigate(`/${user.username}/catering/${business.id}/orders`)}>Užsakymai</button>
-                                <button id="business_nav_button">Pozicijos</button>
+                                <NavLink to={`/${user.username}/catering/${business.id}/orders`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Užsakymai</NavLink>
+                                <NavLink to={`/${user.username}/catering/${business.id}/products`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Pozicijos</NavLink>
                             </>
                         ):(
                             <>
-                                <button id="business_nav_button" onClick={() => navigate(`/${user.username}/beauty/${business.id}/reservations`)}>Rezervacijos</button>
-                                <button id="business_nav_button">Paslaugos</button>
+                                <NavLink to={`/${user.username}/beauty/${business.id}/reservations`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Rezervacijos</NavLink>
+                                <NavLink to={`/${user.username}/beauty/${business.id}/services`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Paslaugos</NavLink>
                             </>
                         )}
-                        <button id="business_nav_button">Darbuotojai</button>
-                        <button id="business_nav_button" onClick={() => navigate(`/${user.username}/${business.type}/${business.id}/report`)}>Statistika</button>
+                        <NavLink to={`/${user.username}/${business.type}/${business.id}/employees`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Darbuotojai</NavLink>
+                        <NavLink to={`/${user.username}/${business.type}/${business.id}/report`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Statistika</NavLink>
                     </div>
                 )}
             </div>

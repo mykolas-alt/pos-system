@@ -157,6 +157,14 @@ export const Reservations=({user,business,onReservationOpen}) => {
         )
     }
 
+    function clearFilters(){
+        setSelectedStates([])
+        setDateFrom("")
+        setDateTo("")
+        setTotalMin("")
+        setTotalMax("")
+    }
+
     function changeCreationPanel(panel){
         setSearch("")
         setNewReservationSortType()
