@@ -40,9 +40,6 @@ public class Reservation{
     @JoinColumn(name = "business_id", nullable = false)
     private Business business;
 
-    @ManyToOne
-    @JoinColumn(name = "employee_id", nullable = false)
-    private Employee employee;
 
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
@@ -69,7 +66,7 @@ public class Reservation{
     
     @Override
     public String toString() {
-        return "Reservation [id=" + id + ", business=" + business + ", employee=" + employee + ", apointmentTime="
+        return "Reservation [id=" + id + ", business=" + business + ", apointmentTime="
                 + apointmentTime + ", customerName=" + customerName + ", customerPhone=" + customerPhone + ", status="
                 + status + ", createdAt=" + createdAt + ", closedAt=" + closedAt + "]";
     }

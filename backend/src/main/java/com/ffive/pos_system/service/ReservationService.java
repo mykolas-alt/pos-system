@@ -8,8 +8,10 @@ import java.util.UUID;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Reservation;
 import com.ffive.pos_system.model.OrderStatus;
+import com.ffive.pos_system.model.POSService;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
+import com.ffive.pos_system.repository.ServiceRepository;
 import com.ffive.pos_system.dto.ReservationRequest;
 import com.ffive.pos_system.dto.ReservationResponse;
 import com.ffive.pos_system.security.POSUserDetails;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ReservationService {
     
     private final ReservationRepository reservationRepository;
+    private final ServiceRepository serviceRepository;
     private final EmployeeRepository employeeRepository;
     private final ReservationConverter reservationConverter;
     private final POSServiceService posServiceService;
@@ -47,7 +50,6 @@ public class ReservationService {
         Reservation newService = reservationConverter.convertToEntity(reservation);
         Business business = userDetails.getUser().getEmployee().getBusiness();
         newService.setBusiness(business);
-        newService.setEmployee(employeeRepository.findById(reservation.getEmployeeId()).get());
         newService.setCreatedAt(java.time.LocalDateTime.now());
         newService.setApointmentTime(reservation.getApointmentTime());
         newService.setCustomerName(reservation.getCustomerName());

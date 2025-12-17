@@ -13,7 +13,6 @@ public class ReservationConverter {
     public ReservationResponse convertToGUI(Reservation reservation) {
         return ReservationResponse.builder()
         .id(reservation.getId())
-        .employeeId(reservation.getEmployee().getId())
         .serviceId(reservation.getService().getId())
         .apointmentTime(reservation.getApointmentTime())
         .customerName(reservation.getCustomerName())

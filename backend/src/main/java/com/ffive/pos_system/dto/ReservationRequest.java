@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 @Builder
 public class ReservationRequest {
-    private UUID employeeId;
     private UUID serviceId;
     private LocalDateTime apointmentTime;
     private String customerName;
