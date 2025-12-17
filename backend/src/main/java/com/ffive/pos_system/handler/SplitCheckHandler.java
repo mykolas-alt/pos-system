@@ -95,7 +95,7 @@ public class SplitCheckHandler {
         List<SplitCheck> splitChecks = splitCheckRepository.findByOrderId(order.getId());
         for (SplitCheck splitCheck : splitChecks) {
             if (splitCheck.getStatus() != SplitCheckStatus.PAID) {
-                splitCheck.setStatus(SplitCheckStatus.PAID);
+                splitCheck.setStatus(SplitCheckStatus.CANCELLED);
                 splitCheckRepository.save(splitCheck);
             }
         }
