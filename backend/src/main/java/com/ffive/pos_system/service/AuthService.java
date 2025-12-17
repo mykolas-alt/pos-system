@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ffive.pos_system.dto.PasswordChangeRequest;
 import com.ffive.pos_system.dto.UserCreationRequest;
 import com.ffive.pos_system.model.POSUser;
 import com.ffive.pos_system.repository.UserRepository;
@@ -30,8 +31,17 @@ public class AuthService {
     }
 
     public Optional<String> authenticate(String username, String password) {
+        log.info("Authenticating user: {}", username);
         return userRepository.findByUsername(username)
                 .filter(user -> passwordEncoder.matches(password, user.getPasswordHash()))
                 .map(user -> jwtService.generateToken(user.getUsername()));
+    }
+
+    public void changePassword(POSUser user, PasswordChangeRequest passwordChangeRequest) {
+        userRepository.findById(user.getId()).ifPresent(existingUser -> {
+            existingUser.setPasswordHash(passwordEncoder.encode(passwordChangeRequest.getNewPassword()));
+            userRepository.save(existingUser);
+            log.info("Password changed for user: {}", existingUser.getUsername());
+        });
     }
 }

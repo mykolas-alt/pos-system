@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addUserRolesAndAssignmentTable" author="mykolas">
+        <createTable tableName="userrole">
+
+            <column name="id" type="SMALLINT">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="roletype" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="role_name_not_null"
+                    unique="true" />
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="role_name_not_null" />
+            </column>
+
+            <column name="description" type="VARCHAR(512)">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+
+        <insert tableName="userrole">
+            <column name="id" valueNumeric="1" />
+            <column name="roletype" value="SUPER_ADMIN" />
+            <column name="name" value="Super Admin" />
+            <column name="description" value="Administrator with full access" />
+        </insert>
+
+        <insert tableName="userrole">
+            <column name="id" valueNumeric="2" />
+            <column name="roletype" value="BUSINESS_OWNER" />
+            <column name="name" value="Business Owner" />
+            <column name="description" value="Manages business operations and staff" />
+        </insert>
+
+        <insert tableName="userrole">
+            <column name="id" valueNumeric="3" />
+            <column name="roletype" value="EMPLOYEE" />
+            <column name="name" value="Employee" />
+            <column name="description" value="Default role for regular staff members" />
+        </insert>
+
+        <createTable tableName="userroleassignment">
+
+            <column name="user_id" type="UUID">
+                <constraints
+                    nullable="false"
+                    notNullConstraintName="user_id_not_null"
+                    foreignKeyName="fk_userroleassignment_user"
+                    referencedTableName="posuser"
+                    referencedColumnNames="id" />
+            </column>
+
+            <column name="role_id" type="SMALLINT">
+                <constraints
+                    nullable="false"
+                    notNullConstraintName="role_id_not_null"
+                    foreignKeyName="fk_userroleassignment_role"
+                    referencedTableName="userrole"
+                    referencedColumnNames="id" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addSuperAdminUserAccount" author="mykolas">
+        <insert tableName="posuser">
+            <column name="id" value="00000000-0000-0000-0000-000000000001" />
+            <column name="username" value="SUPERADMIN1" />
+            <!-- default password = "admin" -->
+            <column name="password_hash"
+                value="$2a$10$LAAAkcOtw3/sRfHD.7LJM.LIRh7mu2Ke0vjo/KNoKemb1BG0hCmR." />
+        </insert>
+
+        <insert tableName="userroleassignment">
+            <column name="user_id" value="00000000-0000-0000-0000-000000000001" />
+            <column name="role_id" valueNumeric="1" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>
