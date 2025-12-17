@@ -3,6 +3,7 @@ package com.ffive.pos_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Tag(name = "Product", description = "Product management endpoints")
 @RequiredArgsConstructor
 @Slf4j
+@PreAuthorize("@authorizationHelper.hasEmployee(authentication)")
 public class ProductController {
 
     private final ProductService productService;

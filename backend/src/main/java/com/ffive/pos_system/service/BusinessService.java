@@ -2,15 +2,21 @@ package com.ffive.pos_system.service;
 
 import static com.ffive.pos_system.service.validation.ValidationMessageConstants.MODIFYING_NON_EXISTENT_ENTITY;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
+import com.ffive.pos_system.converter.gui.GUIBusinessConverter;
 import com.ffive.pos_system.dto.BusinessCreationRequest;
+import com.ffive.pos_system.dto.GUIBusiness;
 import com.ffive.pos_system.handler.NewBusinessHandler;
 import com.ffive.pos_system.model.Business;
+import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.repository.BusinessRepository;
-import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
+import com.ffive.pos_system.util.PagingHelper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 public class BusinessService {
 
     private final BusinessRepository businessRepository;
-    private final EmployeeRepository employeeRepository;
     private final NewBusinessHandler newBusinessHandler;
+
+    private final PagingHelper pagingHelper;
+    private final GUIBusinessConverter businessConverter;
 
     /**
      *
@@ -47,5 +55,32 @@ public class BusinessService {
         // TODO: add validator
 
         return businessRepository.save(business);
+    }
+
+    /**
+     * Fetches all businesses in the system. Only accessible by super admin users.
+     * 
+     * @param userDetails
+     * @param page
+     * @param size
+     * @throws ValidationException if the user is not a super admin
+     * @return
+     *         List of all businesses
+     */
+    public List<GUIBusiness> getBusinessesAllBusinesses(POSUserDetails userDetails, int page, int size) {
+        if (!userDetails.getUser().isSuperAdmin()) {
+            throw new ValidationException("Only super admin users can access all businesses");
+        }
+        return businessRepository.findAll().stream()
+                .skip(pagingHelper.calculateOffset(page, size))
+                .limit(size)
+                .map(businessConverter::convertToGUIBusiness)
+                .toList();
+    }
+
+    public Optional<GUIBusiness> getBusinessForExecutingUser(Employee employee) {
+        return Optional.ofNullable(employee)
+                .map(Employee::getBusiness)
+                .map(businessConverter::convertToGUIBusiness);
     }
 }
