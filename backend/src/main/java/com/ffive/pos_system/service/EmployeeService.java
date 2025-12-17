@@ -20,6 +20,7 @@ import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.UserRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
+import com.ffive.pos_system.util.ValidationHelper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class EmployeeService {
     private final GUIEmployeeConverter guiEmployeeConverter;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ValidationHelper validationHelper;
 
     public void createEmployeeForBusiness(POSUserDetails userDetails, EmployeeCreationRequest creationRequest) {
         var executingEmployee = userDetails.getUser().getEmployee();
@@ -92,7 +94,10 @@ public class EmployeeService {
                         "No user account associated with employee ID " + employee.getId()));
 
         Optional.ofNullable(updateRequest.getEmail())
-                .ifPresent(employeeUser::setUsername);
+                .ifPresent(newUsername -> {
+                    validationHelper.validateUsernameNotTaken(newUsername);
+                    employeeUser.setUsername(newUsername);
+                });
         Optional.ofNullable(updateRequest.getPassword())
                 .map(passwordEncoder::encode)
                 .ifPresent(employeeUser::setPasswordHash);

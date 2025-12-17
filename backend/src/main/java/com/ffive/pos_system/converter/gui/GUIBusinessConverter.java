@@ -24,6 +24,7 @@ public class GUIBusinessConverter {
                 .businessType(business.getBusinessType())
                 .name(business.getName())
                 .address(business.getAddress())
+                .contactInfo(business.getContactInfo())
                 .build();
     }
 }

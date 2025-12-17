@@ -15,6 +15,7 @@ import com.ffive.pos_system.repository.UserRepository;
 import com.ffive.pos_system.repository.UserRoleRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
+import com.ffive.pos_system.util.ValidationHelper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,8 +28,11 @@ public class EmployeeHandler {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final EmployeeConverter employeeConverter;
+    private final ValidationHelper validationHelper;
 
     public void handleNewEmployeeForBusiness(POSUserDetails userDetails, EmployeeCreationRequest creationRequest) {
+        validationHelper.validateUsernameNotTaken(creationRequest.getEmail());
+
         Employee employee = employeeConverter.fromCreationRequest(creationRequest);
 
         employee.setBusiness(userDetails.getUser().getEmployee().getBusiness());

@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<POSUser, UUID> {
             WHERE u.employee = :employee
             """)
     Optional<POSUser> findByEmployee(Employee employee);
+
+    boolean existsByUsername(String username);
 }
