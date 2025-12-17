@@ -16,7 +16,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             SELECT r FROM Reservation r
             WHERE r.business.id = :businessId
             """)
-    List<Reservation>findAllByBusinessId(UUID businessId);
+    Optional<List<Reservation>> findAllByBusinessId(UUID businessId);
 
     @Query("""
             SELECT r FROM Reservation r

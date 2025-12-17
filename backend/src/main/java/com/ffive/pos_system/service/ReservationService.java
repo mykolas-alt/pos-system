@@ -4,20 +4,20 @@ import static com.ffive.pos_system.service.validation.ValidationMessageConstants
 
 import java.util.List;
 import java.util.UUID;
-import java.util.ArrayList;
 
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Reservation;
 import com.ffive.pos_system.model.OrderStatus;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
-import com.ffive.pos_system.service.POSServiceService;
 import com.ffive.pos_system.dto.ReservationRequest;
 import com.ffive.pos_system.dto.ReservationResponse;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.converter.ReservationConverter;
 import com.ffive.pos_system.service.validation.ValidationException;
+
 import org.springframework.stereotype.Service;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,15 +35,11 @@ public class ReservationService {
 
 
     public List<ReservationResponse> listServicesByBusiness(POSUserDetails userDetails){
-        Business business = userDetails.getUser().getEmployee().getBusiness();
-        List<ReservationResponse> result = new ArrayList<ReservationResponse>();  
-
-        List<Reservation> found = reservationRepository.findAllByBusinessId(business.getId()).stream().toList();
-        for (Reservation res : found){
-            ReservationResponse guiObj = reservationConverter.convertToGUI(res);
-            result.add(guiObj);
-        }
-        return result;
+        return reservationRepository.findAllByBusinessId(userDetails.getUser().getEmployee().getBusiness().getId())
+        .orElseGet(List::of)
+        .stream()
+        .map(reservationConverter::convertToGUI)
+        .toList();
     }
 
     public void createReservation(POSUserDetails userDetails, ReservationRequest reservation) {
@@ -101,7 +97,6 @@ public class ReservationService {
         
          }
 
-        if (found != null)
         reservationRepository.save(found);
          
       

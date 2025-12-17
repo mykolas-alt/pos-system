@@ -2,7 +2,6 @@ package com.ffive.pos_system.service;
 
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -34,9 +33,7 @@ public class POSServiceService {
 
 
     public List<ServiceResponse> listServicesByBusiness(POSUserDetails userDetails) {
-        
-        Business business = userDetails.getUser().getEmployee().getBusiness();    
-        return serviceRepository.findAllByBusiness(business.getId())
+        return serviceRepository.findAllByBusiness(userDetails.getUser().getEmployee().getBusiness().getId())
         .orElseGet(List::of)
         .stream()
         .map(serviceConverter::convertToGUI)
