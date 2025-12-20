@@ -46,5 +46,10 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="addPaidAmountToOrders" author="mykolas">
+        <addColumn tableName="order">
+            <column name="paid_amount" type="DECIMAL(10,2)" value="0" />
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
 

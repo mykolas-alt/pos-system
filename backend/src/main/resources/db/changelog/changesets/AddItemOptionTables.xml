@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addProductOptionTables" author="mykolas">
+        <createTable tableName="productoptiongroup">
+
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="product_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_itemoption_product"
+                    references="product(id)" />
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="type" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="minselect" type="INT" />
+            <column name="maxselect" type="INT" />
+
+            <column name="deletedat" type="TIMESTAMP"></column>
+        </createTable>
+
+        <createTable tableName="productoptionvalue">
+
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+
+            <column name="productoptiongroup_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_itemoptiongroup_productoptiongroup"
+                    references="productoptiongroup(id)" />
+            </column>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="pricedelta" type="DECIMAL(10,2)" />
+
+            <column name="deletedat" type="TIMESTAMP"></column>
+
+        </createTable>
+
+        <createTable tableName="productoptiongroup_aud">
+            <column name="id" type="UUID" />
+            <column name="REV" type="int" />
+            <column name="REVTYPE" type="tinyint" />
+            <column name="product_id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(255)" />
+            <column name="minselect" type="int" />
+            <column name="maxselect" type="int" />
+            <column name="deletedat" type="TIMESTAMP" />
+        </createTable>
+
+        <createTable tableName="productoptionvalue_aud">
+            <column name="id" type="UUID" />
+            <column name="REV" type="int" />
+            <column name="REVTYPE" type="tinyint" />
+            <column name="productoptiongroup_id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="pricedelta" type="DECIMAL(10,2)" />
+            <column name="deletedat" type="TIMESTAMP" />
+        </createTable>
+
+        <createTable tableName="orderitemoption">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="orderitem_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_orderitemoption_orderitem"
+                    references="order_item(id)" />
+            </column>
+            <column name="optionvalue_id" type="UUID">
+                <constraints
+                    foreignKeyName="fk_orderitemoption_optionvalue"
+                    references="productoptionvalue(id)" />
+            </column>
+            <column name="optiongroup_id" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="fk_orderitemoption_optiongroup"
+                    references="productoptiongroup(id)" />
+            </column>
+
+            <column name="value" type="INT" />
+            <column name="price_delta_snapshot" type="DECIMAL(10,2)" />
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

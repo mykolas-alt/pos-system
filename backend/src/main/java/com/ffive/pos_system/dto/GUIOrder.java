@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class GUIOrder {
+public class GUIOrder implements GUIObject {
     private UUID id;
     private LocalDateTime createdAt;
     @JsonInclude(JsonInclude.Include.NON_NULL)

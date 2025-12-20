@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Builder(toBuilder = true)
-public class GUIEmployee {
+public class GUIEmployee implements GUIObject {
     private UUID id;
     private String name;
     private String email;

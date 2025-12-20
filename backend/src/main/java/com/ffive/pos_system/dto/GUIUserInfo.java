@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class GUIUserInfo {
+public class GUIUserInfo implements GUIObject {
     private String username;
     private List<UserRoleType> roles;
     private String name;
