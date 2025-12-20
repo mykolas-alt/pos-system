@@ -60,6 +60,8 @@ public class PaymentService {
         }
 
         BigDecimal newPaidAmount = order.getPaidAmount().add(request.getAmount());
+        if (order.getTotal() == null)
+            
         if (newPaidAmount.compareTo(order.getTotal()) > 0) {
             throw new ValidationException("Payment amount exceeds remaining balance");
         }
