@@ -17,5 +17,5 @@
     <include file="changesets/AddReservationTables.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddServiceAudit.xml" relativeToChangelogFile="true" />    
     <include file="changesets/AddReservationAudit.xml" relativeToChangelogFile="true" />    
-    <include file="changesets/RemoveEmployeeReservation.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddReservationsToPayment.xml" relativeToChangelogFile="true" />
 </databaseChangeLog>

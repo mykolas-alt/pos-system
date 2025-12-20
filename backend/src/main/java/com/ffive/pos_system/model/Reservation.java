@@ -56,7 +56,7 @@ public class Reservation{
     private String customerPhone;
 
     @Column(nullable = false)
-    private OrderStatus status;
+    private ReservationStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

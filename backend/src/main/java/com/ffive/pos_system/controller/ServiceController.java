@@ -59,20 +59,22 @@ public class ServiceController {
 	}
 	@Operation(summary = "Update an existing service")
 	@PutMapping("/{serviceId}")
-	public String updateService(@AuthenticationPrincipal POSUserDetails userDetails,
-			@PathVariable UUID serviceId,
-			@RequestBody ServiceRequest guiBeautyService) {
+	public String updateService(
+		@AuthenticationPrincipal POSUserDetails userDetails,
+		@PathVariable UUID serviceId,
+		@RequestBody ServiceRequest guiBeautyService) {
 			
-				serviceService.updateService(userDetails, serviceId, guiBeautyService);
+		serviceService.updateService(userDetails, serviceId, guiBeautyService);
 			
-			return " Service updated";
-			}
+		return " Service updated";
+	}
 
 	@Operation(summary = "Delete a service by its ID")		
 	@DeleteMapping("/{serviceId}")
 	public ResponseEntity<Void> deleteService(
 		@AuthenticationPrincipal POSUserDetails userDetails,
 		@PathVariable UUID serviceId) {
+
 		serviceService.deleteService(userDetails, serviceId);
 		
 		return ResponseEntity.ok().build();

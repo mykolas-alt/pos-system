@@ -14,12 +14,12 @@ public class PaymentRequest {
 
     @Id
     @GeneratedValue
-    private UUID orderId;
+    private UUID Id;           
     private PaymentType paymentType;
     private BigDecimal amount;
     private BigDecimal tip;
     private BigDecimal serviceCharge;
-
+    private PaymentTargetType type;
     private String stripeToken;
     private String giftCardCode;
 

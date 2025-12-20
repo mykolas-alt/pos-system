@@ -34,10 +34,9 @@ public class POSServiceService {
 
     public List<ServiceResponse> listServicesByBusiness(POSUserDetails userDetails) {
         return serviceRepository.findAllByBusiness(userDetails.getUser().getEmployee().getBusiness().getId())
-        .orElseGet(List::of)
-        .stream()
-        .map(serviceConverter::convertToGUI)
-        .toList();
+                                .stream()
+                                .map(serviceConverter::convertToGUI)
+                                .toList();
         
         
         

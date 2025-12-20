@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@RequestMapping("/resetvations")
-@Tag(name = "Reservation", description = "CRUD operations for beauty service reservations")
+@RequestMapping("/reservations")
+@Tag(name = "Reservation", description = "CRUD operations for service reservations")
 @RequiredArgsConstructor
 public class ReservationController {
 
@@ -37,11 +37,11 @@ public class ReservationController {
     @GetMapping
     public ResponseEntity<List<ReservationResponse>> listByBusiness(
         @AuthenticationPrincipal POSUserDetails userDetails){
-        List<ReservationResponse> result = reservationService.listServicesByBusiness(userDetails);
+        List<ReservationResponse> result = reservationService.listReservationsByBusiness(userDetails);
         return ResponseEntity.ok(result);
     }
 
-    @Operation(summary = "Create a new reservation service")
+    @Operation(summary = "Create a new reservation for a service")
     @PostMapping
     public ResponseEntity<Void> createReservation(
         @AuthenticationPrincipal POSUserDetails userDetails,
@@ -52,7 +52,7 @@ public class ReservationController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Get a reservation details")
+    @Operation(summary = "Get a specific reservation details")
     @GetMapping("/{reservationId}")
     public ReservationResponse getReservationById(
         @AuthenticationPrincipal POSUserDetails userDetails,
@@ -62,7 +62,18 @@ public class ReservationController {
         return reservationService.getReservationById(userDetails, reservationId);
     }
 
-    @Operation(summary = "Delete a reservation by its ID")
+    @Operation(summary = "Complete a specific reservation by its ID")
+    @PostMapping("/{reservationId}")
+    public ResponseEntity<Void> completeReservation(
+        @AuthenticationPrincipal POSUserDetails userDetails,
+        @PathVariable UUID reservationId){
+
+        reservationService.completeReservation(userDetails, reservationId);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @Operation(summary = "Delete a specific reservation by its ID")
     @DeleteMapping("/{reservationId}")
     public ResponseEntity<Void> deleteReservationById(
         @AuthenticationPrincipal POSUserDetails userDetails,
@@ -72,7 +83,7 @@ public class ReservationController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Update a reservation by its ID")
+    @Operation(summary = "Update a specific reservation by its ID")
     @PutMapping("/{reservationId}")
     public ResponseEntity<Void> updateReservation(
         @AuthenticationPrincipal POSUserDetails userDetails,

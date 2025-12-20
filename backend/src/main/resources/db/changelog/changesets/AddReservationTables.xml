@@ -7,7 +7,7 @@
     
     <changeSet id="addBeautyServiceTable" author="arturas">
         <createTable tableName="service">
-            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+            <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="business_id" type="UUID">
@@ -37,14 +37,11 @@
     </changeSet>
     <changeSet id="addReservationTable" author="arturas">
         <createTable tableName="reservation">
-            <column name="id" type="UUID" defaultValueComputed="gen_random_uuid()">
+            <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="business_id" type="UUID">
                 <constraints nullable="false" foreignKeyName="fk_reservation_business" references="business(id)"/>
-            </column>
-            <column name="employee_id" type="UUID">
-                <constraints nullable="true" foreignKeyName="fk_reservation_employee" references="employee(id)"/>
             </column>
             <column name="service_id" type="UUID">
                 <constraints nullable="false" foreignKeyName="fk_reservation_service" references="service(id)"/>

@@ -16,7 +16,7 @@ public interface ServiceRepository extends JpaRepository<POSService, UUID> {
                 WHERE s.business.id = :businessId
                 AND s.isActive = true
                 """)
-        Optional<List<POSService>> findAllByBusiness(@Param("businessId") UUID businessId);
+        List<POSService> findAllByBusiness(@Param("businessId") UUID businessId);
         
         @Query("""
                 SELECT s from POSService s

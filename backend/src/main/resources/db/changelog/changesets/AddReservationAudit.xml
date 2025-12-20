@@ -19,9 +19,6 @@
             <column name="business_id" type="UUID">
                 <constraints nullable="false"/>
             </column>
-            <column name="employee_id" type="UUID">
-                <constraints nullable="false"/>
-            </column>
             <column name="service_id" type="UUID">
                 <constraints nullable="false"/>
             </column>

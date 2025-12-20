@@ -2,7 +2,7 @@ package com.ffive.pos_system.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-import com.ffive.pos_system.model.OrderStatus;
+import com.ffive.pos_system.model.ReservationStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +13,7 @@ public class ReservationRequest {
     private LocalDateTime apointmentTime;
     private String customerName;
     private String customerPhone;
-    private OrderStatus status;
+    private ReservationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime closedAt; 
     

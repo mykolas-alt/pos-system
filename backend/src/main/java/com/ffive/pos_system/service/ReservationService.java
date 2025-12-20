@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Reservation;
-import com.ffive.pos_system.model.OrderStatus;
+import com.ffive.pos_system.model.ReservationStatus;
 import com.ffive.pos_system.model.POSService;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
@@ -16,6 +16,7 @@ import com.ffive.pos_system.dto.ReservationRequest;
 import com.ffive.pos_system.dto.ReservationResponse;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.converter.ReservationConverter;
+import com.ffive.pos_system.handler.ReservationStateHandler;
 import com.ffive.pos_system.service.validation.ValidationException;
 
 import org.springframework.stereotype.Service;
@@ -35,16 +36,20 @@ public class ReservationService {
     private final EmployeeRepository employeeRepository;
     private final ReservationConverter reservationConverter;
     private final POSServiceService posServiceService;
+    private final ReservationStateHandler reservationStateHandler;
 
 
-    public List<ReservationResponse> listServicesByBusiness(POSUserDetails userDetails){
+    public List<ReservationResponse> listReservationsByBusiness(POSUserDetails userDetails){
         return reservationRepository.findAllByBusinessId(userDetails.getUser().getEmployee().getBusiness().getId())
-        .orElseGet(List::of)
         .stream()
         .map(reservationConverter::convertToGUI)
         .toList();
     }
 
+    public void completeReservation(POSUserDetails userDetails, UUID reservationId){
+        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
+        reservationStateHandler.completeReservation(userDetails.getUser().getEmployee(), reservation);
+    }
     public void createReservation(POSUserDetails userDetails, ReservationRequest reservation) {
 
         Reservation newService = reservationConverter.convertToEntity(reservation);
@@ -64,7 +69,7 @@ public class ReservationService {
 
     public void deleteReservationById(POSUserDetails userDetails , UUID reservationId){
         Reservation found = reservationRepository.findByReservationId(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
-        found.setStatus(OrderStatus.CANCELLED);
+        found.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(found);
     }
 
