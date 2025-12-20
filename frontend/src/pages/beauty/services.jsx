@@ -213,6 +213,9 @@ export const Services=({user,business}) => {
         loadServices()
     }
 
+    if(!user || !user.info || !business)
+        return null
+
     return(
         <div>
             <div id="controls" className="col_align">
@@ -272,7 +275,7 @@ export const Services=({user,business}) => {
                         )}
                         <label>Specialistas</label>
                         <select className="service_create_edit_select" value={newServiceSpecialist} onChange={e => setNewServiceSpecialist(e.target.value)}>
-                            <option value="">-- Pasirinkite specialistą</option>
+                            <option value="">-- Pasirinkite specialistą --</option>
                             {employees.map(e => (
                                 <option key={e.id} value={e.id}>
                                     {e.name}

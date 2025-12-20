@@ -7,7 +7,6 @@ import {NavBar} from './components/navbars/navBar.jsx'
 
 import {Main} from './pages/main.jsx'
 import {BusinessCreate} from './pages/businessCreate.jsx'
-import {EmployeeCreate} from './pages/employeeCreate.jsx'
 import {Catering} from './pages/catering/main.jsx'
 import {Orders} from './pages/catering/orders.jsx'
 import {OrderView} from './pages/catering/orderView.jsx'
@@ -21,7 +20,6 @@ import {Services} from './pages/beauty/services.jsx'
 import {Employees} from './pages/employees.jsx'
 import {Report} from './pages/catering/report.jsx'
 
-import {getDb,saveDb} from './utils/tempDB.jsx'
 import {useTheme} from './utils/themeContext.jsx'
 
 import Visible_Light from "./assets/visible_icon_light.png"
@@ -30,6 +28,7 @@ import Hidden_Light from "./assets/hidden_icon_light.png"
 import Hidden_Dark from "./assets/hidden_icon_dark.png"
 
 function App(){
+  const apiPath="http://localhost:8080/"
   const navigate=useNavigate()
   const location=useLocation()
 
@@ -52,78 +51,98 @@ function App(){
   const [userBusiness,setUserBusiness]=useState(null)
 
   useEffect(() => {
-    const saved=localStorage.getItem("session")
-    if(!saved){
-      navigate("/")
-      setIsSessionLoading(false)
-      return
+    async function initSession(){
+      const saved=localStorage.getItem("session")
+      if(!saved){
+        setIsSessionLoading(false)
+        navigate("/")
+        return
+      }
+
+      const session=JSON.parse(saved)
+
+      if(!session?.token || Date.now()>session.expiresAt){
+        localStorage.removeItem("session")
+        setIsSessionLoading(false)
+        navigate("/")
+        return
+      }
+
+      try{
+        const userInfo=await loadUserInfo(session.token)
+        
+        let businessInfo=null
+        try{
+          businessInfo=await loadBusinessInfo(session.token)
+        }catch{
+          businessInfo=null
+        }
+
+        setUser({
+          token: session.token,
+          info: userInfo
+        })
+        setUserBusiness(businessInfo)
+      }catch{
+        localStorage.removeItem("session")
+        setUser(null)
+        setUserBusiness(null)
+        navigate("/")
+      }finally{
+        setIsSessionLoading(false)
+      }
     }
 
-    const session=JSON.parse(saved)
+    initSession()
+  },[])
 
-    if(!session || !session.user){
-      localStorage.removeItem("session")
-      navigate("/")
-      setIsSessionLoading(false)
+  useEffect(() => {
+    if(isSessionLoading || !user)
       return
-    }
-
-    if(Date.now()>session.expiresAt){
-      localStorage.removeItem("session")
-      navigate("/")
-      setIsSessionLoading(false)
-      return
-    }
-
-    const business=loadUserData(session)
 
     let correctPath
-    if(business){
-      const db=getDb()
-      const employee=db.employees.find(e => e.userId===session.user.id)
-      
-      if(employee){
-        correctPath=`/${session.user.username}/${business.type}/${business.id}`
-      }else{
-        correctPath=`/${session.user.username}/register/employee`
-      }
+    if(userBusiness){
+      correctPath=`/${user.info.username}/${userBusiness.businessType}/${userBusiness.id}`
     }else{
-      correctPath=`/${session.user.username}/register/business`
+      correctPath=`/${user.info.username}/register/business`
     }
 
     if(!location.pathname.includes(correctPath))
       navigate(correctPath)
+  },[user,userBusiness,isSessionLoading])
 
-    setIsSessionLoading(false)
-  },[])
+  async function loadUserInfo(token){
+    const response=await fetch(`${apiPath}auth/user`,{
+      method: "GET",
+      headers: {"Authorization":`Bearer ${token}`}
+    })
 
-  function loadUserData(session){
-    const db=getDb()
-
-    setUser(session.user)
-
-    let business=db.businesses.find(b => b.ownerId===session.user.id)
-    if(!business){
-      const employee=db.employees.find(e => e.userId===session.user.id)
-      
-      if(employee)
-        business=db.businesses.find(b => b.id===employee.businessId)
-      else
-        business=null
+    if(!response.ok){
+      throw new Error("Failed to load user info")
     }
 
-    setUserBusiness(business)
+    return await response.json()
+  }
 
-    return business
+  async function loadBusinessInfo(token){
+    const response=await fetch(`${apiPath}business`,{
+      method: "GET",
+      headers: {"Authorization":`Bearer ${token}`}
+    })
+
+    if(!response.ok){
+      throw new Error("Failed to load business info")
+    }
+
+    return await response.json()
   }
 
   function resetErrors(){
     setErrors([])
   }
 
-  function handleLogin(){
+  async function handleLogin(){
     resetErrors()
-    const db=getDb()
     const newErrors={}
 
     if(!loginInput.trim())
@@ -137,65 +156,53 @@ function App(){
       return
     }
 
-    const user=db.users.find(
-      u => u.username===loginInput ||
-      (db.employees.find(e => e.userId===u.id) && db.employees.find(e => e.userId===u.id).email===loginInput) &&
-      u.password===loginPassword
-    )
+    try{
+      const response=await fetch(`${apiPath}auth/login`,{
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          username: loginInput,
+          password: loginPassword
+        })
+      })
 
-    if(!user){
-      toast.error("Neteisingas vartotojo vardas/email arba slaptažodis")
+      if(!response.ok){
+        throw new Error("Invalid credentials")
+      }
+
+      const data=await response.json()
+      const session={
+        token: data.token,
+        expiresAt: Date.now()+30*60*1000
+      }
+      localStorage.setItem("session",JSON.stringify(session))
+
+      const userInfo=await loadUserInfo(session.token)
+      
+      toast.success(`Sveiki sugriže, ${loginInput}!`)
+
+      setUser({
+        token: session.token,
+        info: userInfo
+      })
+      setUserBusiness(userInfo.business || null)
+
+      setIsPanelVisible(false)
+    }catch{
+      toast.error("Neteisingas vartotojo vardas arba slaptažodis")
       setErrors({
         loginInput:"Neteisingi prisijungimo duomenys",
         loginPassword:"Neteisingi prisijungimo duomenys"
       })
-      return
     }
-
-    toast.success(`Sveiki sugriže, ${user.username}!`)
-    const session={
-      user,
-      expiresAt:Date.now()+30*60*1000
-    }
-    localStorage.setItem("session",JSON.stringify(session))
-
-    const business=loadUserData(session)
-
-    setIsPanelVisible(false)
-
-    let correctPath
-    if(business){
-      const db=getDb()
-      const employee=db.employees.find(e => e.userId===session.user.id)
-      
-      if(employee){
-        correctPath=`/${session.user.username}/${business.type}/${business.id}`
-      }else{
-        correctPath=`/${session.user.username}/register/employee`
-      }
-    }else{
-      correctPath=`/${session.user.username}/register/business`
-    }
-
-    navigate(correctPath)
   }
 
-  function handleRegister(){
+  async function handleRegister(){
     resetErrors()
-    const db=getDb()
     const newErrors={}
-
-    if(!regEmail.trim())
-      newErrors.regEmail="Įveskite Email"
-    else if(!/\S+@\S+\.\S+/.test(regEmail))
-      newErrors.regEmail="Įveskite veikianti Email"
-    if(db.users.some(u => u.email===regEmail))
-      newErrors.regEmail="Email jau naudojamas"
 
     if(regUsername.length<3)
       newErrors.regUsername="Vartotojo vardas turetu buti minimum 3 simboliai"
-    if(db.users.some(u => u.username===regUsername))
-      newErrors.regUsername="Vartotojo vardas jau naudojamas"
 
     if(regPassword.length<6)
       newErrors.regPassword="Slaptažodis turetu buti minimum 6 simboliai"
@@ -206,47 +213,61 @@ function App(){
       return
     }
 
-    const newUser={
-      id:db.users.length+1,
-      email:regEmail,
-      username:regUsername,
-      password:regPassword
+    try{
+      const response=await fetch(`${apiPath}auth/register`,{
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          username: regUsername,
+          password: regPassword
+        })
+      })
+
+      if(!response.ok){
+        throw new Error("Register failed")
+      }
+
+      const data=await response.json()
+      const session={
+        token: data.token,
+        expiresAt: Date.now()+30*60*1000
+      }
+      localStorage.setItem("session",JSON.stringify(session))
+
+      const userInfo=await loadUserInfo(session.token)
+
+      setUser({
+        token: session.token,
+        info: userInfo
+      })
+      setUserBusiness(null)
+      setIsPanelVisible(false)
+
+      navigate(`/${userInfo.username}/register/business`)
+    }catch{
+      toast.error("Registracija nepavyko")
     }
-
-    db.users.push(newUser)
-    saveDb(db)
-
-    toast.success(`Paskira sukurta! Sveiki atvike, ${newUser.username}!`)
-    setUser(newUser)
-    const session={
-      user: newUser,
-      expiresAt:Date.now()+30*60*1000
-    }
-    localStorage.setItem("session",JSON.stringify(session))
-
-    setIsPanelVisible(false)
-    navigate(`/${newUser.username}/register/business`)
   }
 
   function handleLogOut(){
     localStorage.removeItem("session")
-    navigate("/")
     setUserBusiness(null)
     setUser(null)
+    navigate("/")
   }
 
   function handleOrderOpening(id){
     if(!userBusiness || !user)
       return
 
-    navigate(`/${user.username}/catering/${userBusiness.id}/orders/${id}`)
+    navigate(`/${user.info.username}/CATERING/${userBusiness.id}/orders/${id}`)
   }
 
   function handleReservationOpening(id){
     if(!userBusiness || !user)
       return
 
-    navigate(`/${user.username}/beauty/${userBusiness.id}/reservations/${id}`)
+    navigate(`/${user.info.username}/beauty/${userBusiness.id}/reservations/${id}`)
   }
 
   return(
@@ -281,18 +302,17 @@ function App(){
           <div id="main_body">
             <Routes>
               <Route path='/' element={<Main/>}/>
-              <Route path='/:username/register/business' element={<BusinessCreate setUserBusiness={setUserBusiness} user={user}/>}/>
-              <Route path='/:username/register/employee' element={<EmployeeCreate user={user} business={userBusiness}/>}/>
-              <Route path='/:username/catering/:id' element={<Catering user={user} business={userBusiness}/>}/>
-              <Route path='/:username/catering/:id/orders' element={<Orders user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
-              <Route path='/:username/catering/:id/orders/:orderId' element={<OrderView user={user} business={userBusiness}/>}/>
-              <Route path='/:username/catering/:id/products' element={<Products user={user} business={userBusiness}/>}/>
-              <Route path='/:username/beauty/:id' element={<Beauty user={user} business={userBusiness}/>}/>
-              <Route path='/:username/beauty/:id/reservations' element={<Reservations user={user} business={userBusiness} onReservationOpen={(reservationId) => handleReservationOpening(reservationId)}/>}/>
-              <Route path='/:username/beauty/:id/reservations/:reservationId' element={<ReservationView user={user} business={userBusiness}/>}/>
-              <Route path='/:username/beauty/:id/services' element={<Services user={user} business={userBusiness}/>}/>
-              <Route path='/:username/catering/:id/employees' element={<Employees user={user} business={userBusiness}/>}/>
-              <Route path='/:username/catering/:id/report' element={<Report user={user} business={userBusiness}/>}/>
+              <Route path='/:username/register/business' element={<BusinessCreate api={apiPath} setUserBusiness={setUserBusiness} user={user}/>}/>
+              <Route path='/:username/CATERING/:id' element={<Catering user={user} business={userBusiness}/>}/>
+              <Route path='/:username/CATERING/:id/orders' element={<Orders api={apiPath} user={user} business={userBusiness} onOrderOpen={(orderId) => handleOrderOpening(orderId)}/>}/>
+              <Route path='/:username/CATERING/:id/orders/:orderId' element={<OrderView api={apiPath} user={user} business={userBusiness}/>}/>
+              <Route path='/:username/CATERING/:id/products' element={<Products api={apiPath} user={user} business={userBusiness}/>}/>
+              <Route path='/:username/BEAUTY_SALON/:id' element={<Beauty user={user} business={userBusiness}/>}/>
+              <Route path='/:username/BEAUTY_SALON/:id/reservations' element={<Reservations api={apiPath} user={user} business={userBusiness} onReservationOpen={(reservationId) => handleReservationOpening(reservationId)}/>}/>
+              <Route path='/:username/BEAUTY_SALON/:id/reservations/:reservationId' element={<ReservationView api={apiPath} user={user} business={userBusiness}/>}/>
+              <Route path='/:username/BEAUTY_SALON/:id/services' element={<Services api={apiPath} user={user} business={userBusiness}/>}/>
+              <Route path='/:username/:businessType/:id/employees' element={<Employees api={apiPath} user={user} business={userBusiness}/>}/>
+              <Route path='/:username/:businessType/:id/report' element={<Report user={user} business={userBusiness}/>}/>
             </Routes>
           </div>
           {isPanelVisible && (

@@ -8,7 +8,7 @@ import {getDb,saveDb,getNextId} from "../../utils/tempDB"
 import {PageControls} from "../../components/controls/pageControls"
 import {filterList,sortBy} from "../../utils/filtering"
 
-export const Products=({user,business}) => {
+export const Products=({api,user,business}) => {
     const navigate=useNavigate()
     
     const [products,setProducts]=useState([])
@@ -24,7 +24,6 @@ export const Products=({user,business}) => {
     const [selectedProduct,setSelectedProduct]=useState(null)
 
     const [newProductName,setNewProductName]=useState("")
-    const [newProductCategory,setNewProductCategory]=useState("")
     const [newProductPrice,setNewProductPrice]=useState(0)
     const [newProductOptionGroups,setNewProductOptionGroups]=useState([])
     
@@ -34,10 +33,8 @@ export const Products=({user,business}) => {
 
     const [isEditingProduct,setIsEditingProduct]=useState(false)
 
-    const categories=getDb().categories.filter(c => c.businessId===business.id)
-
     const [currentPage,setCurrentPage]=useState(1)
-    const pageSize=6
+    const pageSize=9
     const totalPages=Math.max(1,Math.ceil(filteredProducts.length/pageSize))
     const visibleProducts=filteredProducts.slice(
         (currentPage-1)*pageSize,
@@ -45,12 +42,22 @@ export const Products=({user,business}) => {
     )
 
     useEffect(() => {
+        async function initProducts(){
+            try{
+                setCurrentPage(1)
+                const productList=await loadProducts(user.token)
+                setProducts(productList)
+            }catch{
+                setProducts([])
+            }
+        }
+
         if(!user){
             navigate("/")
             return
         }
 
-        loadProducts()
+        initProducts()
     },[user])
 
     useEffect(() => {
@@ -60,24 +67,26 @@ export const Products=({user,business}) => {
         setFilteredProducts(sortedList)
     },[products,sortType,totalMin,totalMax])
 
-    function loadProducts(){
-        const db=getDb()
+    async function loadProducts(token){
+        const response=await fetch(`${api}product`,{
+            method: "GET",
+            headers: {"Authorization":`Bearer ${token}`}
+        })
 
-        const productsData=db.products
-            .filter(p => p.businessId===business.id)
+        if(!response.ok){
+            throw new Error("Failed to load products")
+        }
 
-        setProducts(productsData)
+        return await response.json()
     }
 
     function openProductPanel(editing,productId){
         setErrors([])
         if(editing){
-            const db=getDb()
-
             setSelectedProduct(productId)
-            const editingProduct=db.products.find(p => p.id===productId)
+            const editingProduct=products.find(p => p.id===productId)
 
-            const groups=db.productOptionGroups
+            /*const groups=db.productOptionGroups
                 .filter(g => g.productId===productId)
                 .map(g => ({
                     tempId: crypto.randomUUID(),
@@ -94,15 +103,13 @@ export const Products=({user,business}) => {
                             name: v.name,
                             priceDelta: v.priceDelta
                         }))
-                }))
+                }))*/
 
             setNewProductName(editingProduct.name)
-            setNewProductCategory(String(editingProduct.categoryId))
             setNewProductPrice(editingProduct.price)
-            setNewProductOptionGroups(groups)
+            setNewProductOptionGroups([])
         }else{
             setNewProductName("")
-            setNewProductCategory("")
             setNewProductPrice(0)
             setNewProductOptionGroups([])
         }
@@ -116,9 +123,8 @@ export const Products=({user,business}) => {
         setTotalMax("")
     }
 
-    function createNewProduct(){
+    async function createNewProduct(){
         setErrors([])
-        const db=getDb()
         const newErrors={}
 
         if(!newProductName.trim())
@@ -132,18 +138,36 @@ export const Products=({user,business}) => {
           return
         }
 
-        const nextId=getNextId(db.products)
-        let newProduct={
-            id: nextId,
-            businessId: business.id,
-            name: newProductName,
-            price: Number(newProductPrice),
-            categoryId: Number(newProductCategory)
+        try{
+            const response=await fetch(`${api}product`,{
+                method: "POST",
+                headers: {
+                    "Authorization":`Bearer ${user.token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: newProductName,
+                    price: Number(newProductPrice)
+                })
+            })
+
+            if(!response.ok){
+                throw new Error("Failed to create product")
+            }
+
+            toast.success(`Productas ${newProductName} sėkmingai sukurtas`)
+
+            setIsPanelVisible(false)
+            try{
+                const productList=await loadProducts(user.token)
+                setProducts(productList)
+            }catch{
+                setProducts([])
+            }
+        }catch{
+            toast.error("Klaida: nepavyko sukurti produkto")
         }
-
-        db.products.push(newProduct)
-
-        newProductOptionGroups.forEach(group => {
+        /*newProductOptionGroups.forEach(group => {
             const groupId=getNextId(db.productOptionGroups)
 
             db.productOptionGroups.push({
@@ -165,43 +189,10 @@ export const Products=({user,business}) => {
                     })
                 })
             }
-        })
-
-        saveDb(db)
-
-        toast.success(`Produktas ${newProduct.name} sėkmingai sukurtas`)
-        setIsPanelVisible(false)
-
-        loadProducts()
+        })*/
     }
 
-    function deleteProduct(){
-        const db=getDb()
-        
-        const existing=db.products.find(s => s.id===selectedProduct)
-
-        if(!existing){
-            toast.error("Klaida: produktas nerastas")
-            return
-        }
-
-        const groupIdsToRemove=db.productOptionGroups
-            .filter(g => g.productId===selectedProduct)
-            .map(g => g.id)
-
-        db.productOptionGroups=db.productOptionGroups.filter(g => g.productId!==selectedProduct)
-        db.productOptionValues=db.productOptionValues.filter(v => !groupIdsToRemove.includes(v.productOptionGroupId))
-        db.products=db.products.filter(p => p.id!==selectedProduct)
-
-        saveDb(db)
-
-        toast.success(`Produktas ${existing.name} sėkmingai ištrintas`)
-        setIsPanelVisible(false)
-
-        loadProducts()
-    }
-
-    function saveProduct(){
+    async function saveProduct(){
         setErrors([])
         const db=getDb()
         const newErrors={}
@@ -217,22 +208,36 @@ export const Products=({user,business}) => {
           return
         }
         
-        const existing=db.products.find(s => s.id===selectedProduct)
-
-        if(!existing){
-            toast.error("Klaida: produktas nerastas")
-            return
-        }
+        try{
+            const response=await fetch(`${api}product/${selectedProduct}`,{
+                method: "PUT",
+                headers: {
+                    "Authorization":`Bearer ${user.token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: newProductName,
+                    price: Number(newProductPrice)
+                })
+            })
         
-        existing.name=newProductName
-        existing.price=Number(newProductPrice)
-        existing.categoryId=Number(newProductCategory)
+            if(!response.ok){
+                throw new Error("Failed to update product")
+            }
 
-        const groupIdsToRemove=db.productOptionGroups
-            .filter(g => g.productId===selectedProduct)
-            .map(g => g.id)
+            toast.success(`Produktas ${newProductName} sėkmingai atnaujintas`)
 
-        db.productOptionGroups=db.productOptionGroups.filter(g => g.productId!==selectedProduct)
+            setIsPanelVisible(false)
+            try{
+                const productList=await loadProducts(user.token)
+                setProducts(productList)
+            }catch{
+                setProducts([])
+            }
+        }catch{
+            toast.error("Klaida: nepavyko pakeist produkto")
+        }
+        /*db.productOptionGroups=db.productOptionGroups.filter(g => g.productId!==selectedProduct)
         db.productOptionValues=db.productOptionValues.filter(v => !groupIdsToRemove.includes(v.productOptionGroupId))
         
         newProductOptionGroups.forEach(group => {
@@ -257,15 +262,11 @@ export const Products=({user,business}) => {
                     })
                 })
             }
-        })
-
-        saveDb(db)
-
-        toast.success(`Produktas ${existing.name} sėkmingai pakeistas`)
-        setIsPanelVisible(false)
-
-        loadProducts()
+        })*/
     }
+
+    if(!user || !user.info || !business)
+        return null
 
     return(
         <div>
@@ -285,7 +286,7 @@ export const Products=({user,business}) => {
                 <hr className={!showFilters ? "hide_element":""}/>
                 <div id="filter_controls" className={"row_align "+(!showFilters ? "hide_element":"")}>
                     <div id="filter_option" className="col_align">
-                        <p id="filter_title">Suma:</p>
+                        <p id="filter_title">Kaina:</p>
                         <hr/>
                         <label id="filter_label">Min:</label>
                         <input className="filter_input_field" type="number" value={totalMin} onChange={(e) => setTotalMin(e.target.value)}/>
@@ -302,9 +303,6 @@ export const Products=({user,business}) => {
                     visibleProducts.map(p => (
                         <button key={p.id} id="product_card" className="col_align" onClick={() => openProductPanel(true,p.id)}>
                             <p id="product_card_name">{p.name}</p>
-                            {getDb().categories.find(c => c.id===p.categoryId) && (
-                                <p id="product_card_category">Kategorija: {getDb().categories.find(c => c.id===p.categoryId).name}</p>
-                            )}
                             <p id="product_card_price">Kaina: {p.price.toFixed(2)}€</p>
                         </button>
                     ))
@@ -322,15 +320,6 @@ export const Products=({user,business}) => {
                                 {errors.newProductName}
                             </div>
                         )}
-                        <label>Kategorija</label>
-                        <select className="product_create_edit_select" value={newProductCategory} onChange={e => setNewProductCategory(e.target.value)}>
-                            <option value="">-- Pasirinkite categoriją --</option>
-                            {categories.map(c => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
                         <label>Opcijos</label>
                         <div id="product_create_edit_option_list" className="col_align">
                             {Array.isArray(newProductOptionGroups) && newProductOptionGroups.map((group,gi) => (
@@ -437,12 +426,9 @@ export const Products=({user,business}) => {
                         <div id="product_create_edit_controls" className="row_align">
                             <button id="product_create_edit_cancel_button" className="control_button">Atšaukti</button>
                             {isEditingProduct ? (
-                                <button id="product_create_edit_confirm_button" className="control_button" onClick={() => saveProduct()}>Išsaugoti</button>
+                                <button id="product_create_edit_confirm_button" className="control_button" onClick={saveProduct}>Išsaugoti</button>
                             ):(
-                                <button id="product_create_edit_confirm_button" className="control_button" onClick={() => createNewProduct()}>Sukurti</button>
-                            )}
-                            {isEditingProduct && (
-                                <button id="product_create_edit_delete_button" className="control_button" onClick={() => deleteProduct()}>Ištrinti</button>
+                                <button id="product_create_edit_confirm_button" className="control_button" onClick={createNewProduct}>Sukurti</button>
                             )}
                         </div>
                     </div>

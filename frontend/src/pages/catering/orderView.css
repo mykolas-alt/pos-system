@@ -126,7 +126,7 @@
     }
 
 #clear_button{
-    margin:0.5rem 0.2rem auto auto;
+    margin:auto 0.2rem 0.5rem auto;
 }
 
 #products_to_add{
@@ -216,19 +216,14 @@
     width:50% !important;
 }
 
-#order_info_top{
-    margin:-0.5rem auto 0rem auto;
-    width:90%;
-}
-
 #order_info_id{
-    font-size:1.8rem;
+    font-size:1.15rem;
     margin:0rem auto 0rem 1rem;
 }
 
 #order_info_status{
-    font-size:1.8rem;
-    margin:0rem 1rem 0rem auto;
+    font-size:1.6rem;
+    margin:0rem auto 0rem 1rem;
 }
 
 #order_product_list{

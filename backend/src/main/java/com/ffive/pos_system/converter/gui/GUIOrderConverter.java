@@ -20,6 +20,7 @@ public class GUIOrderConverter {
                         .map(item -> item.getProduct().getPrice().multiply(
                                 java.math.BigDecimal.valueOf(item.getQuantity())))
                         .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add))
+                .note(order.getNote())
                 .identEmployee(order.getEmployee().getId())
                 .items(order.getItems().stream()
                         .map(orderItem -> GUIOrderItem.builder()
@@ -42,6 +43,7 @@ public class GUIOrderConverter {
                 .closedAt(order.getClosedAt())
                 .status(order.getStatus())
                 .total(order.getTotal())
+                .note(order.getNote())
                 .identEmployee(order.getEmployee().getId())
                 .items(order.getItems().stream()
                         .map(orderItem -> GUIOrderItem.builder()

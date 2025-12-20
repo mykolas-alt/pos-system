@@ -150,6 +150,9 @@ export const Report = ({ user, business }) => {
     setOrderIdQuery("")
   }
 
+  if(!user || !user.info || !business)
+    return null
+
   return (
     <div className="report-container">
       <h2 className="report-title">Detali ataskaita — {business?.name || ''}</h2>

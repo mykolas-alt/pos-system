@@ -8,17 +8,18 @@ import Sun from "../../assets/sun.png"
 import Moon from "../../assets/moon.png"
 import Home_Light from "../../assets/home_light.png"
 import Home_Dark from "../../assets/home_dark.png"
-import {getDb} from "../../utils/tempDB.jsx"
 
 export const NavBar=({onLoginClick,user,business,onLogout}) => {
     const navigate=useNavigate()
     const {theme,toggleTheme}=useTheme()
     const menuRef=useRef(null)
     const buttonRef=useRef(null)
-
-    const [employee,setEmployee]=useState(null)
     
     const [isAccountMenuVisible,setIsAccountMenuVisible]=useState(false)
+
+    useEffect(() => {
+        setIsAccountMenuVisible(false)
+    },[user])
 
     useEffect(() => {
         function handleClickOutside(event){
@@ -31,31 +32,15 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
             document.removeEventListener("mousedown",handleClickOutside)
         }
     },[isAccountMenuVisible])
-    
-    useEffect(() => {
-        setIsAccountMenuVisible(false)
-        if(!user){
-            navigate("/")
-            return
-        }
-
-        const db=getDb()
-        const employee=db.employees.find(e => e.userId===user.id)
-        setEmployee(employee)
-    },[user])
 
     function homePath(){
         let path="/"
 
         if(user){
             if(business){
-                if(employee){
-                    path=`/${user.username}/${business.type}/${business.id}`
-                }else{
-                    path=`/${user.username}/register/employee`
-                }
+                path=`/${user.info.username}/${business.businessType}/${business.id}`
             }else{
-                path=`/${user.username}/register/business`
+                path=`/${user.info.username}/register/business`
             }
         }else{
             path="/"
@@ -63,7 +48,7 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
 
         return path
     }
-
+    
     return(
         <nav id="navbar">
             <div className="nav_item_positioning col_align">
@@ -80,7 +65,7 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
                     </button>
                     {user ? (
                         <>
-                            <button id="account_button" className="nav_button" ref={buttonRef} onClick={() => setIsAccountMenuVisible(prev => !prev)}>{user.username}</button>
+                            <button id="account_button" className="nav_button" ref={buttonRef} onClick={() => setIsAccountMenuVisible(prev => !prev)}>{user.info.username}</button>
                             {isAccountMenuVisible && (
                                 <div id="account_menu" className="col_align" ref={menuRef}>
                                     <button id="logout_button" className="account_menu_button" onClick={onLogout}>Atsijungti</button>
@@ -91,21 +76,22 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
                         <button id="account_button" className="nav_button" onClick={onLoginClick}>Prisijungti</button>
                     )}
                 </div>
-                {business && employee && (
+                {business && (
                     <div className="row_align">
-                        {business.type==="catering" ? (
+                        {business.businessType==="CATERING" && (
                             <>
-                                <NavLink to={`/${user.username}/catering/${business.id}/orders`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Užsakymai</NavLink>
-                                <NavLink to={`/${user.username}/catering/${business.id}/products`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Pozicijos</NavLink>
-                            </>
-                        ):(
-                            <>
-                                <NavLink to={`/${user.username}/beauty/${business.id}/reservations`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Rezervacijos</NavLink>
-                                <NavLink to={`/${user.username}/beauty/${business.id}/services`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Paslaugos</NavLink>
+                                <NavLink to={`/${user.info.username}/CATERING/${business.id}/orders`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Užsakymai</NavLink>
+                                <NavLink to={`/${user.info.username}/CATERING/${business.id}/products`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Pozicijos</NavLink>
                             </>
                         )}
-                        <NavLink to={`/${user.username}/${business.type}/${business.id}/employees`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Darbuotojai</NavLink>
-                        <NavLink to={`/${user.username}/${business.type}/${business.id}/report`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Statistika</NavLink>
+                        {business.businessType==="BEAUTY_SALON" && (
+                            <>
+                                <NavLink to={`/${user.info.username}/BEAUTY_SALON/${business.id}/reservations`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Rezervacijos</NavLink>
+                                <NavLink to={`/${user.info.username}/BEAUTY_SALON/${business.id}/services`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Paslaugos</NavLink>
+                            </>
+                        )}
+                        <NavLink to={`/${user.info.username}/${business.businessType}/${business.id}/employees`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Darbuotojai</NavLink>
+                        <NavLink to={`/${user.info.username}/${business.businessType}/${business.id}/report`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Statistika</NavLink>
                     </div>
                 )}
             </div>

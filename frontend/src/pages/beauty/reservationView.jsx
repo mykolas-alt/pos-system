@@ -373,6 +373,9 @@ export const ReservationView=({user,business}) => {
         loadReservationData()
     }
 
+    if(!user || !user.info || !business)
+        return null
+
     return(
         <div>
             {isReservationLoading ? (

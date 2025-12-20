@@ -362,6 +362,9 @@ export const Reservations=({user,business,onReservationOpen}) => {
         onReservationOpen(newReservation.id)
     }
 
+    if(!user || !user.info || !business)
+        return null
+
     return(
         <div>
             <div id="controls" className="col_align">

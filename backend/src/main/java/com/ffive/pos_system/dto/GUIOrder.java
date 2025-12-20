@@ -22,6 +22,7 @@ public class GUIOrder {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal total;
+    private String note;
     private UUID identEmployee;
     private List<GUIOrderItem> items;
 }

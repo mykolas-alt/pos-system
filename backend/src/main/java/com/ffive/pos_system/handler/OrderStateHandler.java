@@ -41,12 +41,18 @@ public class OrderStateHandler {
         orderRepository.save(newOrder);
     }
 
+    @Transactional
     public void cancelOrder(Employee employee, Order order) {
         if (!CANCELLABLE_STATUSES.contains(order.getStatus())) {
             throw new ValidationException("Order cannot be cancelled");
         }
 
         order.setStatus(OrderStatus.CANCELLED);
+        order.setTotal(order.getItems().stream()
+                .map(this::setSnapshotFieldsForOrderItems)
+                .map(this::getItemTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+
         orderRepository.save(order);
     }
 

@@ -56,4 +56,10 @@
             <column name="service_charge" type="DECIMAL(10,2)" />
         </addColumn>
     </changeSet>
+    
+    <changeSet id="addPaidAmountToOrder" author="artiom">
+        <addColumn tableName="order">
+            <column name="paid_amount" type="DECIMAL(10,2)" />
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

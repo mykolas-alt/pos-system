@@ -1,3 +1,9 @@
+#register_panel{
+    margin:0.5rem auto auto auto;
+    width:90%;
+    height:32rem;
+}
+
 #new_register_info{
     display:flex;
     align-items:center;
@@ -12,9 +18,10 @@
     text-decoration:none;
     font-size:1.2rem;
     font-weight:bold;
-    margin:1.5rem;
+    margin:1.5rem 0.5rem auto 0.5rem;
     gap:1.2rem;
     width:25rem;
+    height:90%;
     transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
 }
 

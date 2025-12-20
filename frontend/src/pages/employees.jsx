@@ -3,12 +3,10 @@ import {useParams,useNavigate} from "react-router-dom"
 import {toast} from 'react-hot-toast'
 import "./employees.css"
 
-import {getDb,saveDb,getNextId} from "../utils/tempDB"
-
 import {PageControls} from "../components/controls/pageControls"
 import {filterSearchList,sortBy} from "../utils/filtering"
 
-export const Employees=({user,business}) => {
+export const Employees=({api,user,business}) => {
     const navigate=useNavigate()
     
     const [employees,setEmployees]=useState([])
@@ -16,14 +14,13 @@ export const Employees=({user,business}) => {
     const [search,setSearch]=useState("")
     const [sortType,setSortType]=useState("name_increase")
     const [filteredEmployees,setFilteredEmployees]=useState([])
-
-    //const [showFilters,setShowFilters]=useState(false)
-
+    
     const [selectedEmployee,setSelectedEmployee]=useState(null)
 
     const [newEmployeeName,setNewEmployeeName]=useState("")
     const [newEmployeeEmail,setNewEmployeesEmail]=useState("")
-    const [newEmployeesPassword,setNewEmployeesPassword]=useState(10)
+    const [newEmployeesPassword,setNewEmployeesPassword]=useState("")
+    const [newEmployeesManager,setNewEmployeesManager]=useState("")
     
     const [errors,setErrors]=useState([])
 
@@ -32,7 +29,7 @@ export const Employees=({user,business}) => {
     const [isEditingEmployee,setIsEditingEmployee]=useState(false)
 
     const [currentPage,setCurrentPage]=useState(1)
-    const pageSize=9
+    const pageSize=6
     const totalPages=Math.max(1,Math.ceil(filteredEmployees.length/pageSize))
     const visibleEmployees=filteredEmployees.slice(
         (currentPage-1)*pageSize,
@@ -40,12 +37,21 @@ export const Employees=({user,business}) => {
     )
 
     useEffect(() => {
+        async function initEmployees(){
+            try{
+                const employeeList=await loadEmployees(user.token)
+                setEmployees(employeeList)
+            }catch{
+                setEmployees([])
+            }
+        }
+
         if(!user){
             navigate("/")
             return
         }
 
-        loadEmployees()
+        initEmployees()
     },[user])
 
     useEffect(() => {
@@ -55,28 +61,32 @@ export const Employees=({user,business}) => {
         setFilteredEmployees(sortedList)
     },[employees,search,sortType])
 
-    function loadEmployees(){
-        const db=getDb()
+    async function loadEmployees(token){
+        const response=await fetch(`${api}employee`,{
+            method: "GET",
+            headers: {"Authorization":`Bearer ${token}`}
+        })
 
-        const employeesData=db.employees
-            .filter(e => e.businessId===business.id)
+        if(!response.ok){
+            throw new Error("Failed to load user info")
+        }
 
-        setEmployees(employeesData)
+        return await response.json()
     }
 
     function openEmployeePanel(editing,employeeId){
         setErrors([])
         if(editing){
-            const db=getDb()
-
             setSelectedEmployee(employeeId)
-            const editingEmployee=db.employees.find(e => e.id===employeeId)
+            const editingEmployee=employees.find(e => e.id===employeeId)
 
             setNewEmployeeName(editingEmployee.name)
             setNewEmployeesEmail(editingEmployee.email)
+            setNewEmployeesManager(editingEmployee.manager ? String(editingEmployee.manager.id):"")
         }else{
             setNewEmployeeName("")
             setNewEmployeesEmail("")
+            setNewEmployeesManager("")
         }
 
         setNewEmployeesPassword("")
@@ -85,14 +95,8 @@ export const Employees=({user,business}) => {
         setIsPanelVisible(true)
     }
 
-    /*function clearFilters(){
-        setTotalMin("")
-        setTotalMax("")
-    }*/
-
-    function createNewEmployee(){
+    async function createNewEmployee(){
         setErrors([])
-        const db=getDb()
         const newErrors={}
 
         if(!newEmployeeName.trim())
@@ -100,7 +104,7 @@ export const Employees=({user,business}) => {
         if(!newEmployeeEmail.trim())
           newErrors.newEmployeeEmail="Įveskite darbuotojo email"
         if(!newEmployeesPassword.trim() || newEmployeesPassword.length<6)
-          newErrors.newEmployeesPassword="Įveskite darbuotojo slaptažodį (min 4 simboliai)"
+          newErrors.newEmployeesPassword="Įveskite darbuotojo slaptažodį (min 6 simboliai)"
 
         if(Object.keys(newErrors).length>0){
           setErrors(newErrors)
@@ -108,61 +112,41 @@ export const Employees=({user,business}) => {
           return
         }
 
-        let newUser={
-            id: getNextId(db.users),
-            username: newEmployeeName.split(" ").join(""),
-            password: newEmployeesPassword
-        }
+        try{
+            const response=await fetch(`${api}employee`,{
+                method: "POST",
+                headers: {
+                    "Authorization":`Bearer ${user.token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: newEmployeeName,
+                    email: newEmployeeEmail,
+                    password: newEmployeesPassword,
+                    managerId: newEmployeesManager
+                })
+            })
         
-        let newEmploye={
-            id: getNextId(db.employees),
-            userId: newUser.id,
-            businessId: business.id,
-            name: newEmployeeName,
-            email: newEmployeeEmail,
-            role: "Savininkas"
+            if(!response.ok){
+                throw new Error("Failed to create employee")
+            }
+
+            toast.success(`Darbuotojas ${newEmployeeName} sėkmingai sukurta`)
+
+            setIsPanelVisible(false)
+            try{
+                const employeeList=await loadEmployees(user.token)
+                setEmployees(employeeList)
+            }catch{
+                setEmployees([])
+            }
+        }catch{
+            toast.error("Klaida: nepavyko sukurti darbuotojo")
         }
-
-        db.users.push(newUser)
-        db.employees.push(newEmploye)
-
-        saveDb(db)
-
-        toast.success(`Darbuotojas ${newEmploye.name} sėkmingai sukurta`)
-        setIsPanelVisible(false)
-
-        loadEmployees()
     }
 
-    function deleteEmployee(){
-        const db=getDb()
-        
-        const existing=db.employees.find(e => e.id===selectedEmployee)
-
-        if(!existing){
-            toast.error("Klaida: darbuotojas nerastas")
-            return
-        }
-
-        if(db.users.find(u => u.id===existing.userId).id===business.ownerId){
-            toast.error("Klaida: savininko negalima ištrinti")
-            return
-        }
-
-        db.employees=db.employees.filter(e => e.id!==selectedEmployee)
-        db.users=db.users.filter(u => u.id!==existing.userId)
-
-        saveDb(db)
-
-        toast.success(`Darbuotojas ${existing.name} sėkmingai ištrintas`)
-        setIsPanelVisible(false)
-
-        loadEmployees()
-    }
-
-    function saveEmployee(){
+    async function saveEmployee(){
         setErrors([])
-        const db=getDb()
         const newErrors={}
 
         if(!newEmployeeName.trim())
@@ -175,31 +159,38 @@ export const Employees=({user,business}) => {
           toast.error("Prašau pataisikit paryškintas vietas")
           return
         }
-        
-        const existing=db.employees.find(e => e.id===selectedEmployee)
 
-        if(!existing){
-            toast.error("Klaida: darbuotojas nerastas")
-            return
+        try{
+            const response=await fetch(`${api}employee/${selectedEmployee}`,{
+                method: "PUT",
+                headers: {
+                    "Authorization":`Bearer ${user.token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: newEmployeeName!==employees.find(e => e.id===selectedEmployee).name ? newEmployeeName:null,
+                    email: newEmployeeEmail!==employees.find(e => e.id===selectedEmployee).email ? newEmployeeEmail:null,
+                    password: newEmployeesPassword!=="" ? newEmployeesPassword:null,
+                    managerId: newEmployeesManager
+                })
+            })
+        
+            if(!response.ok){
+                throw new Error("Failed to update employee")
+            }
+
+            toast.success(`Darbuotojas ${newEmployeeName} sėkmingai atnaujintas`)
+
+            setIsPanelVisible(false)
+            try{
+                const employeeList=await loadEmployees(user.token)
+                setEmployees(employeeList)
+            }catch{
+                setEmployees([])
+            }
+        }catch{
+            toast.error("Klaida: nepavyko sukurti darbuotojo")
         }
-
-        const existingUser=db.users.find(u => u.id===existing.userId)
-
-        if(!existingUser){
-            toast.error("Klaida: darbuotojo vartotojas nerastas")
-            return
-        }
-        
-        existing.name=newEmployeeName
-        existing.email=newEmployeeEmail
-        existingUser.password=newEmployeesPassword || existingUser.password
-        
-        saveDb(db)
-
-        toast.success(`Darbuotojas ${existing.name} sėkmingai pakeistas`)
-        setIsPanelVisible(false)
-
-        loadEmployees()
     }
 
     return(
@@ -255,15 +246,21 @@ export const Employees=({user,business}) => {
                                 {errors.newEmployeesPassword}
                             </div>
                         )}
+                        <label>Vadybininkas</label>
+                        <select className="employee_create_edit_select" value={newEmployeesManager} onChange={e => setNewEmployeesManager(e.target.value)}>
+                            <option value="">-- Pasirinkite Vadybininką --</option>
+                            {employees.map(e => (
+                                <option key={e.id} value={e.id}>
+                                    {e.name}
+                                </option>
+                            ))}
+                        </select>
                         <div id="employee_create_edit_controls" className="row_align">
                             <button id="employee_create_edit_cancel_button" className="control_button">Atšaukti</button>
                             {isEditingEmployee ? (
-                                <button id="employee_create_edit_confirm_button" className="control_button" onClick={() => saveEmployee()}>Išsaugoti</button>
+                                <button id="employee_create_edit_confirm_button" className="control_button" onClick={saveEmployee}>Išsaugoti</button>
                             ):(
-                                <button id="employee_create_edit_confirm_button" className="control_button" onClick={() => createNewEmployee()}>Sukurti</button>
-                            )}
-                            {isEditingEmployee && (
-                                <button id="employee_create_edit_delete_button" className="control_button" onClick={() => deleteEmployee()}>Ištrinti</button>
+                                <button id="employee_create_edit_confirm_button" className="control_button" onClick={createNewEmployee}>Sukurti</button>
                             )}
                         </div>
                     </div>
