@@ -15,14 +15,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Builder
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "orderdiscount")
-public class OrderDiscount {
+public class OrderDiscount implements Discountable {
     @Id
     @GeneratedValue
     private UUID id;
@@ -35,11 +37,11 @@ public class OrderDiscount {
     @JoinColumn(name = "discount_id", nullable = false)
     private Discount discount;
 
+    private LocalDateTime expiresAt;
+
     @Column(name = "name_snapshot")
     private String nameSnapshot;
 
     @Column(name = "value_snapshot")
     private BigDecimal valueSnapshot;
-
-    private LocalDateTime expiresAt;
 }

@@ -43,6 +43,12 @@ public class OrderItem {
     @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY)
     private List<OrderItemOption> itemOptions;
 
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY)
+    private List<OrderItemTax> taxes;
+
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY)
+    private List<OrderItemDiscount> discounts;
+
     // snapshot fields
     @Column(name = "product_name_snapshot")
     private String productNameSnapshot;
