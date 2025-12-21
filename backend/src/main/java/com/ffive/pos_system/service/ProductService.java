@@ -4,6 +4,7 @@ import static com.ffive.pos_system.service.validation.ValidationMessageConstants
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.springframework.stereotype.Service;
 
@@ -31,17 +32,18 @@ public class ProductService {
     private final EmployeeRepository employeeRepository;
     private final ProductCreateValidator productCreateValidator;
 
-    public Product createProduct(Product product, POSUserDetails userDetails) {
+    public GUIProduct createProduct(Product product, POSUserDetails userDetails) {
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
         Employee employee = EmployeeHelper.resolveEmployeeFromUserDetails(userDetails);
         productCreateValidator.validate(product, null);
 
-        // TODO: handler
         product.setBusiness(employee.getBusiness());
-        return productRepository.save(product);
+        var persistedProduct = productRepository.save(product);
+
+        return convertToGUIProduct(persistedProduct);
     }
 
-    public Product modifyProduct(Product product, POSUserDetails userDetails) {
+    public GUIProduct modifyProduct(Product product, POSUserDetails userDetails) {
         if (product.getId() == null) {
             throw new ValidationException(MODIFYING_NON_EXISTENT_ENTITY);
         }
@@ -53,7 +55,8 @@ public class ProductService {
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
         productCreateValidator.validate(product, null);
 
-        return productRepository.save(product);
+        var persistedProduct = productRepository.save(product);
+        return convertToGUIProduct(persistedProduct);
     }
 
     public List<GUIProduct> getAllProducts(POSUserDetails userDetails) {
@@ -68,12 +71,16 @@ public class ProductService {
 
     private List<GUIProduct> mapToGUIProducts(List<Product> products) {
         return products.stream()
-                .map(product -> GUIProduct.builder()
-                        .id(product.getId())
-                        .name(product.getName())
-                        .price(product.getPrice())
-                        .build())
+                .map(this::convertToGUIProduct)
                 .limit(100)
                 .toList();
+    }
+
+    private GUIProduct convertToGUIProduct(Product product) {
+        return GUIProduct.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .price(product.getPrice())
+                .build();
     }
 }

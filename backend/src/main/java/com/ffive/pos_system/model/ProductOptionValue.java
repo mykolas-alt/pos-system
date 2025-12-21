@@ -26,7 +26,7 @@ import lombok.Setter;
 @Audited
 @NoArgsConstructor
 @AllArgsConstructor
-@SQLDelete(sql = "UPDATE productoptionvalue SET deletedat = now() WHERE id = ?")
+@SQLDelete(sql = "UPDATE pos.productoptionvalue SET deletedat = now() WHERE id = ?")
 @Table(name = "productoptionvalue")
 public class ProductOptionValue extends SoftDeletable {
     @Id

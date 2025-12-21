@@ -35,21 +35,19 @@ public class ProductController {
 
     @Operation(summary = "Create a new product")
     @PostMapping
-    public String createProduct(@RequestBody Product product,
+    public GUIProduct createProduct(@RequestBody Product product,
             @AuthenticationPrincipal POSUserDetails userDetails) {
 
-        productService.createProduct(product, userDetails);
-        return "Product created";
+        return productService.createProduct(product, userDetails);
     }
 
     @Operation(summary = "Update an existing product")
     @PutMapping("/{productId}")
-    public String updateProduct(@RequestBody Product product, @PathVariable UUID productId,
+    public GUIProduct updateProduct(@RequestBody Product product, @PathVariable UUID productId,
             @AuthenticationPrincipal POSUserDetails userDetails) {
 
         product.setId(productId);
-        productService.modifyProduct(product, userDetails);
-        return "Product created";
+        return productService.modifyProduct(product, userDetails);
     }
 
     @Operation(summary = "Get all products for the authenticated user's business")
