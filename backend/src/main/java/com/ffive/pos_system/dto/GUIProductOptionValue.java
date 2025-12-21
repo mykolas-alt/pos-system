@@ -8,8 +8,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class GUIProduct implements GUIObject {
+public class GUIProductOptionValue implements GUIObject {
     private UUID id;
+    private UUID optionGroupId;
     private String name;
-    private BigDecimal price;
+    private BigDecimal priceDelta;
 }

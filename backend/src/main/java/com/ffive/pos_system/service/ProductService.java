@@ -16,9 +16,9 @@ import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ProductRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ProductCreateValidator;
+import com.ffive.pos_system.service.validation.ValidationException;
 import com.ffive.pos_system.util.EmployeeHelper;
 
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

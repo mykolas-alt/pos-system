@@ -1,6 +1,5 @@
 package com.ffive.pos_system.controller;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ffive.pos_system.dto.AddItemOptionToOrderRequest;
 import com.ffive.pos_system.dto.AddProductToOrderRequest;
 import com.ffive.pos_system.dto.GUIOrder;
+import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
 import com.ffive.pos_system.dto.ModifyOrderRequest;
 import com.ffive.pos_system.security.POSUserDetails;
@@ -49,13 +50,13 @@ public class OrderController {
 
     @Operation(summary = "Get all orders for the authenticated user's business")
     @GetMapping
-    public List<GUIOrder> getOrders(@AuthenticationPrincipal POSUserDetails userDetails,
+    public ResponseEntity<GUIPage<GUIOrder>> getOrders(@AuthenticationPrincipal POSUserDetails userDetails,
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size) {
-        return orderService.getAllOrders(
+        return ResponseEntity.ok(orderService.getAllOrders(
                 userDetails,
                 pagingHelper.getValidPageNumber(page),
-                pagingHelper.getValidPageSize(size));
+                pagingHelper.getValidPageSize(size)));
     }
 
     @Operation(summary = "Get a order by ID")
@@ -109,6 +110,26 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Add option to an existing order item")
+    @PostMapping("/{orderId}/product/{orderItemId}/option")
+    public ResponseEntity<Void> addItemOption(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderItemId,
+            @Valid @RequestBody AddItemOptionToOrderRequest addItemOptionToOrderRequest) {
+        orderService.addOptionToOrderItem(userDetails, orderId, orderItemId, addItemOptionToOrderRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Remove option from an existing order item")
+    @DeleteMapping("/{orderId}/product/{orderItemId}/option/{orderItemOptionId}")
+    public ResponseEntity<Void> removeItemOption(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderItemId,
+            @Valid @PathVariable UUID orderItemOptionId) {
+        orderService.removeOptionFromOrderItem(userDetails, orderId, orderItemId, orderItemOptionId);
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "Remove a product from an existing order")
     @DeleteMapping("/{orderId}/product/{orderItemId}")
     public ResponseEntity<Void> removeOrderItem(@AuthenticationPrincipal POSUserDetails userDetails,
@@ -117,5 +138,4 @@ public class OrderController {
         orderService.removeProductFromOrder(userDetails, orderId, orderItemId);
         return ResponseEntity.ok().build();
     }
-
 }
