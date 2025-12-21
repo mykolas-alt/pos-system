@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class GUIBusiness {
+public class GUIBusiness implements GUIObject {
     private UUID id;
     private GUIEmployee owner;
     private String name;

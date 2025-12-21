@@ -1,19 +1,20 @@
 package com.ffive.pos_system.controller;
 
-import com.ffive.pos_system.dto.OrderSplitRequest;
-import org.apache.coyote.Response;
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
-import com.ffive.pos_system.dto.PaymentRequest;
-import com.ffive.pos_system.model.Payment;
-import com.ffive.pos_system.service.PaymentService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.util.UUID;
+import com.ffive.pos_system.dto.OrderSplitRequest;
+import com.ffive.pos_system.dto.PaymentRequest;
+import com.ffive.pos_system.model.Payment;
+import com.ffive.pos_system.service.PaymentService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -40,6 +41,5 @@ public class PaymentController {
         paymentService.refundOrder(orderId);
         return ResponseEntity.ok().build();
     }
-
 
 }

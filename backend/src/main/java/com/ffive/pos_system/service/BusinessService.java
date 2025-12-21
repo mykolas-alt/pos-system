@@ -2,14 +2,18 @@ package com.ffive.pos_system.service;
 
 import static com.ffive.pos_system.service.validation.ValidationMessageConstants.MODIFYING_NON_EXISTENT_ENTITY;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.ffive.pos_system.converter.gui.GUIBusinessConverter;
+import com.ffive.pos_system.converter.gui.GUIPageConverter;
 import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.dto.GUIBusiness;
+import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.handler.NewBusinessHandler;
 import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.handler.NewBusinessHandler;
@@ -20,7 +24,7 @@ import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.repository.BusinessRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
-import com.ffive.pos_system.util.PagingHelper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,8 +36,8 @@ public class BusinessService {
     private final BusinessRepository businessRepository;
     private final NewBusinessHandler newBusinessHandler;
 
-    private final PagingHelper pagingHelper;
     private final GUIBusinessConverter businessConverter;
+    private final GUIPageConverter pageConverter;
 
     /**
      *
@@ -64,21 +68,20 @@ public class BusinessService {
      * Fetches all businesses in the system. Only accessible by super admin users.
      * 
      * @param userDetails
-     * @param page
+     * @param pageNumber
      * @param size
      * @throws ValidationException if the user is not a super admin
      * @return
      *         List of all businesses
      */
-    public List<GUIBusiness> getBusinessesAllBusinesses(POSUserDetails userDetails, int page, int size) {
+    public GUIPage<GUIBusiness> getBusinessesAllBusinesses(POSUserDetails userDetails, int pageNumber, int size) {
         if (!userDetails.getUser().isSuperAdmin()) {
             throw new ValidationException("Only super admin users can access all businesses");
         }
-        return businessRepository.findAll().stream()
-                .skip(pagingHelper.calculateOffset(page, size))
-                .limit(size)
-                .map(businessConverter::convertToGUIBusiness)
-                .toList();
+        Pageable pageable = PageRequest.of(pageNumber, size);
+        Page<Business> businessPage = businessRepository.findAll(pageable);
+
+        return pageConverter.convertToGUIPage(businessPage, businessConverter::convertToGUIBusiness);
     }
 
     public Optional<GUIBusiness> getBusinessForExecutingUser(Employee employee) {

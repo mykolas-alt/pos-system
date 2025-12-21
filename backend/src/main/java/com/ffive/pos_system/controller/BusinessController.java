@@ -1,6 +1,5 @@
 package com.ffive.pos_system.controller;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ffive.pos_system.dto.BusinessCreationRequest;
 import com.ffive.pos_system.dto.GUIBusiness;
+import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.BusinessService;
 import com.ffive.pos_system.util.PagingHelper;
@@ -50,7 +50,7 @@ public class BusinessController {
     }
 
     @GetMapping("/all")
-    public List<GUIBusiness> getBusinesses(@AuthenticationPrincipal POSUserDetails userDetails,
+    public GUIPage<GUIBusiness> getBusinesses(@AuthenticationPrincipal POSUserDetails userDetails,
             @RequestParam Optional<Integer> page, @RequestParam Optional<Integer> size) {
         return businessService.getBusinessesAllBusinesses(userDetails,
                 pagingHelper.getValidPageNumber(page),

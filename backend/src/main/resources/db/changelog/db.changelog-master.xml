@@ -19,4 +19,5 @@
     <include file="changesets/AddReservationAudit.xml" relativeToChangelogFile="true" />    
     <include file="changesets/AddReservationsToPayment.xml" relativeToChangelogFile="true" />
     <include file="changesets/AdjustOrderForPayments.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddItemOptionTables.xml" relativeToChangelogFile="true" />
 </databaseChangeLog>
