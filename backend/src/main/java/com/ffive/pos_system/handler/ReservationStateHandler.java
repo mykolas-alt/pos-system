@@ -48,6 +48,7 @@ public class ReservationStateHandler {
         validateReservation(reservation, employee.getBusiness().getId());
         validateReservationStatus(reservation);
         reservation.setStatus(ReservationStatus.IN_PROGRESS);
+        reservation.setTotalAmount(reservation.getService().getPrice());
         reservationRepository.save(reservation);
 
     }

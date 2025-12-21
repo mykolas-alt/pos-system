@@ -60,7 +60,6 @@ public class ReservationService {
         newReservation.setCustomerName(reservation.getCustomerName());
         newReservation.setCustomerPhone(reservation.getCustomerPhone());
         newReservation.setService(posServiceService.getServiceEntityByIdAndBusiness(userDetails, reservation.getServiceId()));
-        newReservation.setTotalAmount(newReservation.getService().getPrice());
         newReservation.setStatus(reservation.getStatus());
         newReservation.setClosedAt(reservation.getClosedAt());
         newReservation.setCreatedAt(reservation.getCreatedAt());
