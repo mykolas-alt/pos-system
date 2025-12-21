@@ -127,7 +127,7 @@ public class PaymentService {
                     .paymentType(request.getPaymentType())
                     .amount(request.getAmount())
                     .tip(request.getTip())
-                    //.id(UUID.fromString(transactionId))
+                    .transactionId(UUID.fromString(transactionId))
                     .build();
                 }
                 else {
@@ -137,11 +137,10 @@ public class PaymentService {
                     .paymentType(request.getPaymentType())
                     .amount(request.getAmount())
                     .tip(request.getTip())
-                    //.id(UUID.fromString(transactionId))
+                    .transactionId(UUID.fromString(transactionId))
                     .build();
                 }
                
-
         paymentRepository.save(payment);
 
         // 4. handling split billing (Only for orders)

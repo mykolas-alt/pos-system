@@ -51,5 +51,12 @@
             <column name="paid_amount" type="DECIMAL(10,2)" value="0" />
         </addColumn>
     </changeSet>
-</databaseChangeLog>
 
+    <changeSet id="addTransactionId" author="artion">
+        <addColumn tableName="payment">
+            <column name="transaction_id" type="UUID" >
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

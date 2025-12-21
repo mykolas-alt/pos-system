@@ -22,6 +22,7 @@ public class GUIOrder implements GUIObject {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal total;
+    private BigDecimal paidAmount;
     private String note;
     private UUID identEmployee;
     private List<GUIOrderItem> items;

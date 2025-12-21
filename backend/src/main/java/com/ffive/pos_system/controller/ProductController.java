@@ -35,11 +35,11 @@ public class ProductController {
 
     @Operation(summary = "Create a new product")
     @PostMapping
-    public String createProduct(@RequestBody Product product,
+    public UUID createProduct(@RequestBody Product product,
             @AuthenticationPrincipal POSUserDetails userDetails) {
 
         productService.createProduct(product, userDetails);
-        return "Product created";
+        return product.getId();
     }
 
     @Operation(summary = "Update an existing product")

@@ -333,6 +333,11 @@
     margin:0.5rem auto auto 1rem;
 }
 
+#order_paid{
+    font-size:1.6rem;
+    margin:0.5rem 1rem auto 1rem;
+}
+
 #order_quantity{
     font-size:1.6rem;
     margin:0.5rem 1rem auto auto;

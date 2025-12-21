@@ -3,8 +3,6 @@ import {useParams,useNavigate} from "react-router-dom"
 import {toast} from 'react-hot-toast'
 import "./products.css"
 
-import {getDb,saveDb,getNextId} from "../../utils/tempDB"
-
 import {PageControls} from "../../components/controls/pageControls"
 import {filterList,sortBy} from "../../utils/filtering"
 
@@ -80,42 +78,72 @@ export const Products=({api,user,business}) => {
         return await response.json()
     }
 
-    function openProductPanel(editing,productId){
+    async function fetchAllPages(url,token){
+        let page=0;
+        let all=[];
+
+        while(true){
+            const res=await fetch(`${url}?page=${page}&size=50`,{
+                method: "GET",
+                headers: {"Authorization":`Bearer ${token}`}
+            })
+
+            if(!res.ok){
+                throw new Error("Failed to load data")
+            }
+
+            const data=await res.json();
+            all.push(...data.content);
+
+            if(page>=data.totalPages-1)
+                break;
+
+            page++;
+        }
+
+        return all;
+    }
+
+    async function openProductPanel(editing,productId){
         setErrors([])
-        if(editing){
-            setSelectedProduct(productId)
-            const editingProduct=products.find(p => p.id===productId)
+        setIsEditingProduct(editing)
+        setIsPanelVisible(true)
 
-            /*const groups=db.productOptionGroups
-                .filter(g => g.productId===productId)
-                .map(g => ({
-                    tempId: crypto.randomUUID(),
-                    id: g.id,
-                    name: g.name,
-                    type: g.type,
-                    minSelect: g.minSelect,
-                    maxSelect: g.maxSelect,
-                    values: db.productOptionValues
-                        .filter(v => v.productOptionGroupId===g.id)
-                        .map(v => ({
-                            tempId: crypto.randomUUID(),
-                            id: v.id,
-                            name: v.name,
-                            priceDelta: v.priceDelta
-                        }))
-                }))*/
-
-            setNewProductName(editingProduct.name)
-            setNewProductPrice(editingProduct.price)
-            setNewProductOptionGroups([])
-        }else{
+        if(!editing){
             setNewProductName("")
             setNewProductPrice(0)
             setNewProductOptionGroups([])
+            return
         }
 
-        setIsEditingProduct(editing)
-        setIsPanelVisible(true)
+        setSelectedProduct(productId)
+        const editingProduct=products.find(p => p.id===productId)
+        setNewProductName(editingProduct.name)
+        setNewProductPrice(editingProduct.price)
+
+        const groups=await fetchAllPages(`${api}product-option/group/${productId}`,user.token)
+
+        const groupsWithValues=await Promise.all(
+            groups.map(async g => {
+                const values=await fetchAllPages(`${api}product-option/value/${g.id}`,user.token)
+
+                return {
+                    ...g,
+                    values
+                }
+            })
+        )
+
+        const groupsWithTempIds=groupsWithValues.map(g => ({
+            ...g,
+            tempId: crypto.randomUUID(),
+            values: (g.values ?? []).map(v => ({
+                ...v,
+                tempId: crypto.randomUUID()
+            }))
+        }))
+
+        setNewProductOptionGroups(groupsWithTempIds)
     }
 
     function clearFilters(){
@@ -138,63 +166,123 @@ export const Products=({api,user,business}) => {
           return
         }
 
-        try{
-            const response=await fetch(`${api}product`,{
+        const productRes=await fetch(`${api}product`,{
+            method: "POST",
+            headers: {
+                "Authorization":`Bearer ${user.token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: newProductName,
+                price: Number(newProductPrice)
+            })
+        })
+
+        if(!productRes.ok){
+            throw new Error("Failed to create product")
+        }
+
+        const productId=await productRes.json()
+
+        for(const group of newProductOptionGroups){
+            const groupRes=await fetch(`${api}product-option/group`,{
                 method: "POST",
                 headers: {
                     "Authorization":`Bearer ${user.token}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    name: newProductName,
-                    price: Number(newProductPrice)
+                    productId,
+                    name: group.name,
+                    type: group.type,
+                    minSelect: group.minSelect,
+                    maxSelect: group.maxSelect
                 })
             })
 
-            if(!response.ok){
-                throw new Error("Failed to create product")
+            if(!groupRes.ok){
+                throw new Error("Failed to create product option group")
             }
 
-            toast.success(`Productas ${newProductName} sėkmingai sukurtas`)
+            const createdGroup=await groupRes.json()
 
-            setIsPanelVisible(false)
-            try{
-                const productList=await loadProducts(user.token)
-                setProducts(productList)
-            }catch{
-                setProducts([])
-            }
-        }catch{
-            toast.error("Klaida: nepavyko sukurti produkto")
-        }
-        /*newProductOptionGroups.forEach(group => {
-            const groupId=getNextId(db.productOptionGroups)
-
-            db.productOptionGroups.push({
-                id: groupId,
-                productId: newProduct.id,
-                name: group.name,
-                type: group.type,
-                minSelect: group.minSelect,
-                maxSelect: group.maxSelect
-            })
-
-            if(group.type!=="slider"){
-                group.values.forEach(value => {
-                    db.productOptionValues.push({
-                        id: getNextId(db.productOptionValues),
-                        productOptionGroupId: groupId,
+            for(const value of group.values ?? []){
+                await fetch(`${api}product-option/value`,{
+                    method: "POST",
+                    headers: {
+                        "Authorization":`Bearer ${user.token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        optionGroupId: createdGroup.id,
                         name: value.name,
                         priceDelta: Number(value.priceDelta || 0)
                     })
                 })
             }
-        })*/
+        }
+
+        toast.success(`Productas ${newProductName} sėkmingai sukurtas`)
+        setIsPanelVisible(false)
+        setProducts(await loadProducts(user.token))
+    }
+
+    function addDraftGroup(){
+        setNewProductOptionGroups(prev => [
+            ...prev,
+            {
+                tempId: crypto.randomUUID(),
+                name: "",
+                type: "SLIDER",
+                minSelect: 0,
+                maxSelect: 1,
+                values: []
+            }
+        ])
+    }
+
+    function addDraftValue(groupTempId){
+        setNewProductOptionGroups(prev => 
+            prev.map(g => 
+                g.tempId===groupTempId ? {
+                    ...g,
+                    values: [
+                        ...g.values,
+                        {
+                            tempId: crypto.randomUUID(),
+                            name: "",
+                            priceDelta: 0
+                        }
+                    ]
+                }:g
+            )
+        )
+    }
+
+    function markGroupDeleted(groupTempId){
+        setNewProductOptionGroups(prev => prev.map(g => 
+            g.tempId===groupTempId ? {...g,deleted:true}:g
+        ))
+    }
+
+    function markValueDeleted(groupTempId,valueTempId){
+        setNewProductOptionGroups(prev => 
+            prev.map(g => {
+                if(g.tempId!==groupTempId)
+                    return g
+
+                return {
+                    ...g,
+                    values: g.values.map(v => 
+                        v.tempId===valueTempId ? {...v,deleted:true}:v
+                    )
+                }
+            })
+        )
     }
 
     async function saveProduct(){
         setErrors([])
-        const db=getDb()
         const newErrors={}
 
         if(!newProductName.trim())
@@ -225,6 +313,90 @@ export const Products=({api,user,business}) => {
                 throw new Error("Failed to update product")
             }
 
+            const existingGroups=newProductOptionGroups.filter(g => g.id && !g.deleted)
+            const newGroups=newProductOptionGroups.filter(g => !g.id && !g.deleted)
+            const deletedGroups=newProductOptionGroups.filter(g => g.deleted && g.id)
+
+            for(const group of newGroups){
+                const res=await fetch(`${api}product-option/group`,{
+                    method: "POST",
+                    headers: {
+                        "Authorization":`Bearer ${user.token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        productId: selectedProduct,
+                        name: group.name,
+                        type: group.type,
+                        minSelect: group.minSelect,
+                        maxSelect: group.maxSelect
+                    })
+                })
+            
+                if(!res.ok){
+                    throw new Error("Failed to create product option group")
+                }
+            
+                const createdGroup=await res.json()
+                
+                for(const value of group.values.filter(v => !v.deleted)){
+                    const resVal=await fetch(`${api}product-option/value`,{
+                        method: "POST",
+                        headers: {
+                            "Authorization":`Bearer ${user.token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            optionGroupId: createdGroup.id,
+                            name: value.name,
+                            priceDelta: Number(value.priceDelta || 0)
+                        })
+                    })
+                
+                    if(!resVal.ok){
+                        throw new Error("Failed to create product option value")
+                    }
+                }
+            }
+
+            for(const group of deletedGroups){
+                await fetch(`${api}product-option/group/${group.id}`,{
+                    method: "DELETE",
+                    headers: {"Authorization":`Bearer ${user.token}`}
+                })
+            }
+
+            for(const group of existingGroups){
+                const newValues=group.values.filter(v => !v.deleted && !v.id)
+                const deletedValues=group.values.filter(v => v.deleted && v.id)
+
+                for(const value of newValues){
+                    const resVal=await fetch(`${api}product-option/value`,{
+                        method: "POST",
+                        headers: {
+                            "Authorization":`Bearer ${user.token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            optionGroupId: group.id,
+                            name: value.name,
+                            priceDelta: Number(value.priceDelta || 0)
+                        })
+                    })
+                
+                    if(!resVal.ok){
+                        throw new Error("Failed to create product option value")
+                    }
+                }
+
+                for(const value of deletedValues){
+                    await fetch(`${api}product-option/value/${value.id}`,{
+                        method: "DELETE",
+                        headers: {"Authorization":`Bearer ${user.token}`}
+                    })
+                }
+            }
+
             toast.success(`Produktas ${newProductName} sėkmingai atnaujintas`)
 
             setIsPanelVisible(false)
@@ -237,32 +409,6 @@ export const Products=({api,user,business}) => {
         }catch{
             toast.error("Klaida: nepavyko pakeist produkto")
         }
-        /*db.productOptionGroups=db.productOptionGroups.filter(g => g.productId!==selectedProduct)
-        db.productOptionValues=db.productOptionValues.filter(v => !groupIdsToRemove.includes(v.productOptionGroupId))
-        
-        newProductOptionGroups.forEach(group => {
-            const groupId=getNextId(db.productOptionGroups)
-
-            db.productOptionGroups.push({
-                id: groupId,
-                productId: selectedProduct,
-                name: group.name,
-                type: group.type,
-                minSelect: group.minSelect,
-                maxSelect: group.maxSelect
-            })
-
-            if(group.type!=="slider"){
-                group.values.forEach(value => {
-                    db.productOptionValues.push({
-                        id: getNextId(db.productOptionValues),
-                        productOptionGroupId: groupId,
-                        name: value.name,
-                        priceDelta: Number(value.priceDelta || 0)
-                    })
-                })
-            }
-        })*/
     }
 
     if(!user || !user.info || !business)
@@ -322,94 +468,96 @@ export const Products=({api,user,business}) => {
                         )}
                         <label>Opcijos</label>
                         <div id="product_create_edit_option_list" className="col_align">
-                            {Array.isArray(newProductOptionGroups) && newProductOptionGroups.map((group,gi) => (
+                            {Array.isArray(newProductOptionGroups) && newProductOptionGroups.filter(g => !g.deleted).map((group,gi) => (
                                 <div key={group.tempId} id="product_create_edit_option_group" className="col_align">
-                                    <button id="product_create_edit_option_delete" className="control_button" onClick={() => {
-                                        const copy=[...newProductOptionGroups]
-                                        setNewProductOptionGroups(copy.filter((_,i) => i!==gi))
-                                    }}>Naikinti</button>
+                                    <button id="product_create_edit_option_delete" className="control_button" onClick={() => markGroupDeleted(group.tempId)}>Naikinti</button>
                                     <div id="product_create_edit_option_group_wrapper" className="row_align">
                                         <input className="product_create_edit_option_group_name product_create_edit_input_field" placeholder="Opcijos pavadinimas" value={group.name} onChange={e => {
-                                            const copy=[...newProductOptionGroups]
-                                            copy[gi].name=e.target.value
-                                            setNewProductOptionGroups(copy)
+                                            const value=e.target.value
+                                            setNewProductOptionGroups(prev => 
+                                                prev.map(g => 
+                                                    g.tempId===group.tempId ? {...g,name:value}:g
+                                                )
+                                            )
                                         }}/>
                                         <select className="product_create_edit_option_group_type product_create_edit_select" value={group.type} onChange={e => {
-                                            const copy=[...newProductOptionGroups]
-                                            copy[gi].type=e.target.value
-                                            if(e.target.value==="slider"){
-                                                copy[gi].values=[]
-                                            }
-                                            setNewProductOptionGroups(copy)
+                                            const type=e.target.value
+                                            setNewProductOptionGroups(prev => 
+                                                prev.map(g => 
+                                                    g.tempId===group.tempId ? {
+                                                        ...g,
+                                                        type,
+                                                        values: type==="SLIDER" ? []:g.values
+                                                    }:g
+                                                )
+                                            )
                                         }}>
-                                            <option value="slider">Slider</option>
-                                            <option value="single">Single</option>
-                                            <option value="multi">Multi</option>
+                                            <option value="SLIDER">Slider</option>
+                                            <option value="SINGLE">Single</option>
+                                            <option value="MULTI">Multi</option>
                                         </select>
                                     </div>
-                                    {group.type==="slider" && (
+                                    {group.type==="SLIDER" && (
                                         <div id="product_create_edit_option_group_wrapper" className="row_align">
                                             <input className="product_create_edit_option_group_input product_create_edit_input_field" type="number" placeholder="Min" value={group.minSelect} onChange={e => {
-                                                const copy=[...newProductOptionGroups]
-                                                copy[gi].minSelect=Number(e.target.value)
-                                                setNewProductOptionGroups(copy)
+                                                const minSelect=Number(e.target.value)
+                                                setNewProductOptionGroups(prev => 
+                                                    prev.map(g => 
+                                                        g.tempId===group.tempId ? {...g,minSelect}:g
+                                                    )
+                                                )
                                             }}/>
                                             <input className="product_create_edit_option_group_input product_create_edit_input_field" type="number" placeholder="Max" value={group.maxSelect} onChange={e => {
-                                                const copy=[...newProductOptionGroups]
-                                                copy[gi].maxSelect=Number(e.target.value)
-                                                setNewProductOptionGroups(copy)
+                                                const maxSelect=Number(e.target.value)
+                                                setNewProductOptionGroups(prev => 
+                                                    prev.map(g => 
+                                                        g.tempId===group.tempId ? {...g,maxSelect}:g
+                                                    )
+                                                )
                                             }}/>
                                         </div>
                                     )}
-                                    {group.type!=="slider" && (
+                                    {group.type!=="SLIDER" && (
                                         <div className="col_align">
                                             <hr/>
-                                            {Array.isArray(group.values) && group.values.map((v,vi) => (
+                                            {Array.isArray(group.values) && group.values.filter(v => !v.deleted).map((v,vi) => (
                                                 <div key={v.tempId} className="row_align">
                                                     <input className="product_create_edit_option_value_name product_create_edit_input_field" placeholder="Pasirinkimas" value={v.name} onChange={e => {
-                                                        const copy=[...newProductOptionGroups]
-                                                        copy[gi].values[vi].name=e.target.value
-                                                        setNewProductOptionGroups(copy)
+                                                        const name=e.target.value
+                                                        setNewProductOptionGroups(prev => 
+                                                            prev.map(g => 
+                                                                g.tempId===group.tempId ? {
+                                                                    ...g,
+                                                                    values: g.values.map(val => 
+                                                                        val.tempId===v.tempId ? {...val,name}:val
+                                                                    )
+                                                                }:g
+                                                            )
+                                                        )
                                                     }}/>
                                                     <input type="number" className="product_create_edit_option_value_price product_create_edit_input_field" value={v.priceDelta} onChange={e => {
-                                                        const copy=[...newProductOptionGroups]
-                                                        copy[gi].values[vi].priceDelta=e.target.value
-                                                        setNewProductOptionGroups(copy)
+                                                        const priceDelta=e.target.value
+                                                        setNewProductOptionGroups(prev => 
+                                                            prev.map(g => 
+                                                                g.tempId===group.tempId ? {
+                                                                    ...g,
+                                                                    values: g.values.map(val => 
+                                                                        val.tempId===v.tempId ? {...val,priceDelta}:val
+                                                                    )
+                                                                }:g
+                                                            )
+                                                        )
                                                     }}/>
                                                     <p>€</p>
-                                                    <button id="product_create_edit_option_value_delete" className="control_button" onClick={() => {
-                                                        const copy=[...newProductOptionGroups]
-                                                        copy[gi].values=copy[gi].values.filter((_,i) => i!==vi)
-                                                        setNewProductOptionGroups(copy)
-                                                    }}>Naikinti</button>
+                                                    <button id="product_create_edit_option_value_delete" className="control_button" onClick={() => markValueDeleted(group.tempId,v.tempId)}>Naikinti</button>
                                                 </div>
                                             ))}
-                                            <button id="product_create_edit_option_value_create" className="control_button" onClick={() => {
-                                                const copy=[...newProductOptionGroups]
-                                                copy[gi].values.push({
-                                                    tempId: crypto.randomUUID(),
-                                                    name: "",
-                                                    priceDelta: 0
-                                                })
-                                                setNewProductOptionGroups(copy)
-                                            }}>Pridėti pasirinkimą</button>
+                                            <button id="product_create_edit_option_value_create" className="control_button" onClick={() => addDraftValue(group.tempId)}>Pridėti pasirinkimą</button>
                                         </div>
                                     )}
                                 </div>
                             ))}
-                            <button id="product_create_edit_option_create" className="control_button" onClick={() => {
-                                setNewProductOptionGroups(prev => [
-                                    ...prev,
-                                    {
-                                        tempId: crypto.randomUUID(),
-                                        name: "",
-                                        type: "slider",
-                                        minSelect: 0,
-                                        maxSelect: 1,
-                                        values: []
-                                    }
-                                ])
-                            }}>
+                            <button id="product_create_edit_option_create" className="control_button" onClick={() => addDraftGroup()}>
                                 Pridėti opciją
                             </button>
                         </div>
@@ -424,7 +572,13 @@ export const Products=({api,user,business}) => {
                             </div>
                         )}
                         <div id="product_create_edit_controls" className="row_align">
-                            <button id="product_create_edit_cancel_button" className="control_button">Atšaukti</button>
+                            <button id="product_create_edit_cancel_button" className="control_button" onClick={() => {
+                                setIsPanelVisible(false)
+                                setSelectedProduct(null)
+                                setNewProductName("")
+                                setNewProductPrice(0)
+                                setNewProductOptionGroups([])
+                            }}>Atšaukti</button>
                             {isEditingProduct ? (
                                 <button id="product_create_edit_confirm_button" className="control_button" onClick={saveProduct}>Išsaugoti</button>
                             ):(

@@ -53,7 +53,7 @@ jwt:
 
 stripe:
   api:
-    key: ${STRIPE_API_KEY}
+    key: sk_test_51H8xxxxxxxyourtestapikeyxxxxxxxxxx
 
 logging:
   level:

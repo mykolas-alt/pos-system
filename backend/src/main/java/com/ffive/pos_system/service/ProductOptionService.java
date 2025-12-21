@@ -84,7 +84,7 @@ public class ProductOptionService {
     }
 
     public void deleteProductOptionValue(POSUserDetails userDetails, UUID optionValueId) {
-        if (optionValueId == null || productOptionValueRepository.existsById(optionValueId)) {
+        if (optionValueId == null || !productOptionValueRepository.existsById(optionValueId)) {
             throw new ValidationException("Could not find product option value to delete");
         }
 

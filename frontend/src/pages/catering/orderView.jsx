@@ -3,9 +3,8 @@ import {useParams,useNavigate} from "react-router-dom"
 import {toast} from 'react-hot-toast'
 import "./orderView.css"
 
-import {getDb,saveDb,getNextId} from "../../utils/tempDB"
-import {calcProductPrice} from "../../utils/priceCalculations"
 import {filterSearchList,filterList,sortBy} from "../../utils/filtering"
+import {Payment} from "../../components/payment/payment"
 
 export const OrderView=({api,user,business}) => {
     const {orderId}=useParams()
@@ -28,9 +27,6 @@ export const OrderView=({api,user,business}) => {
     const [selectedProductQuantity,setSelectedProductQuantity]=useState(1)
     const [selectedOptions,setSelectedOptions]=useState({})
 
-    const [productsToPay,setProductsToPay]=useState([])
-    const [selectedProductsToPay,setSelectedProductsToPay]=useState([])
-
     const [isOrderLoading,setIsOrderLoading]=useState(true)
     const [isPanelVisible,setIsPanelVisible]=useState(false)
     const [isOptionsVisible,setIsOptionsVisible]=useState(false)
@@ -39,7 +35,6 @@ export const OrderView=({api,user,business}) => {
 
     const [addingNewProduct,setAddingNewProduct]=useState(false)
     const [editingOrderProductId,setEditingOrderProductId]=useState(null)
-    const [isSplitCheck,setIsSplitCheck]=useState(false)
 
     const statusMap={
         OPEN:"Atvira",
@@ -64,6 +59,11 @@ export const OrderView=({api,user,business}) => {
             }finally{
                 setIsOrderLoading(false)
             }
+        }
+
+        if(!user){
+            navigate("/")
+            return
         }
 
         initOrder()
@@ -111,10 +111,50 @@ export const OrderView=({api,user,business}) => {
         return await response.json()
     }
 
-    function openProductOptions(id,isEditing){
+    async function fetchAllPages(url,token){
+        let page=0;
+        let all=[];
+
+        while(true){
+            const res=await fetch(`${url}?page=${page}&size=50`,{
+                method: "GET",
+                headers: {"Authorization":`Bearer ${token}`}
+            })
+
+            if(!res.ok){
+                throw new Error("Failed to load data")
+            }
+
+            const data=await res.json();
+            all.push(...data.content);
+
+            if(page>=data.totalPages-1)
+                break;
+
+            page++;
+        }
+
+        return all;
+    }
+
+    async function openProductOptions(id,isEditing){
         let product
         let quantity=1
         let initialSelections={}
+        let productId=isEditing ? order.items.find(op => op.id===id).product.id:id
+
+        const groups=await fetchAllPages(`${api}product-option/group/${productId}`,user.token)
+
+        const groupsWithValues=await Promise.all(
+            groups.map(async g => {
+                const values=await fetchAllPages(`${api}product-option/value/${g.id}`,user.token)
+
+                return {
+                    ...g,
+                    values
+                }
+            })
+        )
 
         if(isEditing){
             setEditingOrderProductId(id)
@@ -123,100 +163,51 @@ export const OrderView=({api,user,business}) => {
 
             quantity=orderProduct.quantity
 
-            /*const selectedOptionRows=db.orderProductSelectedOptions.filter(o => o.orderProductId===orderProduct.id)
+            const selectedOptionRows=orderProduct.options
             selectedOptionRows.forEach(row => {
-                const group=db.productOptionGroups.find(g => g.id===row.productOptionGroupId)
-
-                if(group.type==="slider"){
-                    initialSelections[group.id]=row.value
+                if(row.type==="SLIDER"){
+                    initialSelections[row.groupId]=row.value
                 }
-                if(group.type==="single"){
-                    initialSelections[group.id]=row.value
+                if(row.type==="SINGLE"){
+                    initialSelections[row.groupId]=row.valueId
                 }
-                if(group.type==="multi"){
-                    if(!initialSelections[group.id])
-                        initialSelections[group.id]=[]
+                if(row.type==="MULTI"){
+                    if(!initialSelections[row.groupId])
+                        initialSelections[row.groupId]=[]
 
                     if(Array.isArray(row.value)){
-                        initialSelections[group.id]=row.value
+                        initialSelections[row.groupId]=row.valueId
                     }else{
-                        initialSelections[group.id].push(row.value)
+                        initialSelections[row.groupId].push(row.valueId)
                     }
                 }
-            })*/
+            })
         }else{
             setEditingOrderProductId(null)
             product=products.find(p => p.id===id)
 
-            /*const optionGroups=db.productOptionGroups.filter(g => g.productId===id)
-            optionGroups.forEach(group => {
-                if(group.type==="slider"){
+            groupsWithValues.forEach(group => {
+                if(group.type==="SLIDER"){
                     initialSelections[group.id]=group.minSelect
                 }
-                if(group.type==="single"){
-                    initialSelections[group.id]=null
+                if(group.type==="SINGLE"){
+                    initialSelections[group.id]=group.values.length>0 ? group.values[0].id : null
                 }
-                if(group.type==="multi"){
+                if(group.type==="MULTI"){
                     initialSelections[group.id]=[]
                 }
-            })*/
-        }
-
-        let productOptions=[]
-        /*const optionGroups=db.productOptionGroups.filter(g => g.productId===product.id)
-        optionGroups.forEach(group => {
-            const productOptionValues=db.productOptionValues.filter(pov => pov.productOptionGroupId===group.id)
-
-            productOptions.push({
-                id: group.id,
-                type: group.type,
-                name: group.name,
-                minSelect: group.minSelect,
-                maxSelect: group.maxSelect,
-                selections: productOptionValues
             })
-        })*/
+        }
 
         setSelectedProduct(product)
 
-        setSelectedProductOptions(productOptions)
+        setSelectedProductOptions(groupsWithValues)
         setSelectedOptions(initialSelections)
 
         setSelectedProductQuantity(quantity)
         setSelectedProductPrice(product.price)
 
         setIsPanelVisible(true)
-    }
-    
-    function openSplitCheck(){
-        setIsSplitCheck(true)
-        const db=getDb()
-
-        const orderProductsData=db.orderProducts.filter(op => op.orderId===Number(orderId))
-        let orderContent=[]
-        orderProductsData.forEach(orderProduct => {
-            const products=db.products.filter(p => p.id===orderProduct.productId)
-            products.forEach(product => {
-                orderContent.push({
-                    ...product,
-                    quantity:orderProduct.quantity,
-                    orderProductId:orderProduct.id,
-                    price:calcProductPrice(product,
-                                    db.productOptionGroups.filter(g => g.productId === product.id).map(group => {
-                                        const selections = db.productOptionValues.filter(pov => pov.productOptionGroupId === group.id);
-                                        return {...group, selections};
-                                    }),
-                                    db.orderProductSelectedOptions.filter(o => o.orderProductId === orderProduct.id)
-                                    .reduce((acc,row) => {
-                                        acc[row.productOptionGroupId] = row.value;
-                                        return acc;
-                                    }, {}))
-                })
-            })
-        });
-        
-        setProductsToPay(orderContent)
-        setSelectedProductsToPay([])
     }
 
     function openComment(){
@@ -251,10 +242,6 @@ export const OrderView=({api,user,business}) => {
         })
     }
 
-    function toggleProductSelection(orderProductId){
-        setSelectedProductsToPay(prev => prev.includes(orderProductId) ? prev.filter(id => id!==orderProductId):[...prev,orderProductId])
-    }
-
     function changeQuantity(delta){
         setSelectedProductQuantity(prev => {
             let value=prev+delta;
@@ -281,18 +268,49 @@ export const OrderView=({api,user,business}) => {
         if(!response.ok){
             throw new Error("Failed to add product to order")
         }
-        /*selectedProductOptions.forEach(group => {
-            const newOrderProductSelectedOptions={
-                id:nextOptId++,
-                orderProductId:newOrderProduct.id,
-                productOptionGroupId:group.id,
-                value:selectedOptions[group.id]
+
+        const newOrderData=await loadOrderData(user.token)
+        const newOrderItem=newOrderData.items.find(oi => !order.items.some(ooi => ooi.id===oi.id))
+
+        for(const group of selectedProductOptions){
+            const value=selectedOptions[group.id]
+
+            if(!value && group.type!=="SLIDER")
+                continue
+
+            if(group.type==="SLIDER" || group.type==="SINGLE"){
+                await fetch(`${api}order/${orderId}/product/${newOrderItem.id}/option`,{
+                    method: "POST",
+                    headers: {
+                        "Authorization":`Bearer ${user.token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        itemOptionId: group.id,
+                        optionValueId: group.type!=="SLIDER" && value ? value:null,
+                        value: group.type==="SLIDER" ? value:null
+                    })
+                })
             }
 
-            db.orderProductSelectedOptions.push(newOrderProductSelectedOptions)
-        })
+            if(group.type==="MULTI"){
+                value.forEach(async valId => {
+                    await fetch(`${api}order/${orderId}/product/${newOrderItem.id}/option`,{
+                        method: "POST",
+                        headers: {
+                            "Authorization":`Bearer ${user.token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            itemOptionId: group.id,
+                            optionValueId: valId ? valId:null
+                        })
+                    })
+                })
+            }
+        }
 
-        db.orderProducts.push(newOrderProduct)*/
+        toast.success("Produktas sėkmingai pridetas prie užsakymo")
 
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
@@ -315,6 +333,8 @@ export const OrderView=({api,user,business}) => {
         if(!response.ok){
             throw new Error("Failed to change product in order")
         }
+        
+        toast.success("Produktas sėkmingai pakeistas užsakyme")
 
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
@@ -324,6 +344,17 @@ export const OrderView=({api,user,business}) => {
     }
 
     async function deleteProductInOrder(orderProductId){
+        for(const option of order.items.find(op => op.id===orderProductId).options){
+            const response=await fetch(`${api}order/${orderId}/product/${orderProductId}/option/${option.orderItemOptionId}`,{
+                method: "DELETE",
+                headers: {"Authorization":`Bearer ${user.token}`}
+            })
+
+            if(!response.ok){
+                throw new Error("Failed to remove product option from order")
+            }
+        }
+        
         const response=await fetch(`${api}order/${orderId}/product/${orderProductId}`,{
             method: "DELETE",
             headers: {"Authorization":`Bearer ${user.token}`}
@@ -344,6 +375,8 @@ export const OrderView=({api,user,business}) => {
         })
 
         db.orderProducts.push(newOrderProduct)*/
+
+        toast.success("Produktas įšimtas iš užsakymo")
 
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
@@ -367,6 +400,8 @@ export const OrderView=({api,user,business}) => {
             throw new Error("Failed to cancel order")
         }
 
+        toast.success("Užsakymas atšauktas")
+
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
         setComment(orderData.note || "")
@@ -382,6 +417,8 @@ export const OrderView=({api,user,business}) => {
         if(!response.ok){
             throw new Error("Failed to complete order")
         }
+
+        toast.success("Užsakymas pažymėtas kaip vykdomas")
 
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
@@ -402,53 +439,14 @@ export const OrderView=({api,user,business}) => {
             throw new Error("Failed to update order")
         }
 
+        toast.success("Užsakymo pastaba išsaugota")
+
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
         setComment(orderData.note || "")
         const productList=await loadProducts(user.token)
         setProducts(productList)
         setIsCommentVisible(false)
-    }
-
-    function confirmPayment(){
-        const db=getDb()
-        
-        if(isSplitCheck){
-            if(selectedProductsToPay.length===0){
-                toast.error("Pasirinkite bent vieną produktą")
-                return
-            }
-
-            const remainingProducts=productsToPay.filter(p => !selectedProductsToPay.includes(p.orderProductId))
-            setProductsToPay(remainingProducts)
-            setSelectedProductsToPay([])
-            toast.success("Apmokėta")
-
-            if(remainingProducts.length===0){
-                const existing=db.orders.find(o => o.id===Number(orderId))
-
-                if(existing){
-                    existing.status="paid"
-                    saveDb(db)
-                }
-            
-                setIsPaymentPanelVisible(false)
-                loadOrderData()
-            }
-        }else{
-            const existing=db.orders.find(o => o.id===Number(orderId))
-
-            if(!existing){
-                toast.error("Klaida: užsakymas nerasta")
-                return
-            }
-
-            existing.status="paid"
-
-            saveDb(db)
-            setIsPaymentPanelVisible(false)
-            loadOrderData()
-        }
     }
 
     if(!user || !user.info || !business || !order)
@@ -473,7 +471,7 @@ export const OrderView=({api,user,business}) => {
                                     <div className="product_options_list">
                                         {selectedProductOptions.map(po => (
                                             <div key={po.id} className="product_option_group">
-                                                {po.type==="slider" && (
+                                                {po.type==="SLIDER" && (
                                                     <div className="col_align">
                                                         <p className="product_group_name">{po.name}</p>
                                                         <div className="row_align">
@@ -485,14 +483,14 @@ export const OrderView=({api,user,business}) => {
                                                         </div>
                                                     </div>
                                                 )}
-                                                {po.type==="single" && (
+                                                {po.type==="SINGLE" && (
                                                     <div className="col_align">
                                                         <p className="product_group_name">{po.name}</p>
                                                         <div className="col_align">
-                                                            {po.selections.length===0 ? (
+                                                            {po.values.length===0 ? (
                                                                 <></>
                                                             ):(
-                                                                po.selections.map(selection => (
+                                                                po.values.map(selection => (
                                                                     <div key={selection.id} className="product_group_selection row_align" onClick={() => selectSingle(po.id,selection.id)}>
                                                                         <div className={"selection_point"+(selectedOptions[po.id]===selection.id ? " active":"")}/>
                                                                         {selection.name}
@@ -502,16 +500,16 @@ export const OrderView=({api,user,business}) => {
                                                         </div>
                                                     </div>
                                                 )}
-                                                {po.type==="multi" && (
+                                                {po.type==="MULTI" && (
                                                     <div className="col_align">
                                                         <p className="product_group_name">{po.name}</p>
                                                         <div className="col_align">
-                                                            {po.selections.length===0 ? (
+                                                            {po.values.length===0 ? (
                                                                 <></>
                                                             ):(
-                                                                po.selections.map(selection => (
+                                                                po.values.map(selection => (
                                                                     <div key={selection.id} className="product_group_selection row_align" onClick={() => toggleMulti(po.id,selection.id)}>
-                                                                        <div className={"selection_point"+(selectedOptions[po.id].includes(selection.id) ? " active":"")}/>
+                                                                        <div className={"selection_point"+(selectedOptions[po.id] && selectedOptions[po.id].includes(selection.id) ? " active":"")}/>
                                                                         {selection.name}
                                                                     </div>
                                                                 ))
@@ -603,6 +601,7 @@ export const OrderView=({api,user,business}) => {
                         </div>
                         <div className="order_total_info row_align">
                             <p id="order_total">Iš viso: {(order.total ?? 0).toFixed(2)}€</p>
+                            <p id="order_paid">Apmokėta: {(order.paidAmount ?? 0).toFixed(2)}€</p>
                             <p id="order_quantity">Kiekis: {order.items.reduce((sum,op) => sum+op.quantity,0)}</p>
                         </div>
                         <div className="order_more_functions row_align">
@@ -639,8 +638,8 @@ export const OrderView=({api,user,business}) => {
                             )}
                         </div>
                         {order.status!=="OPEN" ? (
-                            order.status==="IN_PROGRESS" ? (
-                                <button className="payment_button">Apmokėti</button>
+                            order.status==="IN_PROGRESS" || order.status==="PARTIALLY_PAID" ? (
+                                <button className="payment_button" onClick={() => setIsPaymentPanelVisible(true)}>Apmokėti</button>
                             ):(
                                 <></>
                             )
@@ -649,27 +648,14 @@ export const OrderView=({api,user,business}) => {
                         )}
                     </div>
                     {isPaymentPanelVisible && (
-                        <>
-                            {isSplitCheck ? (
-                                <div id="transparent_panel"/>
-                            ):(
-                                <div id="transparent_panel" onClick={() => setIsPaymentPanelVisible(false)}/>
-                            )}
-                            <div id="payment_panel" className="col_align">
-                                {isSplitCheck && (
-                                    <div id="payment_product_list" className="col_align">
-                                        {productsToPay.map(p => (
-                                            <div key={p.orderProductId} className={"payment_product_card row_align"+(selectedProductsToPay.includes(p.orderProductId) ? " selected":"")} onClick={() => toggleProductSelection(p.orderProductId)}>
-                                                {p.name} {p.price.toFixed(2)}€
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Grynais</button>
-                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Kortėle</button>
-                                <button className="payment_panel_button" onClick={() => openSplitCheck()}>Sąskaitos padalijimas</button>
-                            </div>
-                        </>
+                        <Payment api={api} token={user.token} type={"Order"} id={orderId} closePaymentWindow={(value) => setIsPaymentPanelVisible(value)} onPaymentSuccess={async () => {
+                            try{
+                                const orderData=await loadOrderData(user.token)
+                                setOrder(orderData)
+                            }catch{
+                                toast.error("Klaida atnaujinant užsakymą")
+                            }
+                        }}/>
                     )}
                 </div>
             )}

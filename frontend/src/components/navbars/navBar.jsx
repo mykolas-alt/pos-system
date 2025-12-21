@@ -81,7 +81,7 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
                         {business.businessType==="CATERING" && (
                             <>
                                 <NavLink to={`/${user.info.username}/CATERING/${business.id}/orders`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Užsakymai</NavLink>
-                                <NavLink to={`/${user.info.username}/CATERING/${business.id}/products`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Pozicijos</NavLink>
+                                <NavLink to={`/${user.info.username}/CATERING/${business.id}/products`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Produktai</NavLink>
                             </>
                         )}
                         {business.businessType==="BEAUTY_SALON" && (

@@ -11,6 +11,8 @@ export const Orders=({api,user,business,onOrderOpen}) => {
     const [orders,setOrders]=useState([])
 
     const [currentPage,setCurrentPage]=useState(1)
+    const [totalPages,setTotalPages]=useState(1)
+    const pageSize=6
 
     const statusMap={
         OPEN:"Atvira",
@@ -20,13 +22,6 @@ export const Orders=({api,user,business,onOrderOpen}) => {
         CANCELLED:"Atšaukta",
         PARTIALLY_PAID:"Daliniai apmokėta"
     }
-
-    const pageSize=6
-    const totalPages=Math.max(1,Math.ceil(orders.length/pageSize))
-    const visibleOrders=orders.slice(
-        (currentPage-1)*pageSize,
-        currentPage*pageSize
-    )
 
     const formatter=new Intl.DateTimeFormat("lt-LT",{
         year:"numeric",
@@ -40,10 +35,12 @@ export const Orders=({api,user,business,onOrderOpen}) => {
         async function initOrders(){
             try{
                 setCurrentPage(1)
-                const orderList=await loadOrders(1,user.token)
-                setOrders(orderList)
+                const orderPage=await loadOrders(1,user.token)
+                setOrders(orderPage.content)
+                setTotalPages(orderPage.totalPages===0 ? 1:orderPage.totalPages)
             }catch{
                 setOrders([])
+                setTotalPages(1)
             }
         }
 
@@ -58,10 +55,13 @@ export const Orders=({api,user,business,onOrderOpen}) => {
     useEffect(() => {
         async function updateOrders(){
             try{
-                const orderList=await loadOrders(currentPage,user.token)
-                setOrders(orderList)
+                const orderPage=await loadOrders(currentPage,user.token)
+                setOrders(orderPage.content)
+                setTotalPages(orderPage.totalPages===0 ? 1:orderPage.totalPages)
             }catch{
                 setOrders([])
+                setCurrentPage(1)
+                setTotalPages(1)
             }
         }
 
@@ -69,7 +69,7 @@ export const Orders=({api,user,business,onOrderOpen}) => {
     },[currentPage])
 
     async function loadOrders(page,token){
-        const response=await fetch(`${api}order?page=${page}&size=${pageSize}`,{
+        const response=await fetch(`${api}order?page=${page-1}&size=${pageSize}`,{
             method: "GET",
             headers: {"Authorization":`Bearer ${token}`}
         })
@@ -96,10 +96,12 @@ export const Orders=({api,user,business,onOrderOpen}) => {
 
             toast.success("Užsakymas sėkmingai sukurtas")
             try{
-                const orderList=await loadOrders(currentPage,user.token)
-                setOrders(orderList)
+                const orderPage=await loadOrders(currentPage,user.token)
+                setOrders(orderPage.content)
+                setTotalPages(orderPage.totalPages===0 ? 1:orderPage.totalPages)
             }catch{
                 setOrders([])
+                setTotalPages(1)
             }
         }catch{
             toast.error("Klaida: nepavyko sukurti užsakymo")
@@ -133,7 +135,7 @@ export const Orders=({api,user,business,onOrderOpen}) => {
                     ))
                 )}
             </div>
-            <PageControls page={currentPage} onPageChange={(p) => setCurrentPage(p)}/>
+            <PageControls page={currentPage} totalPages={totalPages} onPageChange={(p) => setCurrentPage(p)}/>
         </div>
     )
 }
