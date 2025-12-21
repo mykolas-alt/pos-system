@@ -37,6 +37,6 @@ public class OrderItemTax {
     @Column(name = "name_snapshot")
     private String nameSnapshot;
 
-    @Column(name = "name_snapshot")
+    @Column(name = "rate_snapshot")
     private BigDecimal rateSnapshot;
 }

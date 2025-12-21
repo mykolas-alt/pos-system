@@ -7,6 +7,8 @@ import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -32,7 +34,10 @@ public class Tax {
     private BigDecimal rate;
 
     @Column(name = "business_id", nullable = false)
-    private UUID businessId;
+    private Business business;
 
     private Boolean active;
+
+    @Enumerated(EnumType.STRING)
+    private TaxType type;
 }

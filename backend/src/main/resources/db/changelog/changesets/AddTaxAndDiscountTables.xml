@@ -11,22 +11,24 @@
                 <constraints primaryKey="true" nullable="false" />
             </column>
             <column name="name" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(255)" />
             <column name="rate" type="DECIMAL(6,4)" />
+            <column name="active" type="BOOLEAN" />
             <column name="business_id" type="UUID">
                 <constraints nullable="false" foreignKeyName="fk_tax_business"
                     referencedTableName="business" referencedColumnNames="id" />
             </column>
-
-            <column name="active" type="BOOLEAN" />
         </createTable>
 
         <createTable tableName="tax_aud">
             <column name="id" type="UUID" />
-            <column name="rev" type="INT" />
-            <column name="business_id" type="UUID" />
-            <column name="revtype" type="SMALLINT" />
+            <column name="name" type="VARCHAR(255)" />
             <column name="rate" type="DECIMAL(6,4)" />
+            <column name="type" type="VARCHAR(255)" />
             <column name="active" type="BOOLEAN" />
+            <column name="business_id" type="UUID" />
+            <column name="rev" type="INT" />
+            <column name="revtype" type="SMALLINT" />
         </createTable>
 
         <createTable tableName="orderitemtax">
@@ -62,10 +64,13 @@
 
         <createTable tableName="discount_aud">
             <column name="id" type="UUID" />
-            <column name="rev" type="INT" />
             <column name="business_id" type="UUID" />
-            <column name="revtype" type="SMALLINT" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(20)" />
             <column name="value" type="DECIMAL(12,2)" />
+            <column name="active" type="BOOLEAN" />
+            <column name="rev" type="INT" />
+            <column name="revtype" type="SMALLINT" />
         </createTable>
 
         <createTable tableName="orderitemdiscount">
@@ -75,7 +80,11 @@
             <column name="orderitem_id" type="UUID">
                 <constraints nullable="false" />
             </column>
-            <column name="name" type="VARCHAR(255)" />
+            <column name="discount_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="value_snapshot" type="DECIMAL(12,2)" />
             <column name="expiresAt" type="TIMESTAMP" />
         </createTable>
     </changeSet>

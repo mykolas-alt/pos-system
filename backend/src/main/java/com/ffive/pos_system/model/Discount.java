@@ -31,10 +31,10 @@ public class Discount {
 
     private String name;
 
-    private BigDecimal rate;
+    private BigDecimal value;
 
     @Column(name = "business_id", nullable = false)
-    private UUID businessId;
+    private Business business;
 
     @Enumerated(EnumType.STRING)
     private DiscountType type;

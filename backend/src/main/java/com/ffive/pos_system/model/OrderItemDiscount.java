@@ -1,6 +1,7 @@
 package com.ffive.pos_system.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -37,6 +38,8 @@ public class OrderItemDiscount {
     @Column(name = "name_snapshot")
     private String nameSnapshot;
 
-    @Column(name = "name_snapshot")
-    private BigDecimal rateSnapshot;
+    @Column(name = "value_snapshot")
+    private BigDecimal valueSnapshot;
+
+    private LocalDateTime expiresAt;
 }
