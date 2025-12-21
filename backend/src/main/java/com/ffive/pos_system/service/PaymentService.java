@@ -71,7 +71,7 @@ public class PaymentService {
             reservation = reservationRepository.findById(request.getId())
                  .orElseThrow(() -> new RuntimeException("Reservation not found"));
             
-        if (request.getAmount() != reservation.getTotalAmount()) {
+        if (request.getAmount().compareTo(reservation.getTotalAmount()) != 0) {
             throw new ValidationException("Payment amount does not match reservation total amount.");
         }
         

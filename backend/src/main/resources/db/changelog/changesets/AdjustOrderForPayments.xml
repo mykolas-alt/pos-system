@@ -18,4 +18,9 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="AddRservationTotalAmountToAudit" author="arturas">
+        <addColumn tableName="reservation_aud">
+            <column name="total_amount" type="DECIMAL(19,2)" />
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

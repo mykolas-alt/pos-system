@@ -4,6 +4,7 @@ import static com.ffive.pos_system.service.validation.ValidationMessageConstants
 
 import java.util.List;
 import java.util.UUID;
+import java.math.BigDecimal;
 
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Reservation;
@@ -60,6 +61,7 @@ public class ReservationService {
         newReservation.setCustomerName(reservation.getCustomerName());
         newReservation.setCustomerPhone(reservation.getCustomerPhone());
         newReservation.setService(posServiceService.getServiceEntityByIdAndBusiness(userDetails, reservation.getServiceId()));
+        newReservation.setTotalAmount(BigDecimal.ZERO);
         newReservation.setStatus(reservation.getStatus());
         newReservation.setClosedAt(reservation.getClosedAt());
         newReservation.setCreatedAt(reservation.getCreatedAt());
