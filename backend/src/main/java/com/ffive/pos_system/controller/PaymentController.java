@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.ffive.pos_system.dto.OrderSplitRequest;
 import com.ffive.pos_system.dto.PaymentRequest;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payment")
+@Tag(name = "Payment", description = "Endpoints for processing payments and refunds")
 @RequiredArgsConstructor
 public class PaymentController {
 
