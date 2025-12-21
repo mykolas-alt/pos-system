@@ -36,6 +36,7 @@ public class OrderStateHandler {
                 .business(business)
                 .createdAt(LocalDateTime.now())
                 .status(OrderStatus.OPEN)
+                .paidAmount(BigDecimal.ZERO)
                 .build();
 
         orderRepository.save(newOrder);
