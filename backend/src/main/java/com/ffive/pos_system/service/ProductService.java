@@ -4,10 +4,12 @@ import static com.ffive.pos_system.service.validation.ValidationMessageConstants
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.ffive.pos_system.converter.gui.GUIPageConverter;
+import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.GUIProduct;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Employee;
@@ -31,6 +33,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final EmployeeRepository employeeRepository;
     private final ProductCreateValidator productCreateValidator;
+    private final GUIPageConverter pageConverter;
 
     public GUIProduct createProduct(Product product, POSUserDetails userDetails) {
         log.info("Creating product with name: " + product.getName() + " and price: " + product.getPrice());
@@ -59,21 +62,14 @@ public class ProductService {
         return convertToGUIProduct(persistedProduct);
     }
 
-    public List<GUIProduct> getAllProducts(POSUserDetails userDetails) {
-        return Optional.ofNullable(userDetails.getUser())
+    public GUIPage<GUIProduct> getAllProducts(POSUserDetails userDetails, int pageNumber, int pageSize) {
+        Business business = Optional.ofNullable(userDetails.getUser())
                 .map(POSUser::getEmployee)
                 .map(Employee::getBusiness)
-                .map(Business::getId)
-                .map(productRepository::findAllByBusiness)
-                .map(this::mapToGUIProducts)
-                .orElseGet(() -> List.of());
-    }
+                .orElseThrow(() -> new ValidationException("Authenticated user is not associated with any business"));
 
-    private List<GUIProduct> mapToGUIProducts(List<Product> products) {
-        return products.stream()
-                .map(this::convertToGUIProduct)
-                .limit(100)
-                .toList();
+        var page = productRepository.findAllByBusiness(business, PageRequest.of(pageNumber, pageSize));
+        return pageConverter.convertToGUIPage(page, this::convertToGUIProduct);
     }
 
     private GUIProduct convertToGUIProduct(Product product) {

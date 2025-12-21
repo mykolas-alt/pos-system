@@ -1,13 +1,15 @@
 package com.ffive.pos_system.repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Product;
 
 public interface ProductRepository extends JpaRepository<Product, UUID> {
@@ -18,9 +20,5 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findByIdAndBusiness(@Param("productId") UUID productId,
             @Param("businessId") UUID businessId);
 
-    @Query("""
-            SELECT p FROM Product p
-            WHERE p.business.id = :businessId
-            """)
-    List<Product> findAllByBusiness(@Param("businessId") UUID businessId);
+    Page<Product> findAllByBusiness(Business business, Pageable pageable);
 }
