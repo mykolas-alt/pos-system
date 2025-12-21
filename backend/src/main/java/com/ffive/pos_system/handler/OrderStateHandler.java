@@ -14,6 +14,8 @@ import com.ffive.pos_system.model.OrderItem;
 import com.ffive.pos_system.model.OrderStatus;
 import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.model.ProductOptionValue;
+import com.ffive.pos_system.repository.OrderDiscountRepository;
+import com.ffive.pos_system.repository.OrderItemDiscountRepository;
 import com.ffive.pos_system.repository.OrderItemRepository;
 import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.service.validation.ValidationException;
@@ -31,6 +33,8 @@ public class OrderStateHandler {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderDiscountRepository orderDiscountRepository;
+    private final OrderItemDiscountRepository orderItemDiscountRepository;
 
     private final PriceModifierHelper priceModifierHelper;
     private final ItemTotalsHelper itemTotalsHelper;
@@ -71,10 +75,20 @@ public class OrderStateHandler {
             tax.setNameSnapshot(tax.getTax().getName());
             tax.setRateSnapshot(tax.getTax().getRate());
         });
-        order.getDiscounts().forEach(discount -> {
-            discount.setNameSnapshot(discount.getDiscount().getName());
-            discount.setValueSnapshot(discount.getDiscount().getValue());
-        });
+
+        LocalDateTime completionTime = LocalDateTime.now();
+        order.getDiscounts().stream()
+                .filter(discount -> {
+                    if (completionTime.isBefore(discount.getExpiresAt())) {
+                        return true;
+                    }
+                    orderDiscountRepository.delete(discount);
+                    return false;
+                })
+                .forEach(discount -> {
+                    discount.setNameSnapshot(discount.getDiscount().getName());
+                    discount.setValueSnapshot(discount.getDiscount().getValue());
+                });
 
         BigDecimal totalBeforeOrderTaxesAndDiscounts = order.getItems().stream()
                 .map(this::setSnapshotFieldsForOrderItems)
@@ -106,10 +120,19 @@ public class OrderStateHandler {
             tax.setRateSnapshot(tax.getTax().getRate());
         });
 
-        orderitem.getDiscounts().forEach(discount -> {
-            discount.setNameSnapshot(discount.getDiscount().getName());
-            discount.setValueSnapshot(discount.getDiscount().getValue());
-        });
+        LocalDateTime completionTime = LocalDateTime.now();
+        orderitem.getDiscounts().stream()
+                .filter(discount -> {
+                    if (completionTime.isBefore(discount.getExpiresAt())) {
+                        return true;
+                    }
+                    orderItemDiscountRepository.delete(discount);
+                    return false;
+                })
+                .forEach(discount -> {
+                    discount.setNameSnapshot(discount.getDiscount().getName());
+                    discount.setValueSnapshot(discount.getDiscount().getValue());
+                });
 
         orderitem.getItemOptions().forEach(option -> {
             option.setPriceDeltaSnapshot(Optional.ofNullable(option.getOptionValue())
