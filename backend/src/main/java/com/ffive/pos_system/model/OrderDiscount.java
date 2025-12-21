@@ -21,25 +21,25 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "orderitemdiscount")
-public class OrderItemDiscount {
+@Table(name = "orderdiscount")
+public class OrderDiscount {
     @Id
     @GeneratedValue
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "orderitem_id", nullable = false)
-    private OrderItem orderItem;
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @ManyToOne
     @JoinColumn(name = "discount_id", nullable = false)
     private Discount discount;
-
-    private LocalDateTime expiresAt;
 
     @Column(name = "name_snapshot")
     private String nameSnapshot;
 
     @Column(name = "value_snapshot")
     private BigDecimal valueSnapshot;
+
+    private LocalDateTime expiresAt;
 }

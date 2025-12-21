@@ -1,7 +1,6 @@
 package com.ffive.pos_system.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -21,25 +20,23 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "orderitemdiscount")
-public class OrderItemDiscount {
+@Table(name = "ordertax")
+public class OrderTax {
     @Id
     @GeneratedValue
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "orderitem_id", nullable = false)
-    private OrderItem orderItem;
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "discount_id", nullable = false)
-    private Discount discount;
-
-    private LocalDateTime expiresAt;
+    @JoinColumn(name = "tax_id", nullable = false)
+    private Tax tax;
 
     @Column(name = "name_snapshot")
     private String nameSnapshot;
 
-    @Column(name = "value_snapshot")
-    private BigDecimal valueSnapshot;
+    @Column(name = "rate_snapshot")
+    private BigDecimal rateSnapshot;
 }
