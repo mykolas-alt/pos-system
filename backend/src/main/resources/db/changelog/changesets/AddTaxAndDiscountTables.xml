@@ -119,10 +119,4 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="addPriceDeltaSnapshotToOrderItemOption" author="mykolas">
-        <addColumn tableName="orderitemoption">
-            <column name="price_delta_snapshot" type="DECIMAL(10,2)" />
-        </addColumn>
-    </changeSet>
-
 </databaseChangeLog>

@@ -1,18 +1,22 @@
 package com.ffive.pos_system.converter.gui;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import com.ffive.pos_system.dto.GUIDiscount;
 import com.ffive.pos_system.dto.GUIOrder;
 import com.ffive.pos_system.dto.GUIOrderItem;
 import com.ffive.pos_system.dto.GUIOrderItemOption;
 import com.ffive.pos_system.dto.GUIProduct;
+import com.ffive.pos_system.dto.GUITax;
 import com.ffive.pos_system.model.Order;
 import com.ffive.pos_system.model.ProductOptionType;
 import com.ffive.pos_system.model.ProductOptionValue;
+import com.ffive.pos_system.model.Taxable;
 import com.ffive.pos_system.util.ItemTotalsHelper;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,31 @@ public class GUIOrderConverter {
     public GUIOrder convertOrderFromCurrentState(Order order) {
         return GUIOrder.builder()
                 .id(order.getId())
+                .orderTaxes(order.getTaxes().stream()
+                        .filter(tax -> !tax.getTax().isServiceCharge())
+                        .map(tax -> GUITax.builder()
+                                .name(tax.getTax().getName())
+                                .rate(tax.getTax().getRate())
+                                .type(tax.getTax().getType())
+                                .active(tax.getTax().getActive())
+                                .id(tax.getId())
+                                .build())
+                        .toList())
+                .orderDiscounts(order.getDiscounts().stream()
+                        .map(discount -> GUIDiscount.builder()
+                                .name(discount.getDiscount().getName())
+                                .value(discount.getDiscount().getValue())
+                                .type(discount.getDiscount().getType())
+                                .active(discount.getDiscount().getActive())
+                                .id(discount.getId())
+                                .build())
+                        .toList())
+                .serviceCharge(order.getItems().stream()
+                        .map(orderItem -> orderItem.getTaxes().stream()
+                                .filter(tax -> tax.getTax().isServiceCharge())
+                                .map(tax -> tax.getTax().getRate())
+                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add))
                 .createdAt(order.getCreatedAt())
                 .closedAt(order.getClosedAt())
                 .status(order.getStatus())
@@ -34,6 +63,28 @@ public class GUIOrderConverter {
                 .items(order.getItems().stream()
                         .map(orderItem -> GUIOrderItem.builder()
                                 .id(orderItem.getId())
+                                .orderItemTaxes(orderItem.getTaxes().stream()
+                                        .map(tax -> GUITax.builder()
+                                                .name(tax.getTax().getName())
+                                                .rate(tax.getTax().getRate())
+                                                .type(tax.getTax().getType())
+                                                .active(tax.getTax().getActive())
+                                                .id(tax.getId())
+                                                .build())
+                                        .toList())
+                                .orderItemDiscounts(orderItem.getDiscounts().stream()
+                                        .map(discount -> GUIDiscount.builder()
+                                                .name(discount.getDiscount().getName())
+                                                .value(discount.getDiscount().getValue())
+                                                .type(discount.getDiscount().getType())
+                                                .active(discount.getDiscount().getActive())
+                                                .id(discount.getId())
+                                                .build())
+                                        .toList())
+                                .serviceCharge(orderItem.getTaxes().stream()
+                                        .filter(tax -> tax.getTax().isServiceCharge())
+                                        .map(tax -> tax.getTax().getRate())
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add))
                                 .options(orderItem.getItemOptions().stream()
                                         .map(option -> GUIOrderItemOption.builder()
                                                 .orderItemOptionId(option.getId())
@@ -65,13 +116,54 @@ public class GUIOrderConverter {
         return GUIOrder.builder()
                 .id(order.getId())
                 .createdAt(order.getCreatedAt())
+                .orderTaxes(order.getTaxes().stream()
+                        .filter(tax -> !tax.getTax().isServiceCharge())
+                        .map(tax -> GUITax.builder()
+                                .name(tax.getNameSnapshot())
+                                .rate(tax.getRateSnapshot())
+                                .type(tax.getTax().getType())
+                                .active(tax.getTax().getActive())
+                                .id(tax.getId())
+                                .build())
+                        .toList())
+                .orderDiscounts(order.getDiscounts().stream()
+                        .map(discount -> GUIDiscount.builder()
+                                .name(discount.getNameSnapshot())
+                                .value(discount.getValueSnapshot())
+                                .type(discount.getDiscount().getType())
+                                .active(discount.getDiscount().getActive())
+                                .id(discount.getId())
+                                .build())
+                        .toList())
                 .closedAt(order.getClosedAt())
                 .status(order.getStatus())
                 .total(order.getTotal())
+                .serviceCharge(order.getItems().stream()
+                        .map(item -> calculateServiceChargeFromSnapshot(item.getTaxes()))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add))
                 .identEmployee(order.getEmployee().getId())
                 .items(order.getItems().stream()
                         .map(orderItem -> GUIOrderItem.builder()
                                 .id(orderItem.getId())
+                                .serviceCharge(calculateServiceChargeFromSnapshot(orderItem.getTaxes()))
+                                .orderItemTaxes(orderItem.getTaxes().stream()
+                                        .map(tax -> GUITax.builder()
+                                                .name(tax.getNameSnapshot())
+                                                .rate(tax.getRateSnapshot())
+                                                .type(tax.getTax().getType())
+                                                .active(tax.getTax().getActive())
+                                                .id(tax.getId())
+                                                .build())
+                                        .toList())
+                                .orderItemDiscounts(orderItem.getDiscounts().stream()
+                                        .map(discount -> GUIDiscount.builder()
+                                                .name(discount.getNameSnapshot())
+                                                .value(discount.getValueSnapshot())
+                                                .type(discount.getDiscount().getType())
+                                                .active(discount.getDiscount().getActive())
+                                                .id(discount.getId())
+                                                .build())
+                                        .toList())
                                 .options(orderItem.getItemOptions().stream()
                                         .map(option -> GUIOrderItemOption.builder()
                                                 .orderItemOptionId(option.getId())
@@ -96,6 +188,13 @@ public class GUIOrderConverter {
                                 .build())
                         .toList())
                 .build();
+    }
+
+    private <T extends Taxable> BigDecimal calculateServiceChargeFromSnapshot(List<T> taxables) {
+        return taxables.stream()
+                .filter(tax -> tax.getTax().isServiceCharge())
+                .map(tax -> tax.getRateSnapshot())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal calculateTotalFronCurrentState(Order order) {

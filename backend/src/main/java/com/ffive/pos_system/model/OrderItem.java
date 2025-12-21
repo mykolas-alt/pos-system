@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -40,13 +41,13 @@ public class OrderItem {
 
     private int quantity;
 
-    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<OrderItemOption> itemOptions;
 
-    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<OrderItemTax> taxes;
 
-    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<OrderItemDiscount> discounts;
 
     // snapshot fields

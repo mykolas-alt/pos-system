@@ -14,5 +14,8 @@ public class GUIOrderItem implements GUIObject {
     private GUIProduct product;
     private BigDecimal totalItemPrice;
     private int quantity;
+    private BigDecimal serviceCharge;
     private List<GUIOrderItemOption> options;
+    private List<GUITax> orderItemTaxes;
+    private List<GUIDiscount> orderItemDiscounts;
 }

@@ -40,4 +40,8 @@ public class Tax {
 
     @Enumerated(EnumType.STRING)
     private TaxType type;
+
+    public boolean isServiceCharge() {
+        return this.type == TaxType.SERVICE_CHARGE;
+    }
 }

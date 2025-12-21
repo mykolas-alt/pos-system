@@ -66,8 +66,5 @@ public class Order {
 
     // snapshot fields
     private BigDecimal total;
-
-    @Column(name = "service_charge")
-    private BigDecimal serviceCharge;
     private BigDecimal tip;
 }
