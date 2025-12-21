@@ -72,7 +72,7 @@ public class PaymentService {
                  .orElseThrow(() -> new RuntimeException("Reservation not found"));
             
             BigDecimal newPaidAmount = request.getAmount();
-        if (newPaidAmount.compareTo(serviceRepository.findById(reservation.getService().getId()).orElseThrow(() -> new ValidationException("Service not found")).getPrice()) > 0) {
+        if (newPaidAmount.compareTo(reservation.getService().getPrice()) > 0) {
             throw new ValidationException("Payment amount exceeds remaining balance");
         }
         

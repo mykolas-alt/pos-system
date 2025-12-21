@@ -30,13 +30,13 @@ public class ReservationStateHandler {
     private final ServiceRepository serviceRepository;
     private final EmployeeRepository employeeRepository;
 
-    public void validateReservation(Reservation reservation, UUID businessId) {
+    private void validateReservation(Reservation reservation, UUID businessId) {
         if (!Objects.equals(reservation.getBusiness().getId(), businessId)) {
             throw new ValidationException("Reservation does not belong to the employee's business");
         }
     }
 
-    public void validateReservationStatus(Reservation reservation){
+    private void validateReservationStatus(Reservation reservation){
         if (reservation.getStatus()!= ReservationStatus.OPEN || reservation.getStatus() != ReservationStatus.IN_PROGRESS){
             throw new ValidationException("Only open reservations and inprogress can be completed");
         }
