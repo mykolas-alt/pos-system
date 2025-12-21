@@ -13,9 +13,15 @@ import com.ffive.pos_system.dto.GUIProduct;
 import com.ffive.pos_system.model.Order;
 import com.ffive.pos_system.model.ProductOptionType;
 import com.ffive.pos_system.model.ProductOptionValue;
+import com.ffive.pos_system.util.ItemTotalsHelper;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class GUIOrderConverter {
+
+    private final ItemTotalsHelper itemTotalsHelper;
 
     public GUIOrder convertOrderFromCurrentState(Order order) {
         return GUIOrder.builder()
@@ -49,6 +55,7 @@ public class GUIOrderConverter {
                                         .price(orderItem.getProduct().getPrice())
                                         .build())
                                 .quantity(orderItem.getQuantity())
+                                .totalItemPrice(itemTotalsHelper.getItemTotalFromEntities(orderItem))
                                 .build())
                         .toList())
                 .build();
@@ -75,8 +82,7 @@ public class GUIOrderConverter {
                                                         .map(ProductOptionValue::getId).orElse(null))
                                                 .valueName(Optional.ofNullable(option.getOptionValue())
                                                         .map(ProductOptionValue::getName).orElse(null))
-                                                .priceDelta(Optional.ofNullable(option.getOptionValue())
-                                                        .map(ProductOptionValue::getPriceDelta).orElse(null))
+                                                .priceDelta(option.getPriceDeltaSnapshot())
                                                 .value(option.getValue())
                                                 .build())
                                         .toList())
@@ -86,6 +92,7 @@ public class GUIOrderConverter {
                                         .price(orderItem.getUnitPriceSnapshot())
                                         .build())
                                 .quantity(orderItem.getQuantity())
+                                .totalItemPrice(itemTotalsHelper.getItemTotalFromSnapshots(orderItem))
                                 .build())
                         .toList())
                 .build();

@@ -31,6 +31,21 @@
             <column name="revtype" type="SMALLINT" />
         </createTable>
 
+        <createTable tableName="ordertax">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="tax_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_ordertax_tax"
+                    referencedTableName="tax" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="rate_snapshot" type="DECIMAL(6,4)" />
+        </createTable>
+
         <createTable tableName="orderitemtax">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false" />
@@ -73,6 +88,21 @@
             <column name="revtype" type="SMALLINT" />
         </createTable>
 
+        <createTable tableName="orderdiscount">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="discount_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="value_snapshot" type="DECIMAL(12,2)" />
+            <column name="expiresAt" type="TIMESTAMP" />
+        </createTable>
+
         <createTable tableName="orderitemdiscount">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false" />
@@ -87,6 +117,12 @@
             <column name="value_snapshot" type="DECIMAL(12,2)" />
             <column name="expiresAt" type="TIMESTAMP" />
         </createTable>
+    </changeSet>
+
+    <changeSet id="addPriceDeltaSnapshotToOrderItemOption" author="mykolas">
+        <addColumn tableName="orderitemoption">
+            <column name="price_delta_snapshot" type="DECIMAL(10,2)" />
+        </addColumn>
     </changeSet>
 
 </databaseChangeLog>

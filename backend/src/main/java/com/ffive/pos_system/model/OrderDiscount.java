@@ -37,11 +37,11 @@ public class OrderDiscount implements Discountable {
     @JoinColumn(name = "discount_id", nullable = false)
     private Discount discount;
 
-    private LocalDateTime expiresAt;
-
     @Column(name = "name_snapshot")
     private String nameSnapshot;
 
     @Column(name = "value_snapshot")
     private BigDecimal valueSnapshot;
+
+    private LocalDateTime expiresAt;
 }
