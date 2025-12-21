@@ -1,11 +1,11 @@
 package com.ffive.pos_system.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -23,8 +23,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "orderitemoption")
-public class OrderItemOption {
+@Table(name = "orderitemdiscount")
+public class OrderItemDiscount implements Discountable {
     @Id
     @GeneratedValue
     private UUID id;
@@ -33,18 +33,15 @@ public class OrderItemOption {
     @JoinColumn(name = "orderitem_id", nullable = false)
     private OrderItem orderItem;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "optiongroup_id", nullable = false)
-    private ProductOptionGroup optionGroup;
+    @ManyToOne
+    @JoinColumn(name = "discount_id", nullable = false)
+    private Discount discount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "optionvalue_id", nullable = true)
-    private ProductOptionValue optionValue;
+    private LocalDateTime expiresAt;
 
-    @Column(name = "value", nullable = true)
-    private Integer value;
+    @Column(name = "name_snapshot")
+    private String nameSnapshot;
 
-    @Column(name = "price_delta_snapshot", nullable = true)
-    private BigDecimal priceDeltaSnapshot;
-
+    @Column(name = "value_snapshot")
+    private BigDecimal valueSnapshot;
 }

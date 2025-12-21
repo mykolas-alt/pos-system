@@ -46,6 +46,12 @@ public class Order {
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     private List<OrderItem> items;
 
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    private List<OrderTax> taxes;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    private List<OrderDiscount> discounts;
+
     @Column(nullable = false)
     @Builder.Default
     private BigDecimal paidAmount = BigDecimal.ZERO;
@@ -61,7 +67,4 @@ public class Order {
     // snapshot fields
     private BigDecimal total;
     private BigDecimal tip;
-
-    @Column(name = "service_charge")
-    private BigDecimal serviceCharge;
 }
