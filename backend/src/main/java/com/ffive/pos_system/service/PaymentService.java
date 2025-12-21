@@ -8,9 +8,13 @@ import com.ffive.pos_system.model.Order;
 import com.ffive.pos_system.model.OrderStatus;
 import com.ffive.pos_system.model.Payment;
 import com.ffive.pos_system.model.PaymentType;
+import com.ffive.pos_system.model.Reservation;
+
 import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.repository.PaymentRepository;
-
+import com.ffive.pos_system.repository.ReservationRepository;
+import com.ffive.pos_system.repository.ServiceRepository;
+import com.ffive.pos_system.dto.PaymentTargetType;
 
 import com.ffive.pos_system.service.validation.ValidationException;
 import org.springframework.stereotype.Service;
@@ -29,16 +33,26 @@ public class PaymentService {
     private final StripeService stripeService;
     private final SplitCheckHandler splitCheckHandler;
     private final OrderRepository orderRepository;
+    private final ReservationRepository reservationRepository;
+    private final ServiceRepository serviceRepository;
 
     @Transactional
     public Payment processPayment(PaymentRequest request) {
 
+
+        Order order = null;
+        Reservation reservation = null;
         if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ValidationException("Payment amount must be positive.");
         }
-
-        // 1. fetching the order from the repository
-        Order order = orderRepository.findById(request.getOrderId())
+        boolean processOrderPayment = true;
+        if (request.getType() == PaymentTargetType.Reservation) {
+            processOrderPayment = false;
+        }
+        
+        if (processOrderPayment){
+            
+        order = orderRepository.findById(request.getId())
                  .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (order.getStatus() == OrderStatus.PAID) {
@@ -46,10 +60,22 @@ public class PaymentService {
         }
 
         BigDecimal newPaidAmount = order.getPaidAmount().add(request.getAmount());
+        if (order.getTotal() == null)
+            
         if (newPaidAmount.compareTo(order.getTotal()) > 0) {
             throw new ValidationException("Payment amount exceeds remaining balance");
         }
-
+        }
+        else {
+            
+            reservation = reservationRepository.findById(request.getId())
+                 .orElseThrow(() -> new RuntimeException("Reservation not found"));
+            
+        if (request.getAmount().compareTo(reservation.getTotalAmount()) != 0) {
+            throw new ValidationException("Payment amount does not match reservation total amount.");
+        }
+        
+        }
         // 2. processing stripe payment
         String transactionId = UUID.randomUUID().toString(); // transaction ID must also be present for cash/gift-card payments
         PaymentType paymentType = request.getPaymentType();
@@ -93,20 +119,37 @@ public class PaymentService {
         }
 
         // 3. saving payment
-        Payment payment = Payment.builder()
-                .orderId(request.getOrderId())
-                .paymentType(request.getPaymentType())
-                .amount(request.getAmount())
-                .tip(request.getTip())
-                .id(UUID.fromString(transactionId))
-                .build();
+        Payment payment; 
+                if (processOrderPayment){
+                    payment = Payment.builder()
+                    .orderId(request.getId())
+                    .reservationId(null)
+                    .paymentType(request.getPaymentType())
+                    .amount(request.getAmount())
+                    .tip(request.getTip())
+                    //.id(UUID.fromString(transactionId))
+                    .build();
+                }
+                else {
+                    payment = Payment.builder()
+                    .orderId(null)
+                    .reservationId(request.getId())
+                    .paymentType(request.getPaymentType())
+                    .amount(request.getAmount())
+                    .tip(request.getTip())
+                    //.id(UUID.fromString(transactionId))
+                    .build();
+                }
+               
 
         paymentRepository.save(payment);
 
-        // 4. handling split billing
+        // 4. handling split billing (Only for orders)
+        if (processOrderPayment){
         splitCheckHandler.processSplitPayment(request);
         splitCheckHandler.updateOrderStatus(order, request.getAmount());
         orderRepository.save(order);
+        }
 
         return payment;
     }

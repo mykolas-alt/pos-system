@@ -18,8 +18,11 @@ public class Payment {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private UUID orderId;
+
+    @Column(nullable = true)
+    private UUID reservationId;
 
     @Column(nullable = false)
     private PaymentType paymentType;
