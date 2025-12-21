@@ -11,6 +11,7 @@ import com.ffive.pos_system.converter.gui.GUIPageConverter;
 import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.GUITax;
 import com.ffive.pos_system.dto.TaxCreationRequest;
+import com.ffive.pos_system.dto.TaxModificationRequest;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.POSUser;
@@ -48,7 +49,7 @@ public class TaxService {
     }
 
     public GUITax modifyTax(POSUserDetails userDetails, UUID taxId,
-            @Valid TaxCreationRequest taxModificationRequest) {
+            @Valid TaxModificationRequest taxModificationRequest) {
         var business = resolveBusinessFromUserDetails(userDetails);
         var tax = taxRepository.findById(taxId)
                 .orElseThrow(() -> new ValidationException("Tax with ID " + taxId + " does not exist"));

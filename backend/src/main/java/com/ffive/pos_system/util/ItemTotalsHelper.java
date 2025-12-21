@@ -27,12 +27,11 @@ public class ItemTotalsHelper {
                                 .orElse(BigDecimal.ZERO))
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        var priceBeforeTaxesAndDiscounts = priceWithOptions.multiply(BigDecimal.valueOf(orderItem.getQuantity()));
-
         return priceModifierHelper.getPriceAfterModifiersFromEntities(
                 orderItem.getDiscounts(),
                 orderItem.getTaxes(),
-                priceBeforeTaxesAndDiscounts);
+                priceWithOptions)
+                .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
     }
 
     public BigDecimal getItemTotalFromSnapshots(OrderItem orderItem) {
@@ -42,11 +41,10 @@ public class ItemTotalsHelper {
                         .map(OrderItemOption::getPriceDeltaSnapshot)
                         .reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        var priceBeforeTaxesAndDiscounts = priceWithOptions.multiply(BigDecimal.valueOf(orderItem.getQuantity()));
-
         return priceModifierHelper.getPriceAfterModifiersFromSnapshots(
                 orderItem.getDiscounts(),
                 orderItem.getTaxes(),
-                priceBeforeTaxesAndDiscounts);
+                priceWithOptions)
+                .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
     }
 }

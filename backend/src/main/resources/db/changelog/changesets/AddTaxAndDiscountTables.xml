@@ -100,7 +100,7 @@
             </column>
             <column name="name_snapshot" type="VARCHAR(255)" />
             <column name="value_snapshot" type="DECIMAL(12,2)" />
-            <column name="expiresAt" type="TIMESTAMP" />
+            <column name="expires_at" type="TIMESTAMP" />
         </createTable>
 
         <createTable tableName="orderitemdiscount">
@@ -115,7 +115,7 @@
             </column>
             <column name="name_snapshot" type="VARCHAR(255)" />
             <column name="value_snapshot" type="DECIMAL(12,2)" />
-            <column name="expiresAt" type="TIMESTAMP" />
+            <column name="expires_at" type="TIMESTAMP" />
         </createTable>
     </changeSet>
 

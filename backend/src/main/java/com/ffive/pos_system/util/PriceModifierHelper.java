@@ -2,6 +2,7 @@ package com.ffive.pos_system.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,9 +40,9 @@ public class PriceModifierHelper {
             List<T> discounts,
             Function<T, BigDecimal> getDiscountValue) {
 
-        Map<DiscountType, BigDecimal> discountTotals = Map.of(
-                DiscountType.FLAT, BigDecimal.ZERO,
-                DiscountType.PERCENTAGE, BigDecimal.ZERO);
+        Map<DiscountType, BigDecimal> discountTotals = new HashMap<>();
+        discountTotals.put(DiscountType.FLAT, BigDecimal.ZERO);
+        discountTotals.put(DiscountType.PERCENTAGE, BigDecimal.ZERO);
 
         discounts.forEach(discount -> {
             discountTotals.compute(discount.getDiscount().getType(),
@@ -54,7 +55,7 @@ public class PriceModifierHelper {
                 .orElse(BigDecimal.ZERO);
 
         return Optional.of(priceBeforeTaxesAndDiscounts)
-                .filter(price -> price.compareTo(discountTotals.get(DiscountType.FLAT)) <= 0)
+                .filter(price -> price.compareTo(discountTotals.get(DiscountType.FLAT)) > 0)
                 .map(price -> price.subtract(discountTotals.get(DiscountType.FLAT)))
                 .map(priceAfterFlatDiscount -> priceAfterFlatDiscount.multiply(percentageDiscountRate))
                 .orElse(BigDecimal.ZERO);
@@ -63,17 +64,22 @@ public class PriceModifierHelper {
     private <T extends Taxable> BigDecimal getPriceAfterTaxes(BigDecimal priceBeforeTaxes,
             List<T> taxables,
             Function<T, BigDecimal> getTaxRate) {
-        Map<TaxType, BigDecimal> taxTotals = Map.of(
-                TaxType.SERVICE_CHARGE, BigDecimal.ZERO,
-                TaxType.CUSTOM_TAX, BigDecimal.ZERO);
+        Map<TaxType, BigDecimal> taxTotals = new HashMap<>();
+        taxTotals.put(TaxType.SERVICE_CHARGE, BigDecimal.ZERO);
+        taxTotals.put(TaxType.CUSTOM_TAX, BigDecimal.ZERO);
 
         taxables.forEach(tax -> {
             taxTotals.compute(tax.getTax().getType(),
                     (key, total) -> total.add(getTaxRate.apply(tax)));
         });
 
+        var percentageTaxRate = Optional.of(taxTotals.get(TaxType.CUSTOM_TAX))
+                .filter(rate -> rate.compareTo(BigDecimal.valueOf(100)) <= 0)
+                .map(rate -> BigDecimal.ONE.add(rate.divide(BigDecimal.valueOf(100), 2, RoundingMode.DOWN)))
+                .orElse(BigDecimal.ZERO);
+
         return priceBeforeTaxes
-                .multiply(taxTotals.get(TaxType.CUSTOM_TAX))
+                .multiply(percentageTaxRate)
                 .add(taxTotals.get(TaxType.SERVICE_CHARGE));
     }
 

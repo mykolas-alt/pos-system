@@ -102,7 +102,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Remove a discount from an existing order")
-    @DeleteMapping("/{orderId}/discount/{orderItemId}")
+    @DeleteMapping("/{orderId}/discount/{orderDiscountId}")
     public ResponseEntity<Void> removeOrderDiscount(@AuthenticationPrincipal POSUserDetails userDetails,
             @Valid @PathVariable UUID orderId,
             @Valid @PathVariable UUID orderDiscountId) {

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.GUITax;
 import com.ffive.pos_system.dto.TaxCreationRequest;
+import com.ffive.pos_system.dto.TaxModificationRequest;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.TaxService;
 import com.ffive.pos_system.util.PagingHelper;
@@ -51,7 +52,7 @@ public class TaxController {
     @PutMapping("/{taxId}")
     public ResponseEntity<GUITax> updateTax(@AuthenticationPrincipal POSUserDetails userDetails,
             @PathVariable UUID taxId,
-            @Valid @RequestBody TaxCreationRequest taxModificationRequest) {
+            @Valid @RequestBody TaxModificationRequest taxModificationRequest) {
 
         return ResponseEntity.ok(taxService.modifyTax(userDetails, taxId, taxModificationRequest));
     }

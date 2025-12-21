@@ -2,7 +2,6 @@ package com.ffive.pos_system.converter.gui;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -14,10 +13,10 @@ import com.ffive.pos_system.dto.GUIOrderItemOption;
 import com.ffive.pos_system.dto.GUIProduct;
 import com.ffive.pos_system.dto.GUITax;
 import com.ffive.pos_system.model.Order;
-import com.ffive.pos_system.model.ProductOptionType;
 import com.ffive.pos_system.model.ProductOptionValue;
 import com.ffive.pos_system.model.Taxable;
 import com.ffive.pos_system.util.ItemTotalsHelper;
+import com.ffive.pos_system.util.PriceModifierHelper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class GUIOrderConverter {
 
     private final ItemTotalsHelper itemTotalsHelper;
+    private final PriceModifierHelper priceModifierHelper;
 
     public GUIOrder convertOrderFromCurrentState(Order order) {
         return GUIOrder.builder()
@@ -49,11 +49,9 @@ public class GUIOrderConverter {
                                 .id(discount.getId())
                                 .build())
                         .toList())
-                .serviceCharge(order.getItems().stream()
-                        .map(orderItem -> orderItem.getTaxes().stream()
-                                .filter(tax -> tax.getTax().isServiceCharge())
-                                .map(tax -> tax.getTax().getRate())
-                                .reduce(BigDecimal.ZERO, BigDecimal::add))
+                .serviceCharge(order.getTaxes().stream()
+                        .filter(tax -> tax.getTax().isServiceCharge())
+                        .map(tax -> tax.getTax().getRate())
                         .reduce(BigDecimal.ZERO, BigDecimal::add))
                 .createdAt(order.getCreatedAt())
                 .closedAt(order.getClosedAt())
@@ -64,6 +62,7 @@ public class GUIOrderConverter {
                         .map(orderItem -> GUIOrderItem.builder()
                                 .id(orderItem.getId())
                                 .orderItemTaxes(orderItem.getTaxes().stream()
+                                        .filter(tax -> !tax.getTax().isServiceCharge())
                                         .map(tax -> GUITax.builder()
                                                 .name(tax.getTax().getName())
                                                 .rate(tax.getTax().getRate())
@@ -138,8 +137,9 @@ public class GUIOrderConverter {
                 .closedAt(order.getClosedAt())
                 .status(order.getStatus())
                 .total(order.getTotal())
-                .serviceCharge(order.getItems().stream()
-                        .map(item -> calculateServiceChargeFromSnapshot(item.getTaxes()))
+                .serviceCharge(order.getTaxes().stream()
+                        .filter(tax -> tax.getTax().isServiceCharge())
+                        .map(tax -> tax.getRateSnapshot())
                         .reduce(BigDecimal.ZERO, BigDecimal::add))
                 .identEmployee(order.getEmployee().getId())
                 .items(order.getItems().stream()
@@ -147,6 +147,7 @@ public class GUIOrderConverter {
                                 .id(orderItem.getId())
                                 .serviceCharge(calculateServiceChargeFromSnapshot(orderItem.getTaxes()))
                                 .orderItemTaxes(orderItem.getTaxes().stream()
+                                        .filter(tax -> !tax.getTax().isServiceCharge())
                                         .map(tax -> GUITax.builder()
                                                 .name(tax.getNameSnapshot())
                                                 .rate(tax.getRateSnapshot())
@@ -198,13 +199,10 @@ public class GUIOrderConverter {
     }
 
     private BigDecimal calculateTotalFronCurrentState(Order order) {
-        return order.getItems().stream()
-                .map(item -> item.getProduct().getPrice().add(item.getItemOptions().stream()
-                        .filter(option -> option.getOptionGroup().getType() != ProductOptionType.SLIDER)
-                        .map(option -> option.getOptionValue().getPriceDelta())
-                        .filter(Objects::nonNull)
-                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add))
-                        .multiply(java.math.BigDecimal.valueOf(item.getQuantity())))
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        return priceModifierHelper.getPriceAfterModifiersFromEntities(order.getDiscounts(),
+                order.getTaxes(),
+                order.getItems().stream()
+                        .map(itemTotalsHelper::getItemTotalFromEntities)
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
     }
 }

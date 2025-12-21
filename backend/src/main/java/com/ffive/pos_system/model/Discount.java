@@ -5,12 +5,13 @@ import java.util.UUID;
 
 import org.hibernate.envers.Audited;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,7 +34,8 @@ public class Discount {
 
     private BigDecimal value;
 
-    @Column(name = "business_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "business_id", nullable = false)
     private Business business;
 
     @Enumerated(EnumType.STRING)
