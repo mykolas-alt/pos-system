@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TaxModificationRequest {
+public class DiscountModificationRequest {
     private String name;
-    private BigDecimal rate;
+    private BigDecimal value;
 }

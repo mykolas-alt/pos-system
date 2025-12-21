@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.ffive.pos_system.converter.gui.GUIPageConverter;
 import com.ffive.pos_system.dto.DiscountCreationRequest;
+import com.ffive.pos_system.dto.DiscountModificationRequest;
 import com.ffive.pos_system.dto.GUIDiscount;
 import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.model.Business;
@@ -49,7 +50,7 @@ public class DiscountService {
     }
 
     public GUIDiscount modifyDiscount(POSUserDetails userDetails, UUID discountId,
-            @Valid DiscountCreationRequest discountModificationRequest) {
+            @Valid DiscountModificationRequest discountModificationRequest) {
         var business = resolveBusinessFromUserDetails(userDetails);
         var discount = discountRepository.findById(discountId)
                 .orElseThrow(() -> new ValidationException("Discount with ID " + discountId + " does not exist"));
