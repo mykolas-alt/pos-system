@@ -63,6 +63,9 @@ public class Reservation{
 
     @Column(nullable = false)
     private LocalDateTime closedAt;
+
+    @Column(nullable = false)
+    private BigDecimal totalAmount;
     
     @Override
     public String toString() {

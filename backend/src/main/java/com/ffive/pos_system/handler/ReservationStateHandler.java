@@ -37,7 +37,7 @@ public class ReservationStateHandler {
     }
 
     private void validateReservationStatus(Reservation reservation){
-        if (reservation.getStatus()!= ReservationStatus.OPEN || reservation.getStatus() != ReservationStatus.IN_PROGRESS){
+        if (reservation.getStatus()!= ReservationStatus.OPEN){
             throw new ValidationException("Only open reservations and inprogress can be completed");
         }
     }
@@ -47,7 +47,6 @@ public class ReservationStateHandler {
       
         validateReservation(reservation, employee.getBusiness().getId());
         validateReservationStatus(reservation);
-
         reservation.setStatus(ReservationStatus.IN_PROGRESS);
         reservationRepository.save(reservation);
 

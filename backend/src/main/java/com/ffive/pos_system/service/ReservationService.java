@@ -52,18 +52,19 @@ public class ReservationService {
     }
     public void createReservation(POSUserDetails userDetails, ReservationRequest reservation) {
 
-        Reservation newService = reservationConverter.convertToEntity(reservation);
+        Reservation newReservation = reservationConverter.convertToEntity(reservation);
         Business business = userDetails.getUser().getEmployee().getBusiness();
-        newService.setBusiness(business);
-        newService.setCreatedAt(java.time.LocalDateTime.now());
-        newService.setApointmentTime(reservation.getApointmentTime());
-        newService.setCustomerName(reservation.getCustomerName());
-        newService.setCustomerPhone(reservation.getCustomerPhone());
-        newService.setService(posServiceService.getServiceEntityByIdAndBusiness(userDetails, reservation.getServiceId()));
-        newService.setStatus(reservation.getStatus());
-        newService.setClosedAt(reservation.getClosedAt());
-        newService.setCreatedAt(reservation.getCreatedAt());
-        reservationRepository.save(newService);
+        newReservation.setBusiness(business);
+        newReservation.setCreatedAt(java.time.LocalDateTime.now());
+        newReservation.setApointmentTime(reservation.getApointmentTime());
+        newReservation.setCustomerName(reservation.getCustomerName());
+        newReservation.setCustomerPhone(reservation.getCustomerPhone());
+        newReservation.setService(posServiceService.getServiceEntityByIdAndBusiness(userDetails, reservation.getServiceId()));
+        newReservation.setTotalAmount(newReservation.getService().getPrice());
+        newReservation.setStatus(reservation.getStatus());
+        newReservation.setClosedAt(reservation.getClosedAt());
+        newReservation.setCreatedAt(reservation.getCreatedAt());
+        reservationRepository.save(newReservation);
 
     }
 

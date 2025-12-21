@@ -71,13 +71,10 @@ public class PaymentService {
             reservation = reservationRepository.findById(request.getId())
                  .orElseThrow(() -> new RuntimeException("Reservation not found"));
             
-            BigDecimal newPaidAmount = request.getAmount();
-        if (newPaidAmount.compareTo(reservation.getService().getPrice()) > 0) {
-            throw new ValidationException("Payment amount exceeds remaining balance");
+        if (request.getAmount() != reservation.getTotalAmount()) {
+            throw new ValidationException("Payment amount does not match reservation total amount.");
         }
         
-
-
         }
         // 2. processing stripe payment
         String transactionId = UUID.randomUUID().toString(); // transaction ID must also be present for cash/gift-card payments

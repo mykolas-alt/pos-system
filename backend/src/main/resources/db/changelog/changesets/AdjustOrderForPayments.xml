@@ -11,4 +11,11 @@
         columnName="order_id" 
         columnDataType="UUID"/>
     </changeSet>
+    <changeSet id="AddReservationTotalAmount " author="arturas">
+        <addColumn tableName="reservation">
+            <column name="total_amount" type="DECIMAL(19,2)" defaultValueNumeric="0" >
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
