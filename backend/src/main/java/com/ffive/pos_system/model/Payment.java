@@ -32,4 +32,7 @@ public class Payment {
 
     @Column
     private BigDecimal tip;
+
+    @Column(nullable = false)
+    private UUID transactionId;
 }

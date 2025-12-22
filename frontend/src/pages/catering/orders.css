@@ -1,28 +1,15 @@
-.control_button{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:var(--text-color);
-    background-color:var(--tertiary-background-color);
-    border:2px solid var(--detail-color);
-    border-radius:8px;
-    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-    cursor:pointer;
-    padding:15px 16px;
-    text-decoration:none;
-    font-size:1.2rem;
-    font-weight:bold;
-    margin:0.2rem 0.5rem;
-    height:3rem;
-    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+#sort_button{
+    margin-left:0.5rem;
+    margin-right:auto;
+    height:1rem;
 }
-    
-    .control_button:hover{
-        background-color:var(--tertiary-background-color-hover);
-        transform:scale(1.05);
+
+    #sort_button:hover #sort_content{
+        display:block;
     }
 
-.create_button{
+#create_button{
+    margin-left:auto;
     margin-right:1rem;
 }
 
@@ -33,7 +20,7 @@
     margin:1rem;
 }
 
-.order_card{
+#order_card{
     display:flex;
     align-items:center;
     justify-content:center;
@@ -47,47 +34,43 @@
     text-decoration:none;
     font-size:1.2rem;
     font-weight:bold;
-    margin:0.5rem auto 0 auto;
+    margin:0.5rem auto 0.5rem auto;
     width:25rem;
-    height:10rem;
+    height:11.2rem;
     transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }
 
-    .order_card:hover{
+    #order_card:hover{
         background-color:var(--tertiary-background-color-hover);
         transform:scale(1.05);
     }
 
-.order_id{
+#order_card_id{
     font-size:1.2rem;
     font-weight:bold;
-    margin:0.1rem auto 0.5rem 2rem;
+    margin:0.2rem auto 0.5rem 1.5rem;
 }
 
-.order_created{
+#order_card_status{
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.2rem auto 0.4rem 2rem;
+}
+
+#order_card_created{
     font-size:1rem;
     font-weight:bold;
     margin:0.2rem auto 0.5rem 2rem;
 }
 
-.order_closed{
+#order_card_closed{
     font-size:1rem;
     font-weight:bold;
     margin:0.2rem auto 0.5rem 2rem;
 }
 
-.order_info{
-    width:100%;
-}
-
-.order_status{
-    font-size:1.2rem;
+#order_card_total{
+    font-size:1.4rem;
     font-weight:bold;
-    margin:0.2rem auto auto 2rem;
-}
-
-.order_total{
-    font-size:1.2rem;
-    font-weight:bold;
-    margin:0.2rem 2rem auto auto;
+    margin:auto 2rem 0.5rem auto;
 }

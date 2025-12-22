@@ -1,20 +1,22 @@
-import React,{useEffect,useState} from "react"
+import {useEffect,useState} from "react"
 import {useParams,useNavigate} from "react-router-dom"
 import {toast} from 'react-hot-toast'
 import "./orderView.css"
 
-import {getDb,saveDb} from "../../utils/tempDB"
+import {filterSearchList,filterList,sortBy} from "../../utils/filtering"
+import {Payment} from "../../components/payment/payment"
 
-export const OrderView=({user,business}) => {
+export const OrderView=({api,user,business}) => {
     const {orderId}=useParams()
     const navigate=useNavigate()
 
-    const [order,setOrder]=useState()
-    const [productsInOrder,setProductsInOrder]=useState([])
+    const [order,setOrder]=useState(null)
 
     const [search,setSearch]=useState("")
-    const [categories,setCategories]=useState([])
-    const [selectedCategories,setSelectedCategories]=useState([])
+    const [totalMin,setTotalMin]=useState("")
+    const [totalMax,setTotalMax]=useState("")
+    const [sortType,setSortType]=useState("name_increase")
+    const [filteredProducts,setFilteredProducts]=useState([])
 
     const [products,setProducts]=useState([])
     const [comment,setComment]=useState("")
@@ -25,236 +27,205 @@ export const OrderView=({user,business}) => {
     const [selectedProductQuantity,setSelectedProductQuantity]=useState(1)
     const [selectedOptions,setSelectedOptions]=useState({})
 
-    const [productsToPay,setProductsToPay]=useState([])
-    const [selectedProductsToPay,setSelectedProductsToPay]=useState([])
-
     const [isOrderLoading,setIsOrderLoading]=useState(true)
     const [isPanelVisible,setIsPanelVisible]=useState(false)
+    const [isOptionsVisible,setIsOptionsVisible]=useState(false)
     const [isCommentVisible,setIsCommentVisible]=useState(false)
     const [isPaymentPanelVisible,setIsPaymentPanelVisible]=useState(false)
 
     const [addingNewProduct,setAddingNewProduct]=useState(false)
     const [editingOrderProductId,setEditingOrderProductId]=useState(null)
-    const [isSplitCheck,setIsSplitCheck]=useState(false)
 
-    const filteredProducts=products.filter(p => {
-        const matchesSearch=p.name.toLowerCase().includes(search.toLowerCase())
-
-        const matchesCategory=selectedCategories.length===0 || selectedCategories.includes(p.categoryId)
-
-        return matchesSearch && matchesCategory
-    })
+    const statusMap={
+        OPEN:"Atvira",
+        IN_PROGRESS:"Vykdoma",
+        PAID:"Apmokėta",
+        REFUNDED:"Gražinta",
+        CANCELLED:"Atšaukta",
+        PARTIALLY_PAID:"Daliniai apmokėta"
+    }
 
     useEffect(() => {
+        async function initOrder(){
+            try{
+                setIsOrderLoading(true)
+                const orderData=await loadOrderData(user.token)
+                setOrder(orderData)
+                const products=await fetchAllPages(`${api}product`,user.token)
+                setProducts(products)
+            }catch{
+                navigate(`/${user.info.username}/CATERING/${business.id}/orders`)
+                return
+            }finally{
+                setIsOrderLoading(false)
+            }
+        }
+
         if(!user){
             navigate("/")
             return
         }
-        
-        loadOrderData()
 
-        setIsOrderLoading(false)
-    },[user])
+        initOrder()
+    },[user,orderId])
 
     useEffect(() => {
-        if(!selectedProduct || selectedProductOptions.length===0)
+        if(!selectedProduct)
             return
 
-        const newPrice=recalcPrice(selectedProduct,selectedProductOptions,selectedOptions)
+        const newPrice=selectedProduct.price*selectedProductQuantity
         setSelectedProductPrice(newPrice)
     },[selectedOptions,selectedProductQuantity])
 
-    function loadOrderData(){
-        const db=getDb()
+    useEffect(() => {
+        const filterBySearchList=filterSearchList(products,search)
+        const filteredList=filterList(filterBySearchList,"","",totalMin,totalMax)
+        const sortedList=sortBy(filteredList,sortType)
 
-        const orderData=db.orders.find(o => o.id===Number(orderId))
-        const productsData=db.products.filter(p => p.businessId===business.id)
-        const orderProductsData=db.orderProducts.filter(op => op.orderId===Number(orderId))
-        const categoriesData=db.categories.filter(c => c.businessId===business.id)
-        let orderContent=[]
-        let total=0
-        let quantity=0
-        orderProductsData.forEach(orderProduct => {
-            const product=db.products.find(p => p.id===orderProduct.productId)
-            if(!product)
-                return
+        setFilteredProducts(sortedList)
+    },[products,sortType,totalMin,totalMax])
 
-            const selectedOptionRows=db.orderProductSelectedOptions.filter(
-                o => o.orderProductId===orderProduct.id
-            )
+    async function loadOrderData(token){
+        const response=await fetch(`${api}order/${orderId}`,{
+            method: "GET",
+            headers: {"Authorization":`Bearer ${token}`}
+        })
 
-            let selectedOptions={}
-            selectedOptionRows.forEach(row => {
-                const group=db.productOptionGroups.find(g => g.id===row.productOptionGroupId)
-                if(!group)
-                    return
+        if(!response.ok){
+            throw new Error("Failed to load order")
+        }
 
-                if(group.type==="slider" || group.type==="single"){
-                    selectedOptions[group.id]=row.value
-                }else if(group.type==="multi"){
-                    if(!selectedOptions[group.id])
-                        selectedOptions[group.id]=[]
-                    if(Array.isArray(row.value)){
-                        selectedOptions[group.id]=row.value
-                    }else{
-                        selectedOptions[group.id].push(row.value)
-                    }
-                }
-            })
-
-            const productOptions=db.productOptionGroups.filter(g => g.productId===product.id).map(group => {
-                const selections=db.productOptionValues.filter(pov => pov.productOptionGroupId===group.id)
-                return {...group,selections}
-            })
-
-            const priceWithOptions=recalcPrice(product,productOptions,selectedOptions)
-
-            orderContent.push({
-                ...product,
-                quantity:orderProduct.quantity,
-                orderProductId:orderProduct.id,
-                priceWithOptions
-            })
-            
-            total+=priceWithOptions
-            quantity+=orderProduct.quantity
-        });
-
-        orderData.total=total!==undefined ? total:0
-        orderData.quantity=quantity!==undefined ? quantity:0
-
-        setOrder(orderData)
-        setProducts(productsData)
-        setProductsInOrder(orderContent)
-        setCategories(categoriesData)
+        return await response.json()
     }
 
-    function getNextId(arr){
-        return arr.reduce((m,it) => Math.max(m,(it && it.id) || 0),0)+1
+    async function fetchAllPages(url,token){
+        let page=0;
+        let all=[];
+
+        while(true){
+            const res=await fetch(`${url}?page=${page}&size=50`,{
+                method: "GET",
+                headers: {"Authorization":`Bearer ${token}`}
+            })
+
+            if(!res.ok){
+                throw new Error("Failed to load data")
+            }
+
+            const data=await res.json();
+            all.push(...data.content);
+
+            if(page>=data.totalPages-1)
+                break;
+
+            page++;
+        }
+
+        return all;
     }
 
-    function toggleCategory(id){
-        setSelectedCategories(prev =>
-            prev.includes(id) ? prev.filter(c => c!==id):[...prev,id]
-        )
+    async function fetchAllPages(url,token){
+        let page=0;
+        let all=[];
+
+        while(true){
+            const res=await fetch(`${url}?page=${page}&size=50`,{
+                method: "GET",
+                headers: {"Authorization":`Bearer ${token}`}
+            })
+
+            if(!res.ok){
+                throw new Error("Failed to load data")
+            }
+
+            const data=await res.json();
+            all.push(...data.content);
+
+            if(page>=data.totalPages-1)
+                break;
+
+            page++;
+        }
+
+        return all;
     }
 
-    function openProductOptions(id,isEditing){
-        const db=getDb()
-
+    async function openProductOptions(id,isEditing){
         let product
         let quantity=1
         let initialSelections={}
+        let productId=isEditing ? order.items.find(op => op.id===id).product.id:id
+
+        const groups=await fetchAllPages(`${api}product-option/group/${productId}`,user.token)
+
+        const groupsWithValues=await Promise.all(
+            groups.map(async g => {
+                const values=await fetchAllPages(`${api}product-option/value/${g.id}`,user.token)
+
+                return {
+                    ...g,
+                    values
+                }
+            })
+        )
 
         if(isEditing){
             setEditingOrderProductId(id)
-            const orderProduct=db.orderProducts.find(op => op.id===id)
-            product=db.products.find(p => p.id===orderProduct.productId)
+            const orderProduct=order.items.find(op => op.id===id)
+            product=orderProduct.product
 
             quantity=orderProduct.quantity
 
-            const selectedOptionRows=db.orderProductSelectedOptions.filter(o => o.orderProductId===orderProduct.id)
+            const selectedOptionRows=orderProduct.options
             selectedOptionRows.forEach(row => {
-                const group=db.productOptionGroups.find(g => g.id===row.productOptionGroupId)
-
-                if(group.type==="slider"){
-                    initialSelections[group.id]=row.value
+                if(row.type==="SLIDER"){
+                    initialSelections[row.groupId]=row.value
                 }
-                if(group.type==="single"){
-                    initialSelections[group.id]=row.value
+                if(row.type==="SINGLE"){
+                    initialSelections[row.groupId]=row.valueId
                 }
-                if(group.type==="multi"){
-                    if(!initialSelections[group.id])
-                        initialSelections[group.id]=[]
+                if(row.type==="MULTI"){
+                    if(!initialSelections[row.groupId])
+                        initialSelections[row.groupId]=[]
 
                     if(Array.isArray(row.value)){
-                        initialSelections[group.id]=row.value
+                        initialSelections[row.groupId]=row.valueId
                     }else{
-                        initialSelections[group.id].push(row.value)
+                        initialSelections[row.groupId].push(row.valueId)
                     }
                 }
             })
         }else{
             setEditingOrderProductId(null)
-            product=db.products.find(p => p.id===id)
+            product=products.find(p => p.id===id)
 
-            const optionGroups=db.productOptionGroups.filter(g => g.productId===id)
-            optionGroups.forEach(group => {
-                if(group.type==="slider"){
+            groupsWithValues.forEach(group => {
+                if(group.type==="SLIDER"){
                     initialSelections[group.id]=group.minSelect
                 }
-                if(group.type==="single"){
-                    initialSelections[group.id]=null
+                if(group.type==="SINGLE"){
+                    initialSelections[group.id]=group.values.length>0 ? group.values[0].id : null
                 }
-                if(group.type==="multi"){
+                if(group.type==="MULTI"){
                     initialSelections[group.id]=[]
                 }
             })
         }
 
-        let productOptions=[]
-        const optionGroups=db.productOptionGroups.filter(g => g.productId===product.id)
-        optionGroups.forEach(group => {
-            const productOptionValues=db.productOptionValues.filter(pov => pov.productOptionGroupId===group.id)
-
-            productOptions.push({
-                id: group.id,
-                type: group.type,
-                name: group.name,
-                minSelect: group.minSelect,
-                maxSelect: group.maxSelect,
-                selections: productOptionValues
-            })
-        })
-
         setSelectedProduct(product)
 
-        setSelectedProductOptions(productOptions)
+        setSelectedProductOptions(groupsWithValues)
         setSelectedOptions(initialSelections)
 
-        setSelectedProductPrice(recalcPrice(product,productOptions,initialSelections))
         setSelectedProductQuantity(quantity)
+        setSelectedProductPrice(product.price)
 
         setIsPanelVisible(true)
     }
-    
-    function openSplitCheck(){
-        setIsSplitCheck(true)
-        const db=getDb()
-
-        const orderProductsData=db.orderProducts.filter(op => op.orderId===Number(orderId))
-        let orderContent=[]
-        orderProductsData.forEach(orderProduct => {
-            const products=db.products.filter(p => p.id===orderProduct.productId)
-            products.forEach(product => {
-                orderContent.push({
-                    ...product,
-                    quantity:orderProduct.quantity,
-                    orderProductId:orderProduct.id,
-                    price:recalcPrice(product,
-                                    db.productOptionGroups.filter(g => g.productId === product.id).map(group => {
-                                        const selections = db.productOptionValues.filter(pov => pov.productOptionGroupId === group.id);
-                                        return {...group, selections};
-                                    }),
-                                    db.orderProductSelectedOptions.filter(o => o.orderProductId === orderProduct.id)
-                                    .reduce((acc,row) => {
-                                        acc[row.productOptionGroupId] = row.value;
-                                        return acc;
-                                    }, {}))
-                })
-            })
-        });
-        
-        setProductsToPay(orderContent)
-        setSelectedProductsToPay([])
-    }
 
     function openComment(){
-        const db=getDb()
+        setComment(order.note || "")
 
-        const orderComment=order.comment
-
-        setComment(orderComment)
         setIsCommentVisible(true)
     }
 
@@ -284,10 +255,6 @@ export const OrderView=({user,business}) => {
         })
     }
 
-    function toggleProductSelection(orderProductId){
-        setSelectedProductsToPay(prev => prev.includes(orderProductId) ? prev.filter(id => id!==orderProductId):[...prev,orderProductId])
-    }
-
     function changeQuantity(delta){
         setSelectedProductQuantity(prev => {
             let value=prev+delta;
@@ -297,51 +264,119 @@ export const OrderView=({user,business}) => {
             return value
         })
     }
-
-    function recalcPrice(product,productOptions,selectedOptions){
-        let price=product.price
-
-        const db=getDb()
-
-        productOptions.forEach(group => {
-            const value=selectedOptions[group.id]
-
-            if(group.type==="single"){
-                if(value!=null){
-                    const opValue=db.productOptionValues.find(v => v.id===value)
-                    if(opValue)
-                        price+=opValue.priceDelta
-                }
-                return
-            }
-
-            if(group.type==="multi" && Array.isArray(value)){
-                value.forEach(vId => {
-                    const opValue=db.productOptionValues.find(v => v.id===vId)
-                    if(opValue)
-                        price+=opValue.priceDelta
-                })
-            }
+    
+    async function addProductToOrder(){
+        const response=await fetch(`${api}order/${orderId}/product`,{
+            method: "POST",
+            headers: {
+                "Authorization":`Bearer ${user.token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                productId: selectedProduct.id,
+                quantity: selectedProductQuantity
+            })
         })
 
-        price=price*selectedProductQuantity
-
-        return price
-    }
-
-    function addProductToOrder(){
-        const db=getDb()
-
-        const nextOrderProductId=getNextId(db.orderProducts)
-        const newOrderProduct={
-            id:nextOrderProductId,
-            orderId:order.id,
-            productId:selectedProduct.id,
-            quantity:selectedProductQuantity
+        if(!response.ok){
+            throw new Error("Failed to add product to order")
         }
 
-        let nextOptId=getNextId(db.orderProductSelectedOptions)
-        selectedProductOptions.forEach(group => {
+        const newOrderData=await loadOrderData(user.token)
+        const newOrderItem=newOrderData.items.find(oi => !order.items.some(ooi => ooi.id===oi.id))
+
+        for(const group of selectedProductOptions){
+            const value=selectedOptions[group.id]
+
+            if(!value && group.type!=="SLIDER")
+                continue
+
+            if(group.type==="SLIDER" || group.type==="SINGLE"){
+                await fetch(`${api}order/${orderId}/product/${newOrderItem.id}/option`,{
+                    method: "POST",
+                    headers: {
+                        "Authorization":`Bearer ${user.token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        itemOptionId: group.id,
+                        optionValueId: group.type!=="SLIDER" && value ? value:null,
+                        value: group.type==="SLIDER" ? value:null
+                    })
+                })
+            }
+
+            if(group.type==="MULTI"){
+                value.forEach(async valId => {
+                    await fetch(`${api}order/${orderId}/product/${newOrderItem.id}/option`,{
+                        method: "POST",
+                        headers: {
+                            "Authorization":`Bearer ${user.token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            itemOptionId: group.id,
+                            optionValueId: valId ? valId:null
+                        })
+                    })
+                })
+            }
+        }
+
+        toast.success("Produktas sėkmingai pridetas prie užsakymo")
+
+        const orderData=await loadOrderData(user.token)
+        setOrder(orderData)
+        setComment(orderData.note || "")
+        setIsPanelVisible(false)
+    }
+
+    async function changeProductInOrder(){
+        const response=await fetch(`${api}order/${orderId}/product/${editingOrderProductId}`,{
+            method: "PUT",
+            headers: {
+                "Authorization":`Bearer ${user.token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                quantity: selectedProductQuantity
+            })
+        })
+
+        if(!response.ok){
+            throw new Error("Failed to change product in order")
+        }
+        
+        toast.success("Produktas sėkmingai pakeistas užsakyme")
+
+        const orderData=await loadOrderData(user.token)
+        setOrder(orderData)
+        setComment(orderData.note || "")
+        setIsPanelVisible(false)
+        setEditingOrderProductId(null)
+    }
+
+    async function deleteProductInOrder(orderProductId){
+        for(const option of order.items.find(op => op.id===orderProductId).options){
+            const response=await fetch(`${api}order/${orderId}/product/${orderProductId}/option/${option.orderItemOptionId}`,{
+                method: "DELETE",
+                headers: {"Authorization":`Bearer ${user.token}`}
+            })
+
+            if(!response.ok){
+                throw new Error("Failed to remove product option from order")
+            }
+        }
+        
+        const response=await fetch(`${api}order/${orderId}/product/${orderProductId}`,{
+            method: "DELETE",
+            headers: {"Authorization":`Bearer ${user.token}`}
+        })
+
+        if(!response.ok){
+            throw new Error("Failed to remove product from order")
+        }
+        /*selectedProductOptions.forEach(group => {
             const newOrderProductSelectedOptions={
                 id:nextOptId++,
                 orderProductId:newOrderProduct.id,
@@ -352,119 +387,82 @@ export const OrderView=({user,business}) => {
             db.orderProductSelectedOptions.push(newOrderProductSelectedOptions)
         })
 
-        db.orderProducts.push(newOrderProduct)
-        saveDb(db)
+        db.orderProducts.push(newOrderProduct)*/
 
-        loadOrderData()
+        toast.success("Produktas įšimtas iš užsakymo")
+
+        const orderData=await loadOrderData(user.token)
+        setOrder(orderData)
+        setComment(orderData.note || "")
         setIsPanelVisible(false)
     }
 
-    function changeProductInOrder(){
-        const db=getDb()
+    function clearFilters(){
+        setSelectedCategories([])
+        setTotalMin("")
+        setTotalMax("")
+    }
 
-        const orderProduct=db.orderProducts.find(op => op.id===editingOrderProductId)
-        if(!orderProduct)
-            return
-
-        orderProduct.quantity=selectedProductQuantity
-
-        let nextId=getNextId(db.orderProductSelectedOptions)
-
-        db.orderProductSelectedOptions=db.orderProductSelectedOptions.filter(o => o.orderProductId!==editingOrderProductId)
-
-        selectedProductOptions.forEach(group => {
-            const existing=db.orderProductSelectedOptions.find(o => o.orderProductId===editingOrderProductId && o.productOptionGroupId===group.id)
-            const valueToStore=selectedOptions[group.id]
-
-            if(existing){
-                existing.value=valueToStore
-            }else{
-                const newOptionRow={
-                    id:nextId++,
-                    orderProductId:editingOrderProductId,
-                    productOptionGroupId:group.id,
-                    value:valueToStore
-                }
-
-                db.orderProductSelectedOptions.push(newOptionRow)
-            }
+    async function cancelOrder(){
+        const response=await fetch(`${api}order/${orderId}`,{
+            method: "DELETE",
+            headers: {"Authorization":`Bearer ${user.token}`}
         })
 
-        const groupIds=selectedProductOptions.map(g => g.id)
-        db.orderProductSelectedOptions=db.orderProductSelectedOptions.filter(o => !(o.orderProductId===editingOrderProductId && !groupIds.includes(o.productOptionGroupId)))
-
-        saveDb(db)
-
-        loadOrderData()
-        setIsPanelVisible(false)
-        setEditingOrderProductId(null)
-    }
-
-    function deleteProductInOrder(orderProductId){
-        const db=getDb()
-
-        db.orderProducts=db.orderProducts.filter(op => op.id!==orderProductId)
-
-        db.orderProductSelectedOptions=db.orderProductSelectedOptions.filter(o => o.orderProductId!==orderProductId)
-
-        saveDb(db)
-        loadOrderData()
-    }
-
-    function saveComment(){
-        const db=getDb()
-
-        const orderData=db.orders.find(o => o.id===Number(orderId))
-        if(!orderData)
-            return
-
-        orderData.comment=comment
-
-        saveDb(db)
-        loadOrderData()
-        setIsCommentVisible(false)
-    }
-
-    function confirmPayment(){
-        const db=getDb()
-        
-        if(isSplitCheck){
-            if(selectedProductsToPay.length===0){
-                toast.error("Pasirinkite bent vieną produktą")
-                return
-            }
-
-            const remainingProducts=productsToPay.filter(p => !selectedProductsToPay.includes(p.orderProductId))
-            setProductsToPay(remainingProducts)
-            setSelectedProductsToPay([])
-            toast.success("Apmokėta")
-
-            if(remainingProducts.length===0){
-                const existing=db.orders.find(o => o.id===Number(orderId))
-
-                if(existing){
-                    existing.status="Apmokėta"
-                    saveDb(db)
-                }
-            
-                setIsPaymentPanelVisible(false)
-                loadOrderData()
-            }
-        }else{
-            const existing=db.orders.find(o => o.id===Number(orderId))
-
-            if(!existing){
-                toast.error("Klaida: užsakymas nerasta")
-                return
-            }
-
-            existing.status="Apmokėta"
-
-            saveDb(db)
-            setIsPaymentPanelVisible(false)
-            loadOrderData()
+        if(!response.ok){
+            throw new Error("Failed to cancel order")
         }
+
+        toast.success("Užsakymas atšauktas")
+
+        const orderData=await loadOrderData(user.token)
+        setOrder(orderData)
+        setComment(orderData.note || "")
+        setIsOptionsVisible(false)
     }
+
+    async function completeOrder(){
+        const response=await fetch(`${api}order/${orderId}`,{
+            method: "POST",
+            headers: {"Authorization":`Bearer ${user.token}`}
+        })
+
+        if(!response.ok){
+            throw new Error("Failed to complete order")
+        }
+
+        toast.success("Užsakymas pažymėtas kaip vykdomas")
+
+        const orderData=await loadOrderData(user.token)
+        setOrder(orderData)
+        setComment(orderData.note || "")
+    }
+
+    async function saveComment(){
+        const response=await fetch(`${api}order/${orderId}`,{
+            method: "PUT",
+            headers: {
+                "Authorization":`Bearer ${user.token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({name: comment})
+        })
+
+        if(!response.ok){
+            throw new Error("Failed to update order")
+        }
+
+        toast.success("Užsakymo pastaba išsaugota")
+
+        const orderData=await loadOrderData(user.token)
+        setOrder(orderData)
+        setComment(orderData.note || "")
+        const products=await fetchAllPages(`${api}product`,user.token)
+        setProducts(products)
+    }
+
+    if(!user || !user.info || !business || !order)
+        return null
 
     return(
         <div>
@@ -476,7 +474,7 @@ export const OrderView=({user,business}) => {
                         <>
                             <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
                             <div id="product_options" className="col_align">
-                                <button className="product_exit_button" onClick={() => setIsPanelVisible(false)}>X</button>
+                                <button id="product_close_button" className="close_button" onClick={() => setIsPanelVisible(false)}>X</button>
                                 <p className="product_name">{selectedProduct.name}</p>
                                 <hr/>
                                 {selectedProductOptions.length===0 ? (
@@ -485,7 +483,7 @@ export const OrderView=({user,business}) => {
                                     <div className="product_options_list">
                                         {selectedProductOptions.map(po => (
                                             <div key={po.id} className="product_option_group">
-                                                {po.type==="slider" && (
+                                                {po.type==="SLIDER" && (
                                                     <div className="col_align">
                                                         <p className="product_group_name">{po.name}</p>
                                                         <div className="row_align">
@@ -497,14 +495,14 @@ export const OrderView=({user,business}) => {
                                                         </div>
                                                     </div>
                                                 )}
-                                                {po.type==="single" && (
+                                                {po.type==="SINGLE" && (
                                                     <div className="col_align">
                                                         <p className="product_group_name">{po.name}</p>
                                                         <div className="col_align">
-                                                            {po.selections.length===0 ? (
+                                                            {po.values.length===0 ? (
                                                                 <></>
                                                             ):(
-                                                                po.selections.map(selection => (
+                                                                po.values.map(selection => (
                                                                     <div key={selection.id} className="product_group_selection row_align" onClick={() => selectSingle(po.id,selection.id)}>
                                                                         <div className={"selection_point"+(selectedOptions[po.id]===selection.id ? " active":"")}/>
                                                                         {selection.name}
@@ -514,16 +512,16 @@ export const OrderView=({user,business}) => {
                                                         </div>
                                                     </div>
                                                 )}
-                                                {po.type==="multi" && (
+                                                {po.type==="MULTI" && (
                                                     <div className="col_align">
                                                         <p className="product_group_name">{po.name}</p>
                                                         <div className="col_align">
-                                                            {po.selections.length===0 ? (
+                                                            {po.values.length===0 ? (
                                                                 <></>
                                                             ):(
-                                                                po.selections.map(selection => (
+                                                                po.values.map(selection => (
                                                                     <div key={selection.id} className="product_group_selection row_align" onClick={() => toggleMulti(po.id,selection.id)}>
-                                                                        <div className={"selection_point"+(selectedOptions[po.id].includes(selection.id) ? " active":"")}/>
+                                                                        <div className={"selection_point"+(selectedOptions[po.id] && selectedOptions[po.id].includes(selection.id) ? " active":"")}/>
                                                                         {selection.name}
                                                                     </div>
                                                                 ))
@@ -542,7 +540,7 @@ export const OrderView=({user,business}) => {
                                     <p className="product_price">Kaina: {selectedProductPrice.toFixed(2)}€</p>
                                 </div>
                                 {addingNewProduct ? (
-                                    <button className="product_confirm_button" onClick={() => addProductToOrder()}>
+                                    <button className="product_confirm_button" onClick={addProductToOrder}>
                                         Pridėti
                                     </button>
                                 ):(
@@ -553,110 +551,123 @@ export const OrderView=({user,business}) => {
                             </div>
                         </>
                     )}
-                    {order.status!=="Atvira" ? (
+                    {order.status!=="OPEN" ? (
                         <></>
                     ):(
                         <>
                             <div id="order_filters" className="col_align">
                                 <input id="order_search" type="text" placeholder="Pieška" value={search} onChange={(e) => setSearch(e.target.value)}/>
-                                {categories.length===0 ? (
-                                    <></>
-                                ):(
-                                    <div id="order_category_list" className="col_align">
-                                        Kategorijos
-                                        <hr/>
-                                        {categories.map(c => (
-                                            <div key={c.id} className="order_category row_align">
-                                                <input type="checkbox" checked={selectedCategories.includes(c.id)} onChange={() => toggleCategory(c.id)}/>{c.name}
-                                            </div>
-                                        ))}
+                                <div id="order_sort_button" className="control_button">Rikiavimas
+                                    <div id="sort_content">
+                                        <button id="sort_item_button" onClick={() => setSortType("name_increase")}>Pavadinimas: A-Z</button>
+                                        <button id="sort_item_button" onClick={() => setSortType("name_decrease")}>Pavadinimas: Z-A</button>
+                                        <button id="sort_item_button" onClick={() => setSortType("price_increase")}>Kaina: Didėjančiai</button>
+                                        <button id="sort_item_button" onClick={() => setSortType("price_decrease")}>Kaina: Mažėjančiai</button>
                                     </div>
-                                )}
+                                </div>
+                                <div id="order_filter_options" className="col_align">
+                                    <p id="order_filter_title">Kaina:</p>
+                                    <hr/>
+                                    <label id="order_filter_label">Min:</label>
+                                    <input className="order_filter_input_field" type="number" value={totalMin} onChange={(e) => setTotalMin(e.target.value)}/>
+                                    <label id="order_filter_label">Max:</label>
+                                    <input className="order_filter_input_field" type="number" value={totalMax} onChange={(e) => setTotalMax(e.target.value)}/>
+                                </div>
+                                <button id="clear_button" className="control_button" onClick={() => clearFilters()}>Išvalyti Filtrus</button>
                             </div>
-                            <div id="order_products">
+                            <div id="products_to_add">
                                 {filteredProducts.length===0 ? (
-                                    <p id="product_card_not_found">Nerasta pozicijų</p>
+                                    <p id="product_card_to_add_not_found">Nerasta pozicijų</p>
                                 ):(
                                     filteredProducts.map(p => (
-                                        <button key={p.id} className="product_card col_align" onClick={() => {setAddingNewProduct(true);openProductOptions(p.id,false)}}>
-                                            <div id="product_card_name">{p.name}</div>
-                                            <div id="product_card_price">{p.price.toFixed(2)}€</div>
+                                        <button key={p.id} id="product_card_to_add" className="col_align" onClick={() => {setAddingNewProduct(true);openProductOptions(p.id,false)}}>
+                                            <div id="product_card_to_add_name">{p.name}</div>
+                                            <div id="product_card_to_add_price">{p.price.toFixed(2)}€</div>
                                         </button>
                                     ))
                                 )}
                             </div>
                         </>
                     )}
-                    <div id="order_info" className={(order.status!=="Atvira" ? "closed_order":"")+" col_align"}>
-                        <div id="order_info_id">Užsakymo ID: {order.id}</div>
+                    <div id="order_info" className={(order.status!=="OPEN" ? "closed_order":"")+" col_align"}>
+                        <div id="order_info_id">ID: {order.id}</div>
+                        <div id="order_info_status">Būklė: {statusMap[order.status] ?? order.status}</div>
                         <div id="order_product_list" className="col_align">
-                            {productsInOrder.length===0 ? (
+                            {order.items.length===0 ? (
                                 <></>
                             ):(
-                                productsInOrder.map(op => (
-                                    order.status!=="Atvira" ? (
-                                        <div key={op.orderProductId} className="order_product_card row_align">
-                                            {op.name} * {op.quantity}
+                                order.items.map(op => (
+                                    order.status!=="OPEN" ? (
+                                        <div key={op.id} className="order_product_card row_align">
+                                            {op.product.name} * {op.quantity} - {(op.product.price * op.quantity).toFixed(2)}€
                                         </div>
                                     ):(
-                                        <div key={op.orderProductId} className="order_product_card row_align">
-                                            {op.name} * {op.quantity}
-                                            <button className="order_product_card_edit_button" onClick={() => {setAddingNewProduct(false);openProductOptions(op.orderProductId,true)}}>Keisti</button>
-                                            <button className="order_product_card_delete_button" onClick={() => deleteProductInOrder(op.orderProductId)}>X</button>
+                                        <div key={op.id} className="order_product_card row_align">
+                                            {op.product.name} * {op.quantity} - {(op.product.price * op.quantity).toFixed(2)}€
+                                            <button className="order_product_card_edit_button" onClick={() => {setAddingNewProduct(false);openProductOptions(op.id,true)}}>Keisti</button>
+                                            <button className="order_product_card_delete_button" onClick={() => deleteProductInOrder(op.id)}>X</button>
                                         </div>
                                     )
                                 ))
                             )}
                         </div>
                         <div className="order_total_info row_align">
-                            <p id="order_total">Iš viso: {order.total.toFixed(2)}€</p>
-                            <p id="order_quantity">Kiekis: {order.quantity}</p>
+                            <p id="order_total">Iš viso: {(order.total ?? 0).toFixed(2)}€</p>
+                            {order.paidAmount>0 && (<p id="order_paid">Apmokėta: {(order.paidAmount ?? 0).toFixed(2)}€</p>)}
+                            <p id="order_quantity">Kiekis: {order.items.reduce((sum,op) => sum+op.quantity,0)}</p>
                         </div>
                         <div className="order_more_functions row_align">
-                            <button className="order_options_button">Opcijos</button>
+                            <button id="order_options_button" onClick={() => setIsOptionsVisible(true)}>Opcijos</button>
+                            {isOptionsVisible && (
+                                <>
+                                    <div id="invisible_panel" onClick={() => setIsOptionsVisible(false)}/>
+                                    <div id="order_options_panel">
+                                        <button id="order_option_button">Nuolaidos</button>
+                                        {order.status!=="CANCELLED" && order.status!=="PAID" && (
+                                            <button id="order_option_button" onClick={cancelOrder}>Atšaukti</button>
+                                        )}
+                                        {order.status==="PAID" && (
+                                            <button id="order_option_button">Grąžinimas</button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                             <button className="order_comment_button" onClick={() => openComment()}>Pastaba</button>
                             {isCommentVisible && (
-                                <div className="order_comment_panel col_align">
-                                    <button className="comment_close_button" onClick={() => setIsCommentVisible(false)}>X</button>
-                                    {order.status!=="Atvira" ? (
-                                        <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
-                                    ):(
-                                        <>
-                                            <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
-                                            <button className="comment_save_button" onClick={() => saveComment()}>Išsaugoti</button>
-                                        </>
-                                    )}
-                                </div>
+                                <>
+                                    <div id="invisible_panel" onClick={() => setIsCommentVisible(false)}/>
+                                    <div id="order_comment_panel" className="col_align">
+                                        {order.status!=="OPEN" ? (
+                                            <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
+                                        ):(
+                                            <>
+                                                <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
+                                                <button className="comment_save_button" onClick={saveComment}>Išsaugoti</button>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
-                        {order.status!=="Atvira" ? (
-                            <></>
+                        {order.status!=="OPEN" ? (
+                            order.status==="IN_PROGRESS" || order.status==="PARTIALLY_PAID" ? (
+                                <button className="payment_button" onClick={() => setIsPaymentPanelVisible(true)}>Apmokėti</button>
+                            ):(
+                                <></>
+                            )
                         ):(
-                            <button className="payment_button" onClick={() => {setIsSplitCheck(false);setIsPaymentPanelVisible(true)}}>Apmokėti</button>
+                            <button className="payment_button" onClick={completeOrder}>Užbaigti</button>
                         )}
                     </div>
                     {isPaymentPanelVisible && (
-                        <>
-                            {isSplitCheck ? (
-                                <div id="transparent_panel"/>
-                            ):(
-                                <div id="transparent_panel" onClick={() => setIsPaymentPanelVisible(false)}/>
-                            )}
-                            <div id="payment_panel" className="col_align">
-                                {isSplitCheck && (
-                                    <div id="payment_product_list" className="col_align">
-                                        {productsToPay.map(p => (
-                                            <div key={p.orderProductId} className={"payment_product_card row_align"+(selectedProductsToPay.includes(p.orderProductId) ? " selected":"")} onClick={() => toggleProductSelection(p.orderProductId)}>
-                                                {p.name} {p.price.toFixed(2)}€
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Grynais</button>
-                                <button className="payment_panel_button" onClick={() => confirmPayment()}>Kortėle</button>
-                                <button className="payment_panel_button" onClick={() => openSplitCheck()}>Sąskaitos padalijimas</button>
-                            </div>
-                        </>
+                        <Payment api={api} token={user.token} type={"Order"} id={orderId} closePaymentWindow={(value) => setIsPaymentPanelVisible(value)} onPaymentSuccess={async () => {
+                            try{
+                                const orderData=await loadOrderData(user.token)
+                                setOrder(orderData)
+                            }catch{
+                                toast.error("Klaida atnaujinant užsakymą")
+                            }
+                        }}/>
                     )}
                 </div>
             )}

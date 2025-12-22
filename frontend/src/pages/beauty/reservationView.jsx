@@ -1,9 +1,10 @@
-import React,{useEffect,useState} from "react"
+import {useEffect,useState} from "react"
 import {useParams,useNavigate} from "react-router-dom"
 import {toast} from 'react-hot-toast'
 import "./reservationView.css"
 
 import {getDb,saveDb} from "../../utils/tempDB"
+import {filterSearchList,sortBy} from "../../utils/filtering"
 
 export const ReservationView=({user,business}) => {
     const {reservationId}=useParams()
@@ -11,24 +12,31 @@ export const ReservationView=({user,business}) => {
 
     const [reservation,setReservation]=useState()
     const [service,setService]=useState()
-    const [serviceSpecialist,setServiceSpecialist]=useState()
     
-    const [newReservation,setNewReservation]=useState()
+    const [editingReservation,setEditingReservation]=useState()
+
     const [customerName,setCustomerName]=useState("")
+    const [customerSurname,setCustomerSurname]=useState("")
     const [customerPhone,setCustomerPhone]=useState("")
+    const [comment,setComment]=useState("")
+
+    const [search,setSearch]=useState("")
+    const [servicesSortType,setServicesSortType]=useState("name_increase")
+
     const [services,setServices]=useState([])
+    const [filteredServices,setFilteredServices]=useState([])
+
     const [selectedService,setSelectedService]=useState(null)
     const [selectedDate,setSelectedDate]=useState(new Date().toISOString().split("T")[0])
     const [timeSlots,setTimeSlots]=useState([])
     const [selectedTimeSlot,setSelectedTimeSlot]=useState(null)
     
-    const [comment,setComment]=useState("")
-    
     const [errors,setErrors]=useState([])
 
     const [isReservationLoading,setIsReservationLoading]=useState(true)
-    const [isCommentVisible,setIsCommentVisible]=useState(false)
-    const [isPanelVisible,setIsPanelVisible]=useState(false)
+    const [isEditingClientInfo,setIsEditingClientInfo]=useState(false)
+    const [isEditingReservationTime,setIsEditingReservationTime]=useState(false)
+    const [isChangingService,setIsChangingService]=useState(false)
 
     const formatter=new Intl.DateTimeFormat("lt-LT",{
         year:"numeric",
@@ -50,44 +58,43 @@ export const ReservationView=({user,business}) => {
     },[user])
 
     useEffect(() => {
-        if(isPanelVisible)
+        const filterBySearch=filterSearchList(services,search)
+        const sortedList=sortBy(filterBySearch,servicesSortType)
+        
+        setFilteredServices(sortedList)
+    },[services,search,servicesSortType])
+
+    useEffect(() => {
+        if(isEditingReservationTime && selectedService!==null)
             generateTimeTable()
-    },[selectedService,selectedDate,selectedTimeSlot])
+    },[selectedService,selectedDate])
 
     function loadReservationData(){
         const db=getDb()
 
         const reservationData=db.reservations.find(r => r.id===Number(reservationId))
         const serviceData=db.services.find(s => s.id===reservationData.serviceId)
-        const employeeData=db.users.find(e => e.id===serviceData.userId)
 
         setReservation(reservationData)
         setService(serviceData)
-        setServiceSpecialist(employeeData)
     }
 
-    function openReservationEditPanel(){
-        const db=getDb()
+    function editClientInfo(){
         setErrors([])
 
-        const newReservationData={
-            id:reservation.id,
-            businessId:business.id,
-            serviceId:null,
-            appointmentTime:"",
-            customerName:"",
-            customerPhone:"",
-            status:"Atvira",
-            createdAt:"",
-            closedAt:"",
-            comment:""
-        }
-
-        const servicesData=db.services.filter(s => s.businessId===business.id)
-
-        setCustomerName(reservation.customerName)
+        setCustomerName(reservation.customerName.split(" ")[0])
+        setCustomerSurname(reservation.customerName.split(" ")[1])
         setCustomerPhone(reservation.customerPhone)
-        setSelectedService(reservation.serviceId)
+        setComment(reservation.comment)
+
+        setIsEditingClientInfo(true)
+    }
+
+    function openReservationTimeEditPanel(){
+        const editingReservationData={
+            appointmentTime:""
+        }
+        
         setSelectedDate(new Date(reservation.appointmentTime).toISOString().split("T")[0])
         const currentStart=new Date(reservation.appointmentTime)
         setSelectedTimeSlot({
@@ -96,12 +103,33 @@ export const ReservationView=({user,business}) => {
             hour:currentStart.getHours(),
             minute:currentStart.getMinutes()
         })
-
-        generateTimeTable()
         
-        setServices(servicesData)
-        setNewReservation(newReservationData)
-        setIsPanelVisible(true)
+        setSelectedService(reservation.serviceId)
+        setEditingReservation(editingReservationData)
+        setIsEditingReservationTime(true)
+    }
+
+    function openServiceChangePanel(){
+        const db=getDb()
+
+        setSelectedService(null)
+        const serviceList=db.services.filter(s => s.businessId===business.id)
+        setServices(serviceList)
+
+        const editingReservationData={
+            serviceId:null,
+            appointmentTime:""
+        }
+        
+        setEditingReservation(editingReservationData)
+        setIsChangingService(true)
+    }
+
+    function selectServiceToBook(id){
+        setSelectedTimeSlot(null)
+        setSelectedService(id)
+
+        setIsEditingReservationTime(true)
     }
 
     function generateTimeTable(){
@@ -110,6 +138,8 @@ export const ReservationView=({user,business}) => {
 
         const db=getDb()
         const service=db.services.find(s => s.id===selectedService)
+        if(!service)
+            return
 
         const openHour=parseInt(service.opensAt.split(":")[0])
         const closeHour=parseInt(service.closesAt.split(":")[0])
@@ -130,6 +160,20 @@ export const ReservationView=({user,business}) => {
         const markedSlots=markReservedSlots(slots,new Date(selectedDate),reservation.id)
 
         setTimeSlots(markedSlots)
+    }
+
+    function selectBookingDate(date){
+        setSelectedTimeSlot(null)
+
+        const today=new Date()
+        today.setHours(0,0,0,0)
+
+        const pickedDate=new Date(date)
+        pickedDate.setHours(0,0,0,0)
+
+        const validDate=pickedDate>=today ? date : new Date().toISOString().split("T")[0]
+        
+        setSelectedDate(validDate)
     }
 
     function markReservedSlots(slots,selectedDate,currentReservationId){
@@ -165,6 +209,20 @@ export const ReservationView=({user,business}) => {
             toast.error("Pirma pasirinkite paslaugą")
             return
         }
+
+        const now=new Date()
+        const selectedDateObj=new Date(selectedDate)
+
+        if(selectedDateObj.toDateString()===now.toDateString()){
+            const slotTime=new Date(selectedDate)
+            slotTime.setHours(hour,minute,0,0)
+
+            if(slotTime<=now){
+                toast.error("Negalima rezervuoti jau praėjusio laiko")
+                return
+            }
+        }
+        
 
         const db=getDb()
         const service=db.services.find(s => s.id===selectedService)
@@ -211,46 +269,21 @@ export const ReservationView=({user,business}) => {
         }
 
         setSelectedTimeSlot(interval)
-        newReservation.appointmentTime=startTime.toISOString()
+        editingReservation.appointmentTime=startTime.toISOString()
     }
     
-    function openComment(){
-        const db=getDb()
-
-        const reservationComment=reservation.comment
-
-        setComment(reservationComment)
-        setIsCommentVisible(true)
-    }
-    
-    function saveComment(){
-        const db=getDb()
-
-        const reservationData=db.reservations.find(o => o.id===Number(reservationId))
-        if(!reservationData)
-            return
-
-        reservationData.comment=comment
-
-        saveDb(db)
-        loadReservationData()
-        setIsCommentVisible(false)
-    }
-
-    function editReservation(){
+    function saveEditingClientInfo(){
         setErrors([])
         const db=getDb()
         const newErrors={}
 
         if(!customerName.trim())
-          newErrors.customerName="Įveskite kliento vardą ir pavarde"
+          newErrors.customerName="Įveskite kliento vardą"
+        if(!customerSurname.trim())
+          newErrors.customerSurname="Įveskite kliento pavardė"
         if(!customerPhone.trim())
           newErrors.customerPhone="Įveskite kliento telefono numerį"
-        if(selectedService===null)
-          newErrors.selectedService="Pasirinkite paslaugą"
-        if(!selectedTimeSlot)
-          newErrors.selectedTimeSlot="Pasirinkite laiką"
-
+        
         if(Object.keys(newErrors).length>0){
           setErrors(newErrors)
           toast.error("Prašau pataisikit paryškintas vietas")
@@ -264,17 +297,84 @@ export const ReservationView=({user,business}) => {
             return
         }
 
-        existing.serviceId=selectedService
-        existing.customerName=customerName
+        existing.customerName=customerName+" "+customerSurname
         existing.customerPhone=customerPhone
-        existing.appointmentTime=newReservation.appointmentTime
+        existing.comment=comment
 
         saveDb(db)
 
-        toast.success(`SMS žinutė išsiųsta\nRezervacijos ID: ${existing.id}\nVardas: ${existing.customerName}\nTelefonas: ${existing.customerPhone}\nPaslauga: ${db.services.find(s => s.id===existing.serviceId).name}\nLaikas: ${formatter.format(new Date(existing.appointmentTime))}`)
+        toast.success("Kliento informacija atnaujinta")
         loadReservationData()
-        setIsPanelVisible(false)
+        setIsEditingClientInfo(false)
     }
+
+    function saveChangedService(){
+        const db=getDb()
+
+        if(!selectedTimeSlot){
+          toast.error("Pasirinkite laiką")
+          return
+        }
+
+        const existing=db.reservations.find(r => r.id===reservation.id)
+
+        if(!existing){
+            toast.error("Klaida: rezervacija nerasta")
+            return
+        }
+        
+        existing.serviceId=selectedService
+        existing.appointmentTime=editingReservation.appointmentTime
+
+        saveDb(db)
+
+        toast.success(`SMS žinutė išsiųsta\nPaslauga buvo pakeista: ${db.services.find(s => s.id===selectedService).name} \nLaikas: ${formatter.format(new Date(existing.appointmentTime))}`)
+        loadReservationData()
+        setIsEditingReservationTime(false)
+        setIsChangingService(false)
+    }
+
+    function saveEditingReservationTime(){
+        const db=getDb()
+
+        if(!selectedTimeSlot){
+          toast.error("Pasirinkite laiką")
+          return
+        }
+
+        const existing=db.reservations.find(r => r.id===reservation.id)
+
+        if(!existing){
+            toast.error("Klaida: rezervacija nerasta")
+            return
+        }
+        
+        existing.appointmentTime=editingReservation.appointmentTime
+
+        saveDb(db)
+
+        toast.success(`SMS žinutė išsiųsta\nLaikas buvo pakeistas: ${formatter.format(new Date(existing.appointmentTime))}`)
+        loadReservationData()
+        setIsEditingReservationTime(false)
+    }
+    
+    function cancelReservation(){
+        const db=getDb()
+        const existing=db.reservations.find(o => o.id===Number(reservationId))
+
+        if(!existing){
+            toast.error("Klaida: rezervacija nerasta")
+            return
+        }
+
+        existing.status="closed"
+
+        saveDb(db)
+        loadReservationData()
+    }
+
+    if(!user || !user.info || !business)
+        return null
 
     return(
         <div>
@@ -283,109 +383,135 @@ export const ReservationView=({user,business}) => {
             ):(
                 <>
                     <div id="reservation_panels">
-                        <div id="reservation_info" className="col_align">
-                            <div id="reservation_main_info" className="col_align">
-                                <p className="reservation_info_name">Rezervacijos Informacija</p>
-                                <hr/>
-                                <p className="reservation_info_content">Vizito laikas: {formatter.format(new Date(reservation.appointmentTime))}</p>
-                            </div>
-                            <div id="reservation_client_info" className="col_align">
-                                <p className="reservation_info_name">Kliento Informacija</p>
-                                <hr/>
-                                <p className="reservation_info_content">Vardas Pavarde: {reservation.customerName}</p>
-                                <p className="reservation_info_content">Telefonas: {reservation.customerPhone}</p>
-                            </div>
+                        <div id="reservation_client_info" className="col_align">
+                            {isEditingClientInfo ? (
+                                <>
+                                    <div id="reservation_header" className="row_align">
+                                        <p id="reservation_tab_name">Kliento Informacija</p>
+                                    </div>
+                                    <hr/>
+                                    <div id="reservation_client_name_surname" className="row_align">
+                                        <div id="reservation_client_input_wrapper" className="col_align">
+                                            <input type="text" className="reservatio_client_input" placeholder="Vardas" value={customerName} onChange={e => setCustomerName(e.target.value)}/>
+                                            {errors.customerName && (
+                                                <div className="error_text">
+                                                    {errors.customerName}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div id="reservation_client_input_wrapper" className="col_align">
+                                            <input type="text" className="reservatio_client_input" placeholder="Pavardė" value={customerSurname} onChange={e => setCustomerSurname(e.target.value)}/>
+                                            {errors.customerSurname && (
+                                                <div className="error_text">
+                                                    {errors.customerSurname}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div id="reservation_client_input_wrapper" className="col_align">
+                                        <input type="text" className="reservatio_client_input" placeholder="Telefonas" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}/>
+                                        {errors.customerPhone && (
+                                            <div className="error_text">
+                                                {errors.customerPhone}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
+                                    <div id="edit_controls" className="row_align">
+                                        <button id="reservatio_client_cancel_button" className="control_button" onClick={() => setIsEditingClientInfo(false)}>Atšaukti</button>
+                                        <button id="reservatio_client_save_button" className="control_button" onClick={() => saveEditingClientInfo()}>Išsaugoti</button>
+                                    </div>
+                                </>
+                            ):(
+                                <>
+                                    <div id="reservation_header" className="row_align">
+                                        <p id="reservation_tab_name">Kliento Informacija</p>
+                                        {reservation.status==="open" && (
+                                            <button id="edit_button" className="control_button" onClick={() => editClientInfo()}>Keisti</button>
+                                        )}
+                                    </div>
+                                    <hr/>
+                                    <div id="reservation_client_name_surname" className="row_align">
+                                        <p id="reservation_client_name">Vardas: {reservation.customerName.split(" ")[0]}</p>
+                                        <p id="reservation_client_surname">Pavardė: {reservation.customerName.split(" ")[1]}</p>
+                                    </div>
+                                    <p id="reservation_client_phone">Telefonas: {reservation.customerPhone}</p>
+                                    <textarea className="comment_input" type="text" placeholder="Pastabos" value={reservation.comment} readOnly/>
+                                </>
+                            )}
                         </div>
-                        <div id="service_info" className="col_align">
-                            <div id="service_main_info" className="col_align">
-                                <p className="reservation_info_name">Paslaugos Informacija</p>
+                        <div id="reservation_info" className="col_align">
+                            <div id="reservation_details" className="col_align">
+                                <p id="reservation_tab_name">Rezervacijos Informacija</p>
                                 <hr/>
-                                <p className="reservation_info_content">Id: {service.id} {service.name}</p>
-                                <p className="reservation_info_content">Trukme: {service.durationMin} Min</p>
-                                <p className="reservation_info_content">Kaina: {service.price}</p>
+                                <p id="reservation_id">ID: {reservation.id}</p>
+                                <div id="reservation_appointment_time_tab" className="row_align">
+                                    <p id="reservation_appointment_time">Vizito Laikas: {formatter.format(new Date(reservation.appointmentTime))}</p>
+                                    {reservation.status==="open" && (
+                                        <button id="edit_button" className="control_button" onClick={() => openReservationTimeEditPanel()}>Keisti</button>
+                                    )}
+                                </div>
+                                <p id="reservation_status">Būklė: {
+                                    reservation.status==="open" ? "Atviras":
+                                    reservation.status==="closed" ? "Uždarytas":
+                                    reservation.status==="paid" ? "Apmokėtas":
+                                    reservation.status==="refund" ? "Gražintas":""
+                                }</p>
                             </div>
-                            <div id="service_specialist_info" className="col_align">
-                                <p className="reservation_info_name">Specialisto Informacija</p>
+                            <div id="reservation_service_details" className="col_align">
+                                <div id="reservation_header" className="row_align">
+                                    <p id="reservation_tab_name">Paslaugos Informacija</p>
+                                    {reservation.status==="open" && (
+                                        <button id="edit_button" className="control_button" onClick={() => openServiceChangePanel()}>Keisti</button>
+                                    )}
+                                </div>
                                 <hr/>
-                                <p className="reservation_info_content">Id: {service.userId} Vardas: {serviceSpecialist.name}</p>
+                                <p id="reservation_service_name">{service.name}</p>
+                                <p id="reservation_service_specialist">Specialistas: {getDb().employees.find(e => e.id===service.employeeId).name}</p>
+                                <p id="reservation_service_duration">Trukmė: {service.durationMin} Min.</p>
+                                <p id="reservation_service_price">Kaina: {service.price}</p>
                             </div>
                         </div>
                         <div id="reservation_controls" className="col_align">
-                            <button className="reservation_edit_button" onClick={() => openReservationEditPanel()}>Redaguoti Rezervaciją</button>
-                            <button className="reservation_comment_button" onClick={() => openComment()}>Pastaba</button>
-                            {isCommentVisible && (
-                                <div className="reservation_comment_panel col_align">
-                                    <button className="comment_close_button" onClick={() => setIsCommentVisible(false)}>X</button>
-                                    {reservation.status!=="Atvira" ? (
-                                        <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} readOnly/>
-                                    ):(
-                                        <>
-                                            <textarea className="comment_input" type="text" placeholder="Pastabos" value={comment} onChange={e => setComment(e.target.value)}/>
-                                            <button className="comment_save_button" onClick={() => saveComment()}>Išsaugoti</button>
-                                        </>
-                                    )}
-                                </div>
+                            <button id="reservation_discount_button" className="control_button">Nuolaidos</button>
+                            {reservation.status!=="closed" && reservation.status!=="paid" && (
+                                <button id="reservation_cancel_button" className="control_button" onClick={() => cancelReservation()}>Atšaukti</button>
                             )}
-                            <button className="reservation_payment_button">Apmokėti</button>
+                            {reservation.status==="paid" && (
+                                <button id="reservation_refund_button" className="control_button">Grąžinimas</button>
+                            )}
+                            {reservation.status==="open" && (
+                                <button id="reservation_payment_button" className="control_button">Apmokėti</button>
+                            )}
                         </div>
                     </div>
-                    {isPanelVisible && (
+                    {isEditingReservationTime && (
                         <>
-                            <div id="transparent_panel" onClick={() => setIsPanelVisible(false)}/>
-                            <div id="reservation_create_panel" className="row_align">
-                                <div className="create_reservation_input_fields col_align">
-                                    <input className={"create_reservation_input_field "+(errors.customerName ? "invalid":"")} type="text" placeholder="Kliento vardas pavarde" value={customerName} onChange={e => setCustomerName(e.target.value)}/>
-                                    {errors.customerName && (
-                                        <div className="error_text">
-                                            {errors.customerName}
-                                        </div>
-                                    )}
-                                    <input className={"create_reservation_input_field "+(errors.customerPhone ? "invalid":"")} pattern="" type="text" placeholder="Kliento Telefonas" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}/>
-                                    {errors.customerPhone && (
-                                        <div className="error_text">
-                                            {errors.customerPhone}
-                                        </div>
-                                    )}
-                                    <div className="service_list col_align">
-                                        {services.length===0 ? (
-                                            <p id="services_not_found">Nerasta paslaugų</p>
-                                        ):(
-                                            services.map(s => (
-                                                <button key={s.id} className={"service_card col_align"+(selectedService===s.id ? " selected":"")} onClick={() => {setSelectedTimeSlot(null);setSelectedService(s.id)}}>
-                                                    <div id="service_card_name">{s.name}</div>
-                                                    <div className="row_align">
-                                                        <div id="service_card_specialist">{getDb().users.find(u => u.id===s.userId).name}</div>
-                                                        <div id="service_card_price">{s.price.toFixed(2)}€</div>
-                                                    </div>
-                                                </button>
-                                            ))
-                                        )}
-                                    </div>
-                                    {errors.selectedService && (
-                                        <div className="error_text">
-                                            {errors.selectedService}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="create_reservation_time_table_controls col_align">
-                                    <div className="create_reservation_date_picker">
+                            <div id="transparent_panel" onClick={() => setIsEditingReservationTime(false)}/>
+                            <div id="editing_reservation_panel" className="col_align">
+                                <button id="product_close_button" className="close_button" onClick={() => setIsEditingReservationTime(false)}>X</button>
+                                <div id="create_reservation_controls" className="row_align">
+                                    <p id="create_reservation_service_picked">{getDb().services.find(s => s.id===selectedService).name}</p>
+                                    <div id="create_reservation_date_picker" className="row_align">
                                         <label>Pasirinkite datą:</label>
-                                        <input className="create_reservation_date_picker_input" type="date" value={selectedDate} onChange={e => {setSelectedTimeSlot(null);setSelectedDate(e.target.value)}}/>
+                                        <input id="create_reservation_date_picker_input" type="date" value={selectedDate} onChange={e => selectBookingDate(e.target.value)}/>
                                     </div>
-                                    <div className="create_reservation_time_table">
+                                </div>
+                                <div id="create_reservation_main" className="col_align time_table">
+                                    <div id="create_reservation_time_table">
                                         {timeSlots.length===0 ? (
                                             <></>
                                         ):(
                                             timeSlots.map(row => (
-                                                <div key={row.hour} className="time_row">
-                                                    <div className="time_hour">{row.hour}:00</div>
-                                                    <div className="time_minutes">
+                                                <div key={row.hour} id="time_row">
+                                                    <div id="time_hour">{row.hour}:00</div>
+                                                    <div id="time_minutes">
                                                         {row.minuteSlots.map(slot => (
                                                             <div
                                                                 key={slot.minute}
+                                                                id="time_slot"
                                                                 className={
-                                                                    `time_slot
-                                                                    ${slot.taken ? "taken":"free"}
+                                                                    `${slot.taken ? "taken":"free"}
                                                                     ${selectedTimeSlot &&
                                                                         (() => {
                                                                             const slotTime=new Date(selectedDate)
@@ -404,9 +530,51 @@ export const ReservationView=({user,business}) => {
                                         )}
                                     </div>
                                 </div>
-                                <div className="create_reservation_controls col_align">
-                                    <button className="create_reservation_cancel_button" onClick={() => setIsPanelVisible(false)}>Atšaukti</button>
-                                    <button className="create_reservation_button" onClick={() => editReservation()}>Išsaugoti</button>
+                                <div id="editing_reservation_buttons" className="row_align">
+                                    <button id="editing_reservation_cancel_button" className="control_button" onClick={() => setIsEditingReservationTime(false)}>Atšaukti</button>
+                                    {isChangingService ? (
+                                        <button id="editing_reservation_save_button" className="control_button" onClick={() => saveChangedService()}>Išsaugoti</button>
+                                    ):(
+                                        <button id="editing_reservation_save_button" className="control_button" onClick={() => saveEditingReservationTime()}>Išsaugoti</button>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                    {isChangingService && !isEditingReservationTime && (
+                        <>
+                            <div id="transparent_panel" onClick={() => setIsChangingService(false)}/>
+                            <div id="editing_reservation_panel" className="row_aling">
+                                <button id="product_close_button" className="close_button" onClick={() => setIsChangingService(false)}>X</button>
+                                <div id="create_reservation_controls" className="row_align">
+                                    <input id="create_reservation_search" type="text" placeholder="Pieška" value={search} onChange={(e) => setSearch(e.target.value)}/>
+                                    <div id="create_reservation_sort_button" className="control_button">Rikiavimas
+                                        <div id="sort_content">
+                                            <button id="sort_item_button" onClick={() => setServicesSortType("name_increase")}>Pavadinimas: A-Z</button>
+                                            <button id="sort_item_button" onClick={() => setServicesSortType("name_decrease")}>Pavadinimas: Z-A</button>
+                                            <button id="sort_item_button" onClick={() => setServicesSortType("price_increase")}>Kaina: Didėjančiai</button>
+                                            <button id="sort_item_button" onClick={() => setServicesSortType("price_decrease")}>Kaina: Mažėjančiai</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="create_reservation_main" className="col_align  time_table">
+                                    {filteredServices.length===0 ? (
+                                        <p id="create_reservation_service_card_not_found">Nerasta paslaugų</p>
+                                    ):(
+                                        filteredServices.map(s => (
+                                            <button key={s.id} id="create_reservation_service_card" className="col_align" onClick={() => selectServiceToBook(s.id)}>
+                                                <div id="create_reservation_service_card_name">{s.name}</div>
+                                                <div id="create_reservation_service_card_main_info" className="row_align">
+                                                    <div id="create_reservation_service_card_info_left">{getDb().employees.find(e => e.id===s.employeeId).name}</div>
+                                                    <div id="create_reservation_service_card_info_right">{s.price.toFixed(2)}€</div>
+                                                </div>
+                                                <div id="create_reservation_service_card_main_info" className="row_align">
+                                                    <div id="create_reservation_service_card_info_left">{s.durationMin} Min.</div>
+                                                    <div id="create_reservation_service_card_info_right">{s.opensAt} - {s.closesAt}</div>
+                                                </div>
+                                            </button>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </>
