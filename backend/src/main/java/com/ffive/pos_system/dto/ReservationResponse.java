@@ -18,5 +18,6 @@ public class ReservationResponse {
     private ReservationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime closedAt; 
+    private BigDecimal totalAmount;
 }
 
