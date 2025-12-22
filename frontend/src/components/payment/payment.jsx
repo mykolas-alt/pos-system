@@ -74,27 +74,37 @@ export const Payment=({api,token,type,id,closePaymentWindow,onPaymentSuccess}) =
         <>
             <div id="transparent_panel" onClick={() => closePaymentWindow(false)}/>
             <div id="payment_panel" className="col_align">
+                <button className="close_button" onClick={() => closePaymentWindow(false)}>X</button>
                 <p id="payment_title">Apmokėjimas</p>
                 <hr/>
-                <select className="payment_type_selector" value={paymentType} onChange={(e) => setPaymentType(e.target.value)}>
-                    <option value="CASH">Grynais</option>
-                    <option value="CARD">Kortele</option>
-                    <option value="GIFT_CARD">Dovanų kortele</option>
-                </select>
-                <label>Suma</label>
-                <input type="number" className="payment_input_field" value={amount} onChange={(e) => setAmount(e.target.value)}/>
-                <label>Arbatpinigiai</label>
-                <input type="number" className="payment_input_field" value={tip} onChange={(e) => setTip(e.target.value)}/>
-                <label>Aptarnavimo mokestis</label>
-                <input type="number" className="payment_input_field" value={serviceCharge} onChange={(e) => setServiceCharge(e.target.value)}/>
-                {paymentType==="CARD" && (
-                    <input type="text" className="payment_input_field" placeholder="Kortelės žetonas" value={stripeToken} onChange={(e) => setStripeToken(e.target.value)}/>
-                )}
-                {paymentType==="GIFT_CARD" && (
-                    <input type="text" className="payment_input_field" placeholder="Dovanų kortelės kodas" value={giftCardCode} onChange={(e) => setGiftCardCode(e.target.value)}/>
-                )}
+                <div id="payment_card" className="col_align">
+                    <div id="payment_card_wrapper" className="row_align">
+                        <select className="payment_type_selector" value={paymentType} onChange={(e) => setPaymentType(e.target.value)}>
+                            <option value="CASH">Grynais</option>
+                            <option value="CARD">Kortele</option>
+                            <option value="GIFT_CARD">Dovanų kortele</option>
+                        </select>
+                        <label>Kaina</label>
+                        <input type="number" className="payment_input_field" value={amount} onChange={(e) => setAmount(e.target.value)}/>
+                    </div>
+                    <div className="row_align">
+                        <div className="col_align">
+                            <label>Arbatpinigiai</label>
+                            <input type="number" className="payment_input_field" value={tip} onChange={(e) => setTip(e.target.value)}/>
+                        </div>
+                        <div className="col_align">
+                            <label>Aptarnavimo mokestis</label>
+                            <input type="number" className="payment_input_field" value={serviceCharge} onChange={(e) => setServiceCharge(e.target.value)}/>
+                        </div>
+                    </div>
+                    {paymentType==="CARD" && (
+                        <input type="text" className="payment_input_field" placeholder="Kortelės žetonas" value={stripeToken} onChange={(e) => setStripeToken(e.target.value)}/>
+                    )}
+                    {paymentType==="GIFT_CARD" && (
+                        <input type="text" className="payment_input_field" placeholder="Dovanų kortelės kodas" value={giftCardCode} onChange={(e) => setGiftCardCode(e.target.value)}/>
+                    )}
+                </div>
                 <div id="payment_panel_controls" className="row_align">
-                    <button id="cancel_payment_button" className="control_button" onClick={() => closePaymentWindow(false)} disabled={isProcessingPayment}>Atšaukti</button>
                     <button id="payment_button" className="control_button" onClick={processPayment}>Apmokėti</button>
                 </div>
             </div>

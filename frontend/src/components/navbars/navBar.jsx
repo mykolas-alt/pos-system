@@ -90,8 +90,9 @@ export const NavBar=({onLoginClick,user,business,onLogout}) => {
                                 <NavLink to={`/${user.info.username}/BEAUTY_SALON/${business.id}/services`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Paslaugos</NavLink>
                             </>
                         )}
-                        <NavLink to={`/${user.info.username}/${business.businessType}/${business.id}/employees`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Darbuotojai</NavLink>
-                        <NavLink to={`/${user.info.username}/${business.businessType}/${business.id}/report`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Statistika</NavLink>
+                        {user.info.roles.includes("BUSINESS_OWNER","SUPER_ADMIN") && (
+                            <NavLink to={`/${user.info.username}/${business.businessType}/${business.id}/employees`} className={({isActive}) => `business_nav_button ${isActive ? "active":""}`}>Darbuotojai</NavLink>
+                        )}
                     </div>
                 )}
             </div>

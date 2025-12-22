@@ -96,7 +96,8 @@ export const Orders=({api,user,business,onOrderOpen}) => {
 
             toast.success("Užsakymas sėkmingai sukurtas")
             try{
-                const orderPage=await loadOrders(currentPage,user.token)
+                setCurrentPage(1)
+                const orderPage=await loadOrders(1,user.token)
                 setOrders(orderPage.content)
                 setTotalPages(orderPage.totalPages===0 ? 1:orderPage.totalPages)
             }catch{

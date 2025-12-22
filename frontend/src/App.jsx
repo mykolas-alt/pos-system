@@ -18,7 +18,6 @@ import {ReservationView} from './pages/beauty/reservationView.jsx'
 import {Services} from './pages/beauty/services.jsx'
 
 import {Employees} from './pages/employees.jsx'
-import {Report} from './pages/catering/report.jsx'
 
 import {useTheme} from './utils/themeContext.jsx'
 
@@ -312,7 +311,6 @@ function App(){
               <Route path='/:username/BEAUTY_SALON/:id/reservations/:reservationId' element={<ReservationView api={apiPath} user={user} business={userBusiness}/>}/>
               <Route path='/:username/BEAUTY_SALON/:id/services' element={<Services api={apiPath} user={user} business={userBusiness}/>}/>
               <Route path='/:username/:businessType/:id/employees' element={<Employees api={apiPath} user={user} business={userBusiness}/>}/>
-              <Route path='/:username/:businessType/:id/report' element={<Report user={user} business={userBusiness}/>}/>
             </Routes>
           </div>
           {isPanelVisible && (

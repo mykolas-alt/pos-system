@@ -1,6 +1,7 @@
 package com.ffive.pos_system.handler;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +23,9 @@ public class SplitCheckHandler {
         this.splitCheckRepository = splitCheckRepository;
     }
 
-    public void createSplits(Order order, List<BigDecimal> splitAmounts) {
+    public List<SplitCheck> createSplits(Order order, List<BigDecimal> splitAmounts) {
         if (splitAmounts == null || splitAmounts.isEmpty()) {
-            return;
+            return List.of();
         }
 
         BigDecimal totalSplitAmount = BigDecimal.ZERO;
@@ -36,6 +37,8 @@ public class SplitCheckHandler {
             throw new PaymentException("Total split amount is not the same as total order amount");
         }
 
+        List<SplitCheck> createSplits=new ArrayList<>();
+
         int count = 1;
         for (BigDecimal amount : splitAmounts) {
             SplitCheck split = SplitCheck.builder()
@@ -44,9 +47,10 @@ public class SplitCheckHandler {
                     .name("Split " + ++count)
                     .status(SplitCheckStatus.PENDING)
                     .build();
-            splitCheckRepository.save(split);
+            createSplits.add(splitCheckRepository.save(split));
         }
 
+        return createSplits;
     }
 
 

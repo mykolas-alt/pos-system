@@ -10,10 +10,6 @@ export const Employees=({api,user,business}) => {
     const navigate=useNavigate()
     
     const [employees,setEmployees]=useState([])
-
-    const [search,setSearch]=useState("")
-    const [sortType,setSortType]=useState("name_increase")
-    const [filteredEmployees,setFilteredEmployees]=useState([])
     
     const [selectedEmployee,setSelectedEmployee]=useState(null)
 
@@ -29,20 +25,19 @@ export const Employees=({api,user,business}) => {
     const [isEditingEmployee,setIsEditingEmployee]=useState(false)
 
     const [currentPage,setCurrentPage]=useState(1)
+    const [totalPages,setTotalPages]=useState(1)
     const pageSize=6
-    const totalPages=Math.max(1,Math.ceil(filteredEmployees.length/pageSize))
-    const visibleEmployees=filteredEmployees.slice(
-        (currentPage-1)*pageSize,
-        currentPage*pageSize
-    )
 
     useEffect(() => {
         async function initEmployees(){
             try{
-                const employeeList=await loadEmployees(user.token)
-                setEmployees(employeeList)
+                setCurrentPage(1)
+                const employeePage=await loadEmployees(1,user.token)
+                setEmployees(employeePage.content)
+                setTotalPages(employeePage.totalPages===0 ? 1:employeePage.totalPages)
             }catch{
                 setEmployees([])
+                setTotalPages(1)
             }
         }
 
@@ -54,15 +49,8 @@ export const Employees=({api,user,business}) => {
         initEmployees()
     },[user])
 
-    useEffect(() => {
-        const filterBySearchList=filterSearchList(employees,search)
-        const sortedList=sortBy(filterBySearchList,sortType)
-
-        setFilteredEmployees(sortedList)
-    },[employees,search,sortType])
-
-    async function loadEmployees(token){
-        const response=await fetch(`${api}employee`,{
+    async function loadEmployees(page,token){
+        const response=await fetch(`${api}employee?page=${page-1}&size=${pageSize}`,{
             method: "GET",
             headers: {"Authorization":`Bearer ${token}`}
         })
@@ -135,10 +123,13 @@ export const Employees=({api,user,business}) => {
 
             setIsPanelVisible(false)
             try{
-                const employeeList=await loadEmployees(user.token)
-                setEmployees(employeeList)
+                setCurrentPage(1)
+                const employeePage=await loadEmployees(1,user.token)
+                setEmployees(employeePage.content)
+                setTotalPages(employeePage.totalPages===0 ? 1:employeePage.totalPages)
             }catch{
                 setEmployees([])
+                setTotalPages(1)
             }
         }catch{
             toast.error("Klaida: nepavyko sukurti darbuotojo")
@@ -197,21 +188,14 @@ export const Employees=({api,user,business}) => {
         <div>
             <div id="controls" className="col_align">
                 <div id="main_controls" className="row_align">
-                    <input id="employees_search" type="text" placeholder="Pieška" value={search} onChange={(e) => setSearch(e.target.value)}/>
-                    <div id="sort_button" className="control_button">Rikiavimas
-                        <div id="sort_content">
-                            <button id="sort_item_button" onClick={() => setSortType("name_increase")}>Vardas: A-Z</button>
-                            <button id="sort_item_button" onClick={() => setSortType("name_decrease")}>Vardas: Z-A</button>
-                        </div>
-                    </div>
                     <button id="create_button" className="control_button" onClick={() => openEmployeePanel(false,0)}>Sukurti Darbuotoją</button>
                 </div>
             </div>
             <div id="item_list">
-                {visibleEmployees.length===0 ? (
+                {employees.length===0 ? (
                     <p id="employee_card_not_found">Nerasta darbuotojų</p>
                 ):(
-                    visibleEmployees.map(e => (
+                    employees.map(e => (
                         <button key={e.id} id="employee_card" className="col_align" onClick={() => openEmployeePanel(true,e.id)}>
                             <p id="employee_card_id">Id: {e.id}</p>
                             <p id="employee_card_name">{e.name}</p>

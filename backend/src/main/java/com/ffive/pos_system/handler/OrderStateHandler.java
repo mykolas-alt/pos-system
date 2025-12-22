@@ -53,17 +53,40 @@ public class OrderStateHandler {
         orderRepository.save(newOrder);
     }
 
-    @Transactional
     public void cancelOrder(Employee employee, Order order) {
         if (!CANCELLABLE_STATUSES.contains(order.getStatus())) {
             throw new ValidationException("Order cannot be cancelled");
         }
 
         order.setStatus(OrderStatus.CANCELLED);
-        order.setTotal(order.getItems().stream()
+        order.getTaxes().forEach(tax -> {
+            tax.setNameSnapshot(tax.getTax().getName());
+            tax.setRateSnapshot(tax.getTax().getRate());
+        });
+
+        LocalDateTime completionTime = LocalDateTime.now();
+        order.getDiscounts().stream()
+                .filter(discount -> {
+                    if (completionTime.isBefore(discount.getExpiresAt())) {
+                        return true;
+                    }
+                    orderDiscountRepository.delete(discount);
+                    return false;
+                })
+                .forEach(discount -> {
+                    discount.setNameSnapshot(discount.getDiscount().getName());
+                    discount.setValueSnapshot(discount.getDiscount().getValue());
+                });
+
+        BigDecimal totalBeforeOrderTaxesAndDiscounts = order.getItems().stream()
                 .map(this::setSnapshotFieldsForOrderItems)
-                .map(this::getItemTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+                .map(itemTotalsHelper::getItemTotalFromEntities)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotal(priceModifierHelper.getPriceAfterModifiersFromEntities(
+                order.getDiscounts(),
+                order.getTaxes(),
+                totalBeforeOrderTaxesAndDiscounts));
 
         orderRepository.save(order);
     }

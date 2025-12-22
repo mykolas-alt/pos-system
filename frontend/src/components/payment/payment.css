@@ -6,7 +6,7 @@
     box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
     position:absolute;
     top:3rem;
-    width:30rem;
+    width:40rem;
     z-index:110;
     transition:background-color 0.3s ease,border-color 0.3s ease;
 }
@@ -17,10 +17,19 @@
     margin:0.5rem auto 0rem auto;
 }
 
+#payment_card{
+    margin:0.5rem auto 0.5rem auto;
+    width:100%;
+}
+
+#payment_card_wrapper{
+    
+}
+
 #payment_panel label{
     font-size:1.4rem;
     font-weight:bold;
-    margin:0rem auto 0rem 1.5rem;
+    margin:0rem 0.5rem 0.7rem 1rem;
 }
 
 .payment_type_selector{
@@ -40,7 +49,7 @@
     font-size:1.2rem;
     font-weight:bold;
     margin:0.5rem auto 1rem auto;
-    width:60%;
+    width:13rem;
     height:3rem;
     transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
 }

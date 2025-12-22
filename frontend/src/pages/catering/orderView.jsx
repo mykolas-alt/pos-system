@@ -51,8 +51,8 @@ export const OrderView=({api,user,business}) => {
                 setIsOrderLoading(true)
                 const orderData=await loadOrderData(user.token)
                 setOrder(orderData)
-                const productList=await loadProducts(user.token)
-                setProducts(productList)
+                const products=await fetchAllPages(`${api}product`,user.token)
+                setProducts(products)
             }catch{
                 navigate(`/${user.info.username}/CATERING/${business.id}/orders`)
                 return
@@ -98,17 +98,30 @@ export const OrderView=({api,user,business}) => {
         return await response.json()
     }
 
-    async function loadProducts(token){
-        const response=await fetch(`${api}product`,{
-            method: "GET",
-            headers: {"Authorization":`Bearer ${token}`}
-        })
+    async function fetchAllPages(url,token){
+        let page=0;
+        let all=[];
 
-        if(!response.ok){
-            throw new Error("Failed to load products")
+        while(true){
+            const res=await fetch(`${url}?page=${page}&size=50`,{
+                method: "GET",
+                headers: {"Authorization":`Bearer ${token}`}
+            })
+
+            if(!res.ok){
+                throw new Error("Failed to load data")
+            }
+
+            const data=await res.json();
+            all.push(...data.content);
+
+            if(page>=data.totalPages-1)
+                break;
+
+            page++;
         }
 
-        return await response.json()
+        return all;
     }
 
     async function fetchAllPages(url,token){
@@ -444,9 +457,8 @@ export const OrderView=({api,user,business}) => {
         const orderData=await loadOrderData(user.token)
         setOrder(orderData)
         setComment(orderData.note || "")
-        const productList=await loadProducts(user.token)
-        setProducts(productList)
-        setIsCommentVisible(false)
+        const products=await fetchAllPages(`${api}product`,user.token)
+        setProducts(products)
     }
 
     if(!user || !user.info || !business || !order)
@@ -601,7 +613,7 @@ export const OrderView=({api,user,business}) => {
                         </div>
                         <div className="order_total_info row_align">
                             <p id="order_total">Iš viso: {(order.total ?? 0).toFixed(2)}€</p>
-                            <p id="order_paid">Apmokėta: {(order.paidAmount ?? 0).toFixed(2)}€</p>
+                            {order.paidAmount>0 && (<p id="order_paid">Apmokėta: {(order.paidAmount ?? 0).toFixed(2)}€</p>)}
                             <p id="order_quantity">Kiekis: {order.items.reduce((sum,op) => sum+op.quantity,0)}</p>
                         </div>
                         <div className="order_more_functions row_align">
