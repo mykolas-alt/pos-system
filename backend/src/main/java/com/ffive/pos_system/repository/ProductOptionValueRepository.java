@@ -10,5 +10,5 @@ import com.ffive.pos_system.model.ProductOptionGroup;
 import com.ffive.pos_system.model.ProductOptionValue;
 
 public interface ProductOptionValueRepository extends JpaRepository<ProductOptionValue, UUID> {
-    Page<ProductOptionValue> findAllByOptionGroup(ProductOptionGroup optionGroup, Pageable pageable);
+    Page<ProductOptionValue> findAllByOptionGroupAndDeletedAtIsNull(ProductOptionGroup optionGroup, Pageable pageable);
 }

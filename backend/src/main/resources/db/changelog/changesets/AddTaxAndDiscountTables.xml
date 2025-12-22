@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addTaxTables" author="mykolas">
+
+        <createTable tableName="tax">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(255)" />
+            <column name="rate" type="DECIMAL(6,4)" />
+            <column name="active" type="BOOLEAN" />
+            <column name="business_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_tax_business"
+                    referencedTableName="business" referencedColumnNames="id" />
+            </column>
+        </createTable>
+
+        <createTable tableName="tax_aud">
+            <column name="id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="rate" type="DECIMAL(6,4)" />
+            <column name="type" type="VARCHAR(255)" />
+            <column name="active" type="BOOLEAN" />
+            <column name="business_id" type="UUID" />
+            <column name="rev" type="INT" />
+            <column name="revtype" type="SMALLINT" />
+        </createTable>
+
+        <createTable tableName="ordertax">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="tax_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_ordertax_tax"
+                    referencedTableName="tax" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="rate_snapshot" type="DECIMAL(6,4)" />
+        </createTable>
+
+        <createTable tableName="orderitemtax">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="orderitem_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="tax_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_orderitemtax_tax"
+                    referencedTableName="tax" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="rate_snapshot" type="DECIMAL(6,4)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addDiscountTables" author="mykolas">
+        <createTable tableName="discount">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="business_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_tax_business"
+                    referencedTableName="business" referencedColumnNames="id" />
+            </column>
+            <column name="name" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(20)" />
+            <column name="value" type="DECIMAL(12,2)" />
+            <column name="active" type="BOOLEAN" />
+        </createTable>
+
+        <createTable tableName="discount_aud">
+            <column name="id" type="UUID" />
+            <column name="business_id" type="UUID" />
+            <column name="name" type="VARCHAR(255)" />
+            <column name="type" type="VARCHAR(20)" />
+            <column name="value" type="DECIMAL(12,2)" />
+            <column name="active" type="BOOLEAN" />
+            <column name="rev" type="INT" />
+            <column name="revtype" type="SMALLINT" />
+        </createTable>
+
+        <createTable tableName="orderdiscount">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="discount_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="value_snapshot" type="DECIMAL(12,2)" />
+            <column name="expires_at" type="TIMESTAMP" />
+        </createTable>
+
+        <createTable tableName="orderitemdiscount">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="orderitem_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="discount_id" type="UUID">
+                <constraints nullable="false" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="value_snapshot" type="DECIMAL(12,2)" />
+            <column name="expires_at" type="TIMESTAMP" />
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

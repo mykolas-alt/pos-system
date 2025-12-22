@@ -24,6 +24,9 @@ public class GUIOrder implements GUIObject {
     private BigDecimal total;
     private BigDecimal paidAmount;
     private String note;
+    private BigDecimal serviceCharge;
+    private List<GUIDiscount> orderDiscounts;
+    private List<GUITax> orderTaxes;
     private UUID identEmployee;
     private List<GUIOrderItem> items;
 }

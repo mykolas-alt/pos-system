@@ -3,6 +3,7 @@ package com.ffive.pos_system.handler;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -12,9 +13,12 @@ import com.ffive.pos_system.model.Order;
 import com.ffive.pos_system.model.OrderItem;
 import com.ffive.pos_system.model.OrderStatus;
 import com.ffive.pos_system.model.Product;
+import com.ffive.pos_system.model.ProductOptionValue;
 import com.ffive.pos_system.repository.OrderItemRepository;
 import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.service.validation.ValidationException;
+import com.ffive.pos_system.util.ItemTotalsHelper;
+import com.ffive.pos_system.util.PriceModifierHelper;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +31,9 @@ public class OrderStateHandler {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+
+    private final PriceModifierHelper priceModifierHelper;
+    private final ItemTotalsHelper itemTotalsHelper;
 
     public void createOrder(Employee employee) {
         var business = employee.getBusiness();
@@ -66,10 +73,24 @@ public class OrderStateHandler {
         }
 
         order.setStatus(OrderStatus.IN_PROGRESS);
-        order.setTotal(order.getItems().stream()
+        order.getTaxes().forEach(tax -> {
+            tax.setNameSnapshot(tax.getTax().getName());
+            tax.setRateSnapshot(tax.getTax().getRate());
+        });
+        order.getDiscounts().forEach(discount -> {
+            discount.setNameSnapshot(discount.getDiscount().getName());
+            discount.setValueSnapshot(discount.getDiscount().getValue());
+        });
+
+        BigDecimal totalBeforeOrderTaxesAndDiscounts = order.getItems().stream()
                 .map(this::setSnapshotFieldsForOrderItems)
-                .map(this::getItemTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+                .map(itemTotalsHelper::getItemTotalFromEntities)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotal(priceModifierHelper.getPriceAfterModifiersFromEntities(
+                order.getDiscounts(),
+                order.getTaxes(),
+                totalBeforeOrderTaxesAndDiscounts));
 
         orderRepository.save(order);
     }
@@ -80,16 +101,27 @@ public class OrderStateHandler {
         }
     }
 
-    private BigDecimal getItemTotal(OrderItem orderItem) {
-        return orderItem.getProduct().getPrice()
-                .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
-    }
-
     private OrderItem setSnapshotFieldsForOrderItems(OrderItem orderitem) {
         Product product = orderitem.getProduct();
 
         orderitem.setProductNameSnapshot(product.getName());
         orderitem.setUnitPriceSnapshot(product.getPrice());
+
+        orderitem.getTaxes().forEach(tax -> {
+            tax.setNameSnapshot(tax.getTax().getName());
+            tax.setRateSnapshot(tax.getTax().getRate());
+        });
+
+        orderitem.getDiscounts().forEach(discount -> {
+            discount.setNameSnapshot(discount.getDiscount().getName());
+            discount.setValueSnapshot(discount.getDiscount().getValue());
+        });
+
+        orderitem.getItemOptions().forEach(option -> {
+            option.setPriceDeltaSnapshot(Optional.ofNullable(option.getOptionValue())
+                    .map(ProductOptionValue::getPriceDelta)
+                    .orElse(BigDecimal.ZERO));
+        });
 
         orderItemRepository.save(orderitem);
         return orderitem;

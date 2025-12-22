@@ -3,9 +3,6 @@ package com.ffive.pos_system.model;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.envers.Audited;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,27 +16,29 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Entity
 @Builder
 @Getter
 @Setter
-@Entity
-@Audited
-@NoArgsConstructor
 @AllArgsConstructor
-@SQLDelete(sql = "UPDATE pos.productoptionvalue SET deletedat = now() WHERE id = ?")
-@Table(name = "productoptionvalue")
-public class ProductOptionValue extends SoftDeletable {
+@NoArgsConstructor
+@Table(name = "ordertax")
+public class OrderTax implements Taxable {
     @Id
     @GeneratedValue
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "productoptiongroup_id", nullable = false)
-    private ProductOptionGroup optionGroup;
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "tax_id", nullable = false)
+    private Tax tax;
 
-    @Column(name = "pricedelta")
-    private BigDecimal priceDelta;
+    @Column(name = "name_snapshot")
+    private String nameSnapshot;
+
+    @Column(name = "rate_snapshot")
+    private BigDecimal rateSnapshot;
 }

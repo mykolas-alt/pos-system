@@ -22,6 +22,7 @@ import com.ffive.pos_system.dto.GUIOrder;
 import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
 import com.ffive.pos_system.dto.ModifyOrderRequest;
+import com.ffive.pos_system.handler.AddTaxToOrderRequest;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.OrderService;
 import com.ffive.pos_system.util.PagingHelper;
@@ -91,6 +92,42 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Add discount to an existing order")
+    @PostMapping("/{orderId}/discount")
+    public ResponseEntity<Void> addDiscount(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @RequestBody AddDiscountToOrderRequest addDiscountToOrderRequest) {
+        orderService.addDiscountToOrder(userDetails, orderId, addDiscountToOrderRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Remove a discount from an existing order")
+    @DeleteMapping("/{orderId}/discount/{orderDiscountId}")
+    public ResponseEntity<Void> removeOrderDiscount(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderDiscountId) {
+        orderService.removeDiscountFromOrder(userDetails, orderId, orderDiscountId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Add tax to an existing order")
+    @PostMapping("/{orderId}/tax")
+    public ResponseEntity<Void> addTax(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @RequestBody AddTaxToOrderRequest addTaxToOrderRequest) {
+        orderService.addTaxToOrder(userDetails, orderId, addTaxToOrderRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Remove a tax from an existing order")
+    @DeleteMapping("/{orderId}/tax/{orderTaxId}")
+    public ResponseEntity<Void> removeOrderTax(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderTaxId) {
+        orderService.removeTaxFromOrder(userDetails, orderId, orderTaxId);
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "Add product to an existing order")
     @PostMapping("/{orderId}/product")
     public ResponseEntity<Void> addProduct(@AuthenticationPrincipal POSUserDetails userDetails,
@@ -107,6 +144,15 @@ public class OrderController {
             @Valid @PathVariable UUID orderItemId,
             @Valid @RequestBody ModifyOrderItemRequest modificationRequest) {
         orderService.modifyOrderItem(userDetails, orderId, orderItemId, modificationRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Remove a product from an existing order")
+    @DeleteMapping("/{orderId}/product/{orderItemId}")
+    public ResponseEntity<Void> removeOrderItem(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderItemId) {
+        orderService.removeProductFromOrder(userDetails, orderId, orderItemId);
         return ResponseEntity.ok().build();
     }
 
@@ -130,12 +176,43 @@ public class OrderController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Remove a product from an existing order")
-    @DeleteMapping("/{orderId}/product/{orderItemId}")
-    public ResponseEntity<Void> removeOrderItem(@AuthenticationPrincipal POSUserDetails userDetails,
+    @Operation(summary = "Add discount to an existing order item")
+    @PostMapping("/{orderId}/product/{orderItemId}/discount")
+    public ResponseEntity<Void> addItemDiscount(@AuthenticationPrincipal POSUserDetails userDetails,
             @Valid @PathVariable UUID orderId,
-            @Valid @PathVariable UUID orderItemId) {
-        orderService.removeProductFromOrder(userDetails, orderId, orderItemId);
+            @Valid @PathVariable UUID orderItemId,
+            @Valid @RequestBody AddDiscountToOrderItemRequest addItemDiscountToOrderRequest) {
+        orderService.addDiscountToOrderItem(userDetails, orderId, orderItemId, addItemDiscountToOrderRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Remove discount from an existing order item")
+    @DeleteMapping("/{orderId}/product/{orderItemId}/discount/{orderItemDiscountId}")
+    public ResponseEntity<Void> removeItemDiscount(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderItemId,
+            @Valid @PathVariable UUID orderItemDiscountId) {
+        orderService.removeDiscountFromOrderItem(userDetails, orderId, orderItemId, orderItemDiscountId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Add tax to an existing order item")
+    @PostMapping("/{orderId}/product/{orderItemId}/tax")
+    public ResponseEntity<Void> addItemTax(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderItemId,
+            @Valid @RequestBody AddTaxToOrderItemRequest addItemTaxToOrderRequest) {
+        orderService.addTaxToOrderItem(userDetails, orderId, orderItemId, addItemTaxToOrderRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Remove tax from an existing order item")
+    @DeleteMapping("/{orderId}/product/{orderItemId}/tax/{orderItemTaxId}")
+    public ResponseEntity<Void> removeItemTax(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID orderId,
+            @Valid @PathVariable UUID orderItemId,
+            @Valid @PathVariable UUID orderItemTaxId) {
+        orderService.removeTaxFromOrderItem(userDetails, orderId, orderItemId, orderItemTaxId);
         return ResponseEntity.ok().build();
     }
 }

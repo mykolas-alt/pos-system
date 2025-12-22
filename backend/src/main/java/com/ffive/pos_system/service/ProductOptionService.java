@@ -95,7 +95,8 @@ public class ProductOptionService {
             int pageNumber,
             int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<ProductOptionGroup> page = productOptionGroupRepository.findAllByProductId(productId, pageable);
+        Page<ProductOptionGroup> page = productOptionGroupRepository.findAllByProductIdAndDeletedAtIsNull(productId,
+                pageable);
         return pageConverter.convertToGUIPage(page, this::convertToGUIOptionGroup);
     }
 
@@ -104,7 +105,8 @@ public class ProductOptionService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         var optionGroup = productOptionGroupRepository.findById(optionGroupId)
                 .orElseThrow(() -> new ValidationException("Could not find product option group"));
-        Page<ProductOptionValue> page = productOptionValueRepository.findAllByOptionGroup(optionGroup, pageable);
+        Page<ProductOptionValue> page = productOptionValueRepository.findAllByOptionGroupAndDeletedAtIsNull(optionGroup,
+                pageable);
         return pageConverter.convertToGUIPage(page, this::convertToGUIOptionValue);
     }
 

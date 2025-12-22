@@ -19,7 +19,7 @@ spring:
 server:
   error:
     include-message: always
-    include-binding-errors: never
+    include-binding-errors: always
     include-stacktrace: never
 springdoc:
   api-docs:
@@ -53,7 +53,7 @@ jwt:
 
 stripe:
   api:
-    key: sk_test_51H8xxxxxxxyourtestapikeyxxxxxxxxxx
+    key: ${STRIPE_API_KEY}
 
 logging:
   level:

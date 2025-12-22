@@ -1,5 +1,6 @@
 package com.ffive.pos_system.model;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -14,10 +15,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Builder
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "orderitemoption")
@@ -40,4 +43,8 @@ public class OrderItemOption {
 
     @Column(name = "value", nullable = true)
     private Integer value;
+
+    @Column(name = "price_delta_snapshot", nullable = true)
+    private BigDecimal priceDeltaSnapshot;
+
 }
