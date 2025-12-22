@@ -1,17 +1,19 @@
 package com.ffive.pos_system.service;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.ffive.pos_system.converter.gui.GUIEmployeeConverter;
+import com.ffive.pos_system.converter.gui.GUIPageConverter;
 import com.ffive.pos_system.dto.EmployeeCreationRequest;
 import com.ffive.pos_system.dto.GUIEmployee;
+import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.handler.EmployeeHandler;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Employee;
@@ -36,6 +38,7 @@ public class EmployeeService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ValidationHelper validationHelper;
+    private final GUIPageConverter pageConverter;
 
     public void createEmployeeForBusiness(POSUserDetails userDetails, EmployeeCreationRequest creationRequest) {
         var executingEmployee = userDetails.getUser().getEmployee();
@@ -46,20 +49,14 @@ public class EmployeeService {
         employeeHandler.handleNewEmployeeForBusiness(userDetails, creationRequest);
     }
 
-    public List<GUIEmployee> getAllEmployees(POSUserDetails userDetails) {
-        var id = Optional.ofNullable(userDetails.getUser())
+    public GUIPage<GUIEmployee> getAllEmployees(POSUserDetails userDetails, int pageNumber, int size) {
+        Business business = Optional.ofNullable(userDetails.getUser())
                 .map(POSUser::getEmployee)
                 .map(Employee::getBusiness)
-                .map(Business::getId);
+                .orElseThrow(() -> new IllegalStateException("User is not associated with any business"));
 
-        if (id.isEmpty()) {
-            throw new IllegalStateException("User is not associated with any business");
-        }
-
-        return employeeRepository.findAllByBusiness(id.get()).stream()
-                .map(guiEmployeeConverter::convertToGUIEmployee)
-                .limit(100)
-                .toList();
+        var page = employeeRepository.findAllByBusiness(business, PageRequest.of(pageNumber, size));
+        return pageConverter.convertToGUIPage(page, guiEmployeeConverter::convertToGUIEmployee);
     }
 
     public GUIEmployee updateEmployee(POSUserDetails userDetails, UUID employeeId,

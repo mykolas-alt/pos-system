@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.envers.Audited;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,7 +30,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Audited
 @NoArgsConstructor
-@SQLDelete(sql = "UPDATE productoptiongroup SET deletedat = now() WHERE id = ?")
+@SQLDelete(sql = "UPDATE pos.productoptiongroup SET deletedat = now() WHERE id = ?")
 @Table(name = "productoptiongroup")
 public class ProductOptionGroup extends SoftDeletable {
     @Id
@@ -53,7 +54,7 @@ public class ProductOptionGroup extends SoftDeletable {
     @Column(name = "maxselect")
     private int maxSelect;
 
-    @OneToMany(mappedBy = "optionGroup")
+    @OneToMany(mappedBy = "optionGroup", cascade = { CascadeType.PERSIST, CascadeType.REMOVE })
     private List<ProductOptionValue> optionValues;
 
 }

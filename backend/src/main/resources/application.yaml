@@ -19,7 +19,7 @@ spring:
 server:
   error:
     include-message: always
-    include-binding-errors: never
+    include-binding-errors: always
     include-stacktrace: never
 springdoc:
   api-docs:

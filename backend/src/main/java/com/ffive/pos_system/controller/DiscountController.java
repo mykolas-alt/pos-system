@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ffive.pos_system.dto.DiscountCreationRequest;
+import com.ffive.pos_system.dto.DiscountModificationRequest;
 import com.ffive.pos_system.dto.GUIDiscount;
 import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.security.POSUserDetails;
@@ -51,7 +52,7 @@ public class DiscountController {
     @PutMapping("/{discountId}")
     public ResponseEntity<GUIDiscount> updateDiscount(@AuthenticationPrincipal POSUserDetails userDetails,
             @PathVariable UUID discountId,
-            @Valid @RequestBody DiscountCreationRequest discountModificationRequest) {
+            @Valid @RequestBody DiscountModificationRequest discountModificationRequest) {
 
         return ResponseEntity.ok(discountService.modifyDiscount(userDetails, discountId, discountModificationRequest));
     }
