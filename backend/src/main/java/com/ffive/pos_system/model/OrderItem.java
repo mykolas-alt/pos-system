@@ -41,13 +41,13 @@ public class OrderItem {
 
     private int quantity;
 
-    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE })
     private List<OrderItemOption> itemOptions;
 
-    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE })
     private List<OrderItemTax> taxes;
 
-    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "orderItem", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE })
     private List<OrderItemDiscount> discounts;
 
     // snapshot fields
