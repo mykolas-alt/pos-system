@@ -16,10 +16,13 @@ import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.POSUser;
 import com.ffive.pos_system.model.Tax;
+import com.ffive.pos_system.repository.OrderItemTaxRepository;
+import com.ffive.pos_system.repository.OrderTaxRepository;
 import com.ffive.pos_system.repository.TaxRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 public class TaxService {
 
     private final TaxRepository taxRepository;
+    private final OrderTaxRepository orderTaxRepository;
+    private final OrderItemTaxRepository orderItemTaxRepository;
     private final GUIPageConverter guiPageConverter;
 
     public GUITax createTax(POSUserDetails userDetails, @Valid TaxCreationRequest taxCreationRequest) {
@@ -92,6 +97,7 @@ public class TaxService {
                 .orElseThrow(() -> new ValidationException("Authenticated user is not associated with any business"));
     }
 
+    @Transactional
     public GUITax deativateTax(POSUserDetails userDetails, UUID taxId) {
         var business = resolveBusinessFromUserDetails(userDetails);
         var persistedTax = taxRepository.findById(taxId)
@@ -103,6 +109,9 @@ public class TaxService {
         }
         persistedTax.setActive(false);
         persistedTax = taxRepository.save(persistedTax);
+
+        orderTaxRepository.deleteAllByTaxIfOrderOpen(persistedTax);
+        orderItemTaxRepository.deleteAllByTaxIfOrderOpen(persistedTax);
 
         return converToGUITax(persistedTax);
     }

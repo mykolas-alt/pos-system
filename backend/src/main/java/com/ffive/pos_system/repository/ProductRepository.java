@@ -20,5 +20,5 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findByIdAndBusiness(@Param("productId") UUID productId,
             @Param("businessId") UUID businessId);
 
-    Page<Product> findAllByBusiness(Business business, Pageable pageable);
+    Page<Product> findAllByBusinessAndDeletedAtIsNull(Business business, Pageable pageable);
 }

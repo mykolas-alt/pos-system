@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,11 +19,14 @@ import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.GUIProduct;
 import com.ffive.pos_system.model.Product;
 import com.ffive.pos_system.security.POSUserDetails;
+import com.ffive.pos_system.service.ProductCreationRequest;
+import com.ffive.pos_system.service.ProductModificationRequest;
 import com.ffive.pos_system.service.ProductService;
 import com.ffive.pos_system.util.PagingHelper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +43,7 @@ public class ProductController {
 
     @Operation(summary = "Create a new product")
     @PostMapping
-    public GUIProduct createProduct(@RequestBody Product product,
+    public GUIProduct createProduct(@Valid @RequestBody ProductCreationRequest product,
             @AuthenticationPrincipal POSUserDetails userDetails) {
 
         return productService.createProduct(product, userDetails);
@@ -47,11 +51,10 @@ public class ProductController {
 
     @Operation(summary = "Update an existing product")
     @PutMapping("/{productId}")
-    public GUIProduct updateProduct(@RequestBody Product product, @PathVariable UUID productId,
-            @AuthenticationPrincipal POSUserDetails userDetails) {
-
-        product.setId(productId);
-        return productService.modifyProduct(product, userDetails);
+    public GUIProduct updateProduct(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID productId,
+            @Valid @RequestBody ProductModificationRequest productModificationRequest) {
+        return productService.modifyProduct(userDetails, productId, productModificationRequest);
     }
 
     @Operation(summary = "Get all products for the authenticated user's business")
@@ -62,5 +65,13 @@ public class ProductController {
         return productService.getAllProducts(userDetails,
                 pagingHelper.getValidPageNumber(page),
                 pagingHelper.getValidPageSize(size));
+    }
+
+    @Operation(summary = "Delete an existing product")
+    @DeleteMapping("/{productId}")
+    public GUIProduct deleteProduct(@AuthenticationPrincipal POSUserDetails userDetails,
+            @Valid @PathVariable UUID productId) {
+
+        return productService.deleteProduct(userDetails, productId);
     }
 }
