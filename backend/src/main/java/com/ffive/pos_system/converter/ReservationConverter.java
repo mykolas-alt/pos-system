@@ -18,6 +18,7 @@ public class ReservationConverter {
         .customerName(reservation.getCustomerName())
         .createdAt(reservation.getCreatedAt())
         .status(reservation.getStatus())
+        .totalAmount(reservation.getTotalAmount())
         .closedAt(reservation.getClosedAt())
         .build();
     }

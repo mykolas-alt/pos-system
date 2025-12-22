@@ -21,5 +21,6 @@
     <include file="changesets/AdjustOrderForPayments.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddItemOptionTables.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddTaxAndDiscountTables.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddTaxAndDiscountForService.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddSoftDeletionToProducts.xml" relativeToChangelogFile="true" />
 </databaseChangeLog>

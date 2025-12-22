@@ -13,12 +13,23 @@ import com.ffive.pos_system.model.POSService;
 import com.ffive.pos_system.repository.EmployeeRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
 import com.ffive.pos_system.repository.ServiceRepository;
+import com.ffive.pos_system.repository.ReservationTaxRepository;
+import com.ffive.pos_system.repository.DiscountRepository;
+import com.ffive.pos_system.repository.TaxRepository;
+import com.ffive.pos_system.repository.ReservationDiscountRepository;
 import com.ffive.pos_system.dto.ReservationRequest;
 import com.ffive.pos_system.dto.ReservationResponse;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.converter.ReservationConverter;
 import com.ffive.pos_system.handler.ReservationStateHandler;
 import com.ffive.pos_system.service.validation.ValidationException;
+import com.ffive.pos_system.dto.TaxRequest;
+import com.ffive.pos_system.dto.DiscountRequest;
+import com.ffive.pos_system.model.ReservationTax;
+import com.ffive.pos_system.model.ReservationDiscount;
+import com.ffive.pos_system.model.Tax;
+import com.ffive.pos_system.model.Discount;
+import jakarta.validation.Valid;
 
 import org.springframework.stereotype.Service;
 
@@ -35,10 +46,14 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ServiceRepository serviceRepository;
     private final EmployeeRepository employeeRepository;
+    private final ReservationTaxRepository reservationTaxRepository;
+    private final TaxRepository taxRepository;
+    private final DiscountRepository discountRepository;
+    private final ReservationDiscountRepository reservationDiscountRepository;
     private final ReservationConverter reservationConverter;
     private final POSServiceService posServiceService;
     private final ReservationStateHandler reservationStateHandler;
-
+    
 
     public List<ReservationResponse> listReservationsByBusiness(POSUserDetails userDetails){
         return reservationRepository.findAllByBusinessId(userDetails.getUser().getEmployee().getBusiness().getId())
@@ -117,4 +132,68 @@ public class ReservationService {
         Reservation found = reservationRepository.findByReservationId(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
         return reservationConverter.convertToGUI(found);
     }
+    public void addTaxToReservation(POSUserDetails userDetails, @Valid UUID reservationId, 
+            @Valid TaxRequest reservationTaxReq){
+         Reservation reservation = reservationRepository.findByReservationId(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
+        
+        Tax tax = taxRepository.findById(reservationTaxReq.getId())
+                .orElseThrow(() -> new ValidationException("Tax not found"));
+        ReservationTax reservationTax = ReservationTax.builder()
+                .reservation(reservation)
+                .tax(tax)
+                .build();
+
+        reservationTaxRepository.save(reservationTax);
+    }
+
+    public void removeTaxFromReservation(POSUserDetails userDetails, @Valid UUID reservationId, 
+            @Valid UUID reservationTaxId){
+        
+        Reservation reservation = reservationRepository.findByReservationId(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
+
+       ReservationTax reservationTax = reservationTaxRepository.findById(reservationTaxId)
+                .orElseThrow(() -> new ValidationException("Tax not found"));
+
+        if (!reservationTax.getReservation().getId().equals(reservation.getId())) {
+            throw new ValidationException("Service tax does not belong to the specified service");
+        }
+
+        reservationTaxRepository.delete(reservationTax);
+    }
+
+    public void addDiscountToReservation(POSUserDetails userDetails, @Valid UUID reservationId, 
+            @Valid DiscountRequest reservationDiscount){
+
+     
+         Reservation reservation = reservationRepository.findByReservationId(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
+        
+         Discount  discount = discountRepository.findById(reservationDiscount.getId())
+                .orElseThrow(() -> new ValidationException("Tax not found"));
+        ReservationDiscount reservationDiscountEntity = ReservationDiscount.builder()
+                .reservation(reservation)
+                .discount(discount)
+                .expiresAt(reservationDiscount.getExpiresAt())
+                .build();
+
+                reservationDiscountRepository.save(reservationDiscountEntity);     
+        }
+
+        public void removeDiscountFromReservation(POSUserDetails userDetails, @Valid UUID reservationId, 
+            @Valid UUID reservationDiscountId){
+
+           
+         Reservation reservation = reservationRepository.findByReservationId(reservationId).orElseThrow(() -> new ValidationException("Reservation not found"));
+
+            ReservationDiscount reservationDiscount = reservationDiscountRepository.findById(reservationDiscountId)
+                .orElseThrow(() -> new ValidationException("Tax not found"));
+
+            if (!reservationDiscount.getReservation().getId().equals(reservation.getId())) {
+                throw new ValidationException("Service discount does not belong to the specified service");
+            }
+
+
+
+            reservationDiscountRepository.delete(reservationDiscount);
+        }
+
 }
