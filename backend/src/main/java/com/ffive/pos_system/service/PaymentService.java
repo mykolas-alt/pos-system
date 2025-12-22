@@ -10,6 +10,7 @@ import com.ffive.pos_system.model.OrderStatus;
 import com.ffive.pos_system.model.Payment;
 import com.ffive.pos_system.model.PaymentType;
 import com.ffive.pos_system.model.Reservation;
+import com.ffive.pos_system.model.ReservationStatus;
 import com.ffive.pos_system.model.SplitCheck;
 import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.repository.PaymentRepository;

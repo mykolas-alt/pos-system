@@ -19,7 +19,7 @@ import com.ffive.pos_system.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/payment")
+@RequestMapping("/payment")
 @Tag(name = "Payment", description = "Endpoints for processing payments and refunds")
 @RequiredArgsConstructor
 public class PaymentController {
