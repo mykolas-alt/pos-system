@@ -45,7 +45,7 @@ export const Payment=({api,token,type,id,closePaymentWindow,onPaymentSuccess}) =
         try{
             setIsProcessingPayment(true)
 
-            const response=await fetch(`${api}api/payment`,{
+            const response=await fetch(`${api}payment`,{
                 method: "POST",
                 headers: {
                     "Authorization":`Bearer ${token}`,
