@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.ffive.pos_system.model.ProductOptionGroup;
 
 public interface ProductOptionGroupRepository extends JpaRepository<ProductOptionGroup, UUID> {
-    Page<ProductOptionGroup> findAllByProductId(UUID productId, Pageable pageable);
+    Page<ProductOptionGroup> findAllByProductIdAndDeletedAtIsNull(UUID productId, Pageable pageable);
 }

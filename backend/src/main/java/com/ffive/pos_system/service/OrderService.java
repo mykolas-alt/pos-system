@@ -9,6 +9,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.ffive.pos_system.controller.AddDiscountToOrderItemRequest;
+import com.ffive.pos_system.controller.AddDiscountToOrderRequest;
+import com.ffive.pos_system.controller.AddTaxToOrderItemRequest;
 import com.ffive.pos_system.converter.gui.GUIOrderConverter;
 import com.ffive.pos_system.converter.gui.GUIPageConverter;
 import com.ffive.pos_system.dto.AddItemOptionToOrderRequest;
@@ -17,17 +20,23 @@ import com.ffive.pos_system.dto.GUIOrder;
 import com.ffive.pos_system.dto.GUIPage;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
 import com.ffive.pos_system.dto.ModifyOrderRequest;
+import com.ffive.pos_system.handler.AddTaxToOrderRequest;
 import com.ffive.pos_system.handler.OrderModificationHandler;
 import com.ffive.pos_system.handler.OrderStateHandler;
 import com.ffive.pos_system.model.Business;
 import com.ffive.pos_system.model.Order;
+import com.ffive.pos_system.model.OrderDiscount;
 import com.ffive.pos_system.model.OrderItem;
 import com.ffive.pos_system.model.OrderStatus;
+import com.ffive.pos_system.model.OrderTax;
+import com.ffive.pos_system.repository.OrderDiscountRepository;
 import com.ffive.pos_system.repository.OrderItemRepository;
 import com.ffive.pos_system.repository.OrderRepository;
+import com.ffive.pos_system.repository.OrderTaxRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -36,6 +45,8 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderDiscountRepository orderDiscountRepository;
+    private final OrderTaxRepository orderTaxRepository;
 
     private final GUIOrderConverter orderConverter;
     private final GUIPageConverter pageConverter;
@@ -125,6 +136,82 @@ public class OrderService {
                 orderItemOptionId);
     }
 
+    public void addTaxToOrder(POSUserDetails userDetails, @Valid UUID orderId,
+            @Valid AddTaxToOrderRequest addTaxToOrderRequest) {
+        Order order = fetchOrderById(orderId);
+        orderModificationHandler.addTaxToOrder(order,
+                userDetails.getUser().getEmployee(),
+                addTaxToOrderRequest);
+    }
+
+    public void removeTaxFromOrder(POSUserDetails userDetails, UUID orderId, UUID orderTaxId) {
+        orderModificationHandler.removeTaxFromOrder(userDetails.getUser().getEmployee(),
+                fetchOrderById(orderId),
+                fetchOrderTaxById(orderTaxId));
+    }
+
+    public void addDiscountToOrder(POSUserDetails userDetails, @Valid UUID orderId,
+            @Valid AddDiscountToOrderRequest addDiscountToOrderRequest) {
+        Order order = fetchOrderById(orderId);
+        orderModificationHandler.addDiscountToOrder(order,
+                userDetails.getUser().getEmployee(),
+                addDiscountToOrderRequest);
+    }
+
+    public void removeDiscountFromOrder(POSUserDetails userDetails, UUID orderId, UUID orderDiscountId) {
+        orderModificationHandler.removeDiscountFromOrder(userDetails.getUser().getEmployee(),
+                fetchOrderById(orderId),
+                fetchOrderDiscountById(orderDiscountId));
+    }
+
+    public void addDiscountToOrderItem(POSUserDetails userDetails, UUID orderId, UUID orderItemId,
+            AddDiscountToOrderItemRequest addItemDiscountToOrderRequest) {
+        Order order = fetchOrderById(orderId);
+        OrderItem orderItem = fetchOrderItemById(orderItemId);
+
+        orderModificationHandler.addDiscountToOrderItem(
+                userDetails.getUser().getEmployee(),
+                order,
+                orderItem,
+                addItemDiscountToOrderRequest);
+    }
+
+    public void removeDiscountFromOrderItem(POSUserDetails userDetails, UUID orderId, UUID orderItemId,
+            UUID orderItemDiscountId) {
+        Order order = fetchOrderById(orderId);
+        OrderItem orderItem = fetchOrderItemById(orderItemId);
+
+        orderModificationHandler.removeDiscountFromOrderItem(
+                userDetails.getUser().getEmployee(),
+                order,
+                orderItem,
+                orderItemDiscountId);
+    }
+
+    public void addTaxToOrderItem(POSUserDetails userDetails, UUID orderId, UUID orderItemId,
+            AddTaxToOrderItemRequest addItemTaxToOrderRequest) {
+        Order order = fetchOrderById(orderId);
+        OrderItem orderItem = fetchOrderItemById(orderItemId);
+
+        orderModificationHandler.addTaxToOrderItem(
+                userDetails.getUser().getEmployee(),
+                order,
+                orderItem,
+                addItemTaxToOrderRequest);
+    }
+
+    public void removeTaxFromOrderItem(POSUserDetails userDetails, UUID orderId, UUID orderItemId,
+            UUID orderItemTaxId) {
+        Order order = fetchOrderById(orderId);
+        OrderItem orderItem = fetchOrderItemById(orderItemId);
+
+        orderModificationHandler.removeTaxFromOrderItem(
+                userDetails.getUser().getEmployee(),
+                order,
+                orderItem,
+                orderItemTaxId);
+    }
+
     private GUIOrder convertToGuiOrder(Order order) {
         if (Objects.equals(order.getStatus(), OrderStatus.OPEN)) {
             return orderConverter.convertOrderFromCurrentState(order);
@@ -147,5 +234,17 @@ public class OrderService {
 
     private Supplier<ValidationException> validationException(String message) {
         return () -> new ValidationException(message);
+    }
+
+    private OrderTax fetchOrderTaxById(UUID orderTaxId) {
+        var orderItem = orderTaxRepository.findById(orderTaxId)
+                .orElseThrow(validationException("Order tax not found"));
+        return orderItem;
+    }
+
+    private OrderDiscount fetchOrderDiscountById(UUID orderDiscountId) {
+        var orderItem = orderDiscountRepository.findById(orderDiscountId)
+                .orElseThrow(validationException("Order discount not found"));
+        return orderItem;
     }
 }

@@ -7,24 +7,40 @@ import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
 
+import com.ffive.pos_system.controller.AddDiscountToOrderItemRequest;
+import com.ffive.pos_system.controller.AddDiscountToOrderRequest;
+import com.ffive.pos_system.controller.AddTaxToOrderItemRequest;
 import com.ffive.pos_system.dto.AddItemOptionToOrderRequest;
 import com.ffive.pos_system.dto.AddProductToOrderRequest;
 import com.ffive.pos_system.dto.ModifyOrderItemRequest;
 import com.ffive.pos_system.dto.ModifyOrderRequest;
+import com.ffive.pos_system.model.Discount;
 import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.Order;
+import com.ffive.pos_system.model.OrderDiscount;
 import com.ffive.pos_system.model.OrderItem;
+import com.ffive.pos_system.model.OrderItemDiscount;
 import com.ffive.pos_system.model.OrderItemOption;
+import com.ffive.pos_system.model.OrderItemTax;
 import com.ffive.pos_system.model.OrderStatus;
+import com.ffive.pos_system.model.OrderTax;
 import com.ffive.pos_system.model.Product;
+import com.ffive.pos_system.model.Tax;
+import com.ffive.pos_system.repository.DiscountRepository;
+import com.ffive.pos_system.repository.OrderDiscountRepository;
+import com.ffive.pos_system.repository.OrderItemDiscountRepository;
 import com.ffive.pos_system.repository.OrderItemOptionRepository;
 import com.ffive.pos_system.repository.OrderItemRepository;
+import com.ffive.pos_system.repository.OrderItemTaxRepository;
 import com.ffive.pos_system.repository.OrderRepository;
+import com.ffive.pos_system.repository.OrderTaxRepository;
 import com.ffive.pos_system.repository.ProductOptionGroupRepository;
 import com.ffive.pos_system.repository.ProductOptionValueRepository;
 import com.ffive.pos_system.repository.ProductRepository;
+import com.ffive.pos_system.repository.TaxRepository;
 import com.ffive.pos_system.service.validation.ValidationException;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -41,6 +57,14 @@ public class OrderModificationHandler {
     private final ProductOptionGroupRepository productOptionGroupRepository;
     private final ProductOptionValueRepository productOptionValueRepository;
     private final ProductRepository productRepository;
+
+    private final DiscountRepository discountRepository;
+    private final OrderDiscountRepository orderDiscountRepository;
+    private final OrderItemDiscountRepository orderItemDiscountRepository;
+
+    private final TaxRepository taxRepository;
+    private final OrderTaxRepository orderTaxRepository;
+    private final OrderItemTaxRepository orderItemTaxRepository;
 
     public void addProductsToOrder(Order order, Employee employee,
             AddProductToOrderRequest addProductToOrderRequest) {
@@ -140,6 +164,116 @@ public class OrderModificationHandler {
         orderItemOptionRepository.delete(orderItemOption);
     }
 
+    public void addDiscountToOrder(Order order, Employee employee,
+            @Valid AddDiscountToOrderRequest addDiscountToOrderRequest) {
+        validateOrderIsOpenToModification(order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+
+        Discount discount = discountRepository.findById(addDiscountToOrderRequest.getDiscountId())
+                .orElseThrow(validationException("Discount not found"));
+
+        OrderDiscount orderDiscount = OrderDiscount.builder()
+                .order(order)
+                .discount(discount)
+                .expiresAt(addDiscountToOrderRequest.getExpiresAt())
+                .build();
+
+        orderDiscountRepository.save(orderDiscount);
+    }
+
+    public void removeDiscountFromOrder(Employee employee, Order order, OrderDiscount orderDiscount) {
+        validateOrderIsOpenToModification(order);
+        validateOrderDiscountBelongsToOrder(orderDiscount, order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+
+        orderDiscountRepository.delete(orderDiscount);
+    }
+
+    public void addTaxToOrder(Order order, Employee employee,
+            @Valid AddTaxToOrderRequest addTaxToOrderRequest) {
+        validateOrderIsOpenToModification(order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+
+        Tax tax = taxRepository.findById(addTaxToOrderRequest.getTaxId())
+                .orElseThrow(validationException("Tax not found"));
+
+        OrderTax orderTax = OrderTax.builder()
+                .order(order)
+                .tax(tax)
+                .build();
+
+        orderTaxRepository.save(orderTax);
+    }
+
+    public void removeTaxFromOrder(Employee employee, Order order, OrderTax orderTax) {
+        validateOrderIsOpenToModification(order);
+        validateOrderTaxBelongsToOrder(orderTax, order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+
+        orderTaxRepository.delete(orderTax);
+    }
+
+    public void addDiscountToOrderItem(Employee employee, Order order, OrderItem orderItem,
+            AddDiscountToOrderItemRequest addItemDiscountToOrderRequest) {
+        validateOrderIsOpenToModification(order);
+        validateOrderItemBelongsToOrder(orderItem, order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+        var discount = discountRepository.findById(addItemDiscountToOrderRequest.getDiscountId())
+                .orElseThrow(validationException("Discount not found"));
+
+        var itemDiscount = OrderItemDiscount.builder()
+                .orderItem(orderItem)
+                .discount(discount)
+                .expiresAt(addItemDiscountToOrderRequest.getExpiresAt())
+                .build();
+
+        orderItemDiscountRepository.save(itemDiscount);
+    }
+
+    public void removeDiscountFromOrderItem(Employee employee, Order order, OrderItem orderItem,
+            UUID orderItemDiscountId) {
+        validateOrderIsOpenToModification(order);
+        validateOrderItemBelongsToOrder(orderItem, order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+
+        OrderItemDiscount orderItemDiscount = orderItemDiscountRepository.findById(orderItemDiscountId)
+                .orElseThrow(validationException("Order item discount not found"));
+
+        validateOrderItemDiscountBelongsToOrderItem(orderItem, orderItemDiscount);
+
+        orderItemDiscountRepository.delete(orderItemDiscount);
+    }
+
+    public void addTaxToOrderItem(Employee employee, Order order, OrderItem orderItem,
+            AddTaxToOrderItemRequest addItemTaxToOrderRequest) {
+        validateOrderIsOpenToModification(order);
+        validateOrderItemBelongsToOrder(orderItem, order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+        var tax = taxRepository.findById(addItemTaxToOrderRequest.getTaxId())
+                .orElseThrow(validationException("Tax not found"));
+
+        var itemTax = OrderItemTax.builder()
+                .orderItem(orderItem)
+                .tax(tax)
+                .build();
+
+        orderItemTaxRepository.save(itemTax);
+    }
+
+    public void removeTaxFromOrderItem(Employee employee, Order order, OrderItem orderItem,
+            UUID orderItemTaxId) {
+        validateOrderIsOpenToModification(order);
+        validateOrderItemBelongsToOrder(orderItem, order);
+        validateOrderAndEmployeeBusinessesAreEqual(order, employee);
+
+        OrderItemTax orderItemTax = orderItemTaxRepository.findById(orderItemTaxId)
+                .orElseThrow(validationException("Order item tax not found"));
+
+        validateOrderItemTaxBelongsToOrderItem(orderItem, orderItemTax);
+
+        orderItemTaxRepository.delete(orderItemTax);
+    }
+
     private void validateOrderAndEmployeeBusinessesAreEqual(Order order, Employee employee) {
         if (!Objects.equals(order.getBusiness().getId(), employee.getBusiness().getId())) {
             throw new ValidationException("Employee does not belong to the same business as the order");
@@ -166,6 +300,12 @@ public class OrderModificationHandler {
         }
     }
 
+    private void validateOrderDiscountBelongsToOrder(OrderDiscount orderDiscount, Order order) {
+        if (!Objects.equals(orderDiscount.getOrder().getId(), order.getId())) {
+            throw new ValidationException("Order discount does not belong to the specified order");
+        }
+    }
+
     private void validateOrderItemOptionBelongsToOrderItem(OrderItem orderItem, OrderItemOption orderItemOption) {
         if (!Objects.equals(orderItem.getId(), orderItemOption.getOrderItem().getId())) {
             throw new ValidationException("Order item option does not belong to the specified order item");
@@ -174,5 +314,23 @@ public class OrderModificationHandler {
 
     private Supplier<ValidationException> validationException(String message) {
         return () -> new ValidationException(message);
+    }
+
+    private void validateOrderTaxBelongsToOrder(OrderTax orderTax, Order order) {
+        if (!Objects.equals(orderTax.getOrder().getId(), order.getId())) {
+            throw new ValidationException("Order tax does not belong to the specified order");
+        }
+    }
+
+    private void validateOrderItemDiscountBelongsToOrderItem(OrderItem orderItem, OrderItemDiscount orderItemDiscount) {
+        if (!Objects.equals(orderItem.getId(), orderItemDiscount.getOrderItem().getId())) {
+            throw new ValidationException("Order item discount does not belong to the specified order item");
+        }
+    }
+
+    private void validateOrderItemTaxBelongsToOrderItem(OrderItem orderItem, OrderItemTax orderItemTax) {
+        if (!Objects.equals(orderItem.getId(), orderItemTax.getOrderItem().getId())) {
+            throw new ValidationException("Order item tax does not belong to the specified order item");
+        }
     }
 }

@@ -3,8 +3,10 @@ package com.ffive.pos_system.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +17,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,6 +50,14 @@ public class POSService {
     @ManyToOne
     @JoinColumn (name = "specialist_id", nullable = false)
     private Employee specialist;
+
+    @OneToMany(mappedBy = "service", fetch = FetchType.LAZY)
+    @NotAudited
+    private List<ServiceTax> taxes;
+
+    @OneToMany(mappedBy = "service", fetch = FetchType.LAZY)
+    @NotAudited
+    private List<ServiceDiscount> discounts;
 
     @Column(nullable = false)
     private long duration;

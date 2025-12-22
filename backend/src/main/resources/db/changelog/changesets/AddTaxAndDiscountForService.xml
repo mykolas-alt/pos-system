@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.23.xsd">
+
+    <changeSet id="addServiceTaxAndDiscountTables" author="arturas">
+
+        <createTable tableName="servicetax">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="service_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_servicetax_service"
+                    referencedTableName="service" referencedColumnNames="id" />
+            </column>
+            <column name="tax_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_servicetax_tax"
+                    referencedTableName="tax" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="rate_snapshot" type="DECIMAL(6,4)" />
+        </createTable>
+
+        <createTable tableName="servicediscount">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="service_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_servicediscount_service"
+                    referencedTableName="service" referencedColumnNames="id" />
+            </column>
+            <column name="discount_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_servicediscount_discount"
+                    referencedTableName="discount" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="value_snapshot" type="DECIMAL(12,2)" />
+            <column name="expires_at" type="TIMESTAMP" />
+        </createTable>
+
+    </changeSet>
+
+    <changeSet id="addReservationTaxAndDiscountTables" author="arturas">
+
+        <createTable tableName="reservationtax">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="reservation_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_reservationtax_reservation"
+                    referencedTableName="reservation" referencedColumnNames="id" />
+            </column>
+            <column name="tax_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_reservationtax_tax"
+                    referencedTableName="tax" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="rate_snapshot" type="DECIMAL(6,4)" />
+        </createTable>
+
+        <createTable tableName="reservationdiscount">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="reservation_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_reservationdiscount_reservation"
+                    referencedTableName="reservation" referencedColumnNames="id" />
+            </column>
+            <column name="discount_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_reservationdiscount_discount"
+                    referencedTableName="discount" referencedColumnNames="id" />
+            </column>
+            <column name="name_snapshot" type="VARCHAR(255)" />
+            <column name="value_snapshot" type="DECIMAL(12,2)" />
+            <column name="expires_at" type="TIMESTAMP" />
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>

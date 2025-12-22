@@ -143,13 +143,18 @@ public class PaymentService {
                
 
         paymentRepository.save(payment);
-
+    
         // 4. handling split billing (Only for orders)
         if (processOrderPayment){
         splitCheckHandler.processSplitPayment(request);
         splitCheckHandler.updateOrderStatus(order, request.getAmount());
         orderRepository.save(order);
+        } 
+        else {
+            reservation.setStatus(ReservationStatus.PAID);
+            reservationRepository.save(reservation);
         }
+       
 
         return payment;
     }

@@ -15,9 +15,12 @@
     <include file="changesets/AddPaymentTables.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddUserRoles.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddReservationTables.xml" relativeToChangelogFile="true" />
-    <include file="changesets/AddServiceAudit.xml" relativeToChangelogFile="true" />    
-    <include file="changesets/AddReservationAudit.xml" relativeToChangelogFile="true" />    
+    <include file="changesets/AddServiceAudit.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddReservationAudit.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddReservationsToPayment.xml" relativeToChangelogFile="true" />
     <include file="changesets/AdjustOrderForPayments.xml" relativeToChangelogFile="true" />
     <include file="changesets/AddItemOptionTables.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddTaxAndDiscountTables.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddTaxAndDiscountForService.xml" relativeToChangelogFile="true" />
+    <include file="changesets/AddSoftDeletionToProducts.xml" relativeToChangelogFile="true" />
 </databaseChangeLog>
