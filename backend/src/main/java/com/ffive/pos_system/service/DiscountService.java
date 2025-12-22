@@ -17,9 +17,12 @@ import com.ffive.pos_system.model.Discount;
 import com.ffive.pos_system.model.Employee;
 import com.ffive.pos_system.model.POSUser;
 import com.ffive.pos_system.repository.DiscountRepository;
+import com.ffive.pos_system.repository.OrderDiscountRepository;
+import com.ffive.pos_system.repository.OrderItemDiscountRepository;
 import com.ffive.pos_system.security.POSUserDetails;
 import com.ffive.pos_system.service.validation.ValidationException;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 public class DiscountService {
 
     private final DiscountRepository discountRepository;
+    private final OrderDiscountRepository orderDiscountRepository;
+    private final OrderItemDiscountRepository orderItemDiscountRepository;
     private final GUIPageConverter guiPageConverter;
 
     public GUIDiscount createDiscount(POSUserDetails userDetails,
@@ -93,6 +98,7 @@ public class DiscountService {
                 .orElseThrow(() -> new ValidationException("Authenticated user is not associated with any business"));
     }
 
+    @Transactional
     public GUIDiscount deativateDiscount(POSUserDetails userDetails, UUID discountId) {
         var business = resolveBusinessFromUserDetails(userDetails);
         var persistedDiscount = discountRepository.findById(discountId)
@@ -104,6 +110,9 @@ public class DiscountService {
         }
         persistedDiscount.setActive(false);
         persistedDiscount = discountRepository.save(persistedDiscount);
+
+        orderDiscountRepository.deleteAllByDiscountIfOrderOpen(persistedDiscount);
+        orderItemDiscountRepository.deleteAllByDiscountIfOrderOpen(persistedDiscount);
 
         return converToGUIDiscount(persistedDiscount);
     }
