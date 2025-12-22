@@ -1,0 +1,102 @@
+#page_controls{
+    justify-self:center;
+    justify-content:center;
+    gap:1rem;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    padding:15px 16px;
+    margin:0.5rem 0 0.5rem 0;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    width:90%;
+    height:1.8rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
+}
+
+.page_button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-color);
+    background-color:var(--tertiary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:5px 10px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem 0.2rem 0.5rem 0.2rem;
+    width:2rem;
+    height:2rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .page_button:hover{
+        background-color:var(--tertiary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+.page_input{
+    padding: 4px;
+    font-size: 1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    justify-self:center;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    text-decoration:none;
+    text-align:center;
+    font-size:0.9rem;
+    font-weight:bold;
+    margin:0.5rem 0.2rem 0.5rem 0.2rem;
+    width:2rem;
+    height:2rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .page_input:hover{
+        background-color:var(--secondary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+    .page_input:focus{
+        border-color:var(--focus-color);
+        outline:none;
+    }
+
+.page_divider{
+    font-size:1.2rem;
+}
+
+.page_total{
+    padding: 4px;
+    font-size: 1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    justify-self:center;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    text-decoration:none;
+    text-align:center;
+    font-size:0.9rem;
+    font-weight:bold;
+    margin:0.5rem 0.2rem 0.5rem 0rem;
+    width:2rem;
+    height:2rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease;
+}

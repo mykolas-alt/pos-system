@@ -1,5 +1,6 @@
 package com.ffive.pos_system.service;
 
+import com.ffive.pos_system.dto.GUISplitCheck;
 import com.ffive.pos_system.dto.OrderSplitRequest;
 import com.ffive.pos_system.dto.PaymentRequest;
 import com.ffive.pos_system.exceptions.PaymentException;
@@ -9,7 +10,8 @@ import com.ffive.pos_system.model.OrderStatus;
 import com.ffive.pos_system.model.Payment;
 import com.ffive.pos_system.model.PaymentType;
 import com.ffive.pos_system.model.Reservation;
-
+import com.ffive.pos_system.model.ReservationStatus;
+import com.ffive.pos_system.model.SplitCheck;
 import com.ffive.pos_system.repository.OrderRepository;
 import com.ffive.pos_system.repository.PaymentRepository;
 import com.ffive.pos_system.repository.ReservationRepository;
@@ -127,7 +129,7 @@ public class PaymentService {
                     .paymentType(request.getPaymentType())
                     .amount(request.getAmount())
                     .tip(request.getTip())
-                    //.id(UUID.fromString(transactionId))
+                    .transactionId(UUID.fromString(transactionId))
                     .build();
                 }
                 else {
@@ -137,11 +139,10 @@ public class PaymentService {
                     .paymentType(request.getPaymentType())
                     .amount(request.getAmount())
                     .tip(request.getTip())
-                    //.id(UUID.fromString(transactionId))
+                    .transactionId(UUID.fromString(transactionId))
                     .build();
                 }
                
-
         paymentRepository.save(payment);
     
         // 4. handling split billing (Only for orders)
@@ -159,7 +160,7 @@ public class PaymentService {
         return payment;
     }
 
-    public void splitOrder(OrderSplitRequest splitRequest) {
+    public List<GUISplitCheck> splitOrder(OrderSplitRequest splitRequest) {
         Order order = orderRepository.findById(splitRequest.getOrderId())
                 .orElseThrow(() -> new ValidationException("Order not found"));
 
@@ -167,8 +168,16 @@ public class PaymentService {
             throw new ValidationException("Cannot split an already paid order");
         }
 
-        splitCheckHandler.createSplits(order, splitRequest.getSplitAmounts());
+        List<SplitCheck> splits=splitCheckHandler.createSplits(order, splitRequest.getSplitAmounts());
 
+        return splits.stream()
+                .map(sc -> GUISplitCheck.builder()
+                        .id(sc.getId())
+                        .name(sc.getName())
+                        .amount(sc.getAmount())
+                        .status(sc.getStatus())
+                        .build())
+                .toList();
     }
 
     private boolean isValidGiftCard(String code) {

@@ -59,6 +59,35 @@ public class OrderStateHandler {
         }
 
         order.setStatus(OrderStatus.CANCELLED);
+        order.getTaxes().forEach(tax -> {
+            tax.setNameSnapshot(tax.getTax().getName());
+            tax.setRateSnapshot(tax.getTax().getRate());
+        });
+
+        LocalDateTime completionTime = LocalDateTime.now();
+        order.getDiscounts().stream()
+                .filter(discount -> {
+                    if (completionTime.isBefore(discount.getExpiresAt())) {
+                        return true;
+                    }
+                    orderDiscountRepository.delete(discount);
+                    return false;
+                })
+                .forEach(discount -> {
+                    discount.setNameSnapshot(discount.getDiscount().getName());
+                    discount.setValueSnapshot(discount.getDiscount().getValue());
+                });
+
+        BigDecimal totalBeforeOrderTaxesAndDiscounts = order.getItems().stream()
+                .map(this::setSnapshotFieldsForOrderItems)
+                .map(itemTotalsHelper::getItemTotalFromEntities)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        order.setTotal(priceModifierHelper.getPriceAfterModifiersFromEntities(
+                order.getDiscounts(),
+                order.getTaxes(),
+                totalBeforeOrderTaxesAndDiscounts));
+
         orderRepository.save(order);
     }
 

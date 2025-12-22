@@ -37,4 +37,6 @@ To **build and launch** backend go to **/backend** folder and use command.
 To **stop** backend use key combination **CTRL + C**
 
 ### React Frontend
-To **build and launch** frontend go to **/frontend** folder and use command "npm run dev". To **stop** frontend use key combination **CTRL + C**
+To **build and launch** frontend go to **/frontend** folder. If you try to launch it for the first time then use command "npm install" to install all dependencies needed. Use command "npm run dev" to start React frontend. To **stop** frontend use key combination **CTRL + C**
+
+Frontend will start on this link: **localhost:5173**

@@ -1,0 +1,113 @@
+#payment_panel{
+    justify-self:center;
+    background-color:var(--primary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:16px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    position:absolute;
+    top:3rem;
+    width:40rem;
+    z-index:110;
+    transition:background-color 0.3s ease,border-color 0.3s ease;
+}
+
+#payment_title{
+    font-size:1.5rem;
+    font-weight:bold;
+    margin:0.5rem auto 0rem auto;
+}
+
+#payment_card{
+    margin:0.5rem auto 0.5rem auto;
+    width:100%;
+}
+
+#payment_card_wrapper{
+    
+}
+
+#payment_panel label{
+    font-size:1.4rem;
+    font-weight:bold;
+    margin:0rem 0.5rem 0.7rem 1rem;
+}
+
+.payment_type_selector{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    justify-self:center;
+    text-align:center;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:6px 16px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem auto 1rem auto;
+    width:13rem;
+    height:3rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .payment_type_selector:hover{
+        background-color:var(--secondary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+    .payment_type_selector:focus{
+        border-color:var(--focus-color);
+        outline:none;
+    }
+
+.payment_input_field{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    justify-self:center;
+    color:var(--text-color);
+    background-color:var(--secondary-background-color);
+    border:2px solid var(--detail-color);
+    border-radius:8px;
+    box-shadow:0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    cursor:pointer;
+    padding:6px 16px;
+    text-decoration:none;
+    font-size:1.2rem;
+    font-weight:bold;
+    margin:0.5rem auto 1rem auto;
+    width:70%;
+    height:2rem;
+    transition:background-color 0.3s ease,border-color 0.3s ease,color 0.3s ease,transform 0.3s ease;
+}
+
+    .payment_input_field:hover{
+        background-color:var(--secondary-background-color-hover);
+        transform:scale(1.05);
+    }
+
+    .payment_input_field:focus{
+        border-color:var(--focus-color);
+        outline:none;
+    }
+
+#payment_panel_controls{
+    margin:0.5rem auto 0.5rem auto;
+    width:90%;
+}
+
+#cancel_payment_button{
+    font-size:1.4rem;
+    margin:0.2rem 1rem 0.2rem auto;
+    width:8rem;
+}
+
+#payment_button{
+    font-size:1.4rem;
+    margin:0.2rem auto 0.2rem 1rem;
+    width:8rem;
+}
