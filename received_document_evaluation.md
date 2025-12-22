@@ -2,8 +2,6 @@
 
 Our team received a software design document from the team (kot)letai.
 
-The provided design document is inconsistent. For example, the second business flow shows reservations for restaurants, but in the package diagram description reservations are specifically for services. Moreover, the data model is inconsistent across all diagrams.
-
 ## Changes done in the implementation of the design
 
 - Added `passwordHash` and `UserRoles` to `User` entity. A user needs to have a password to login securely. Roles are needed for authorization: employees can access the employee functions, while owners can edit employees and super admin can have even more control.
@@ -16,3 +14,18 @@ The provided design document is inconsistent. For example, the second business f
 - Added options to `OrderItem` entity. The original document did not have options for products. Item options are a requirement from Lab1.
 - Added `specialist` and a flag `isActive` to `Service` entity. Added the `specialist` field, because a service has to have an employee associated with it.
 - Skipped the reservation for restaurants flow, because it was not mentioned in the rest of the document and there was no requirement to have reservations for restaurants.
+
+## Evaluation of the document
+
+The provided design document is inconsistent. For example, the second business flow shows reservations for restaurants, but in the package diagram description reservations are specifically for services. Moreover, the data model is inconsistent across all diagrams.
+
+The document makes no mention of how data modification should be handled, that is historical data is not considered at all. For example, if an employee is removed from the system, what happens to the orders and services associated with that employee? Similarly, if a product is removed, what happens to the past orders containing that product?
+
+The document feels inconsistent throughout it's various sections. Like the people writing it wrote it separately and didn't edit it afterwards.
+
+Super admin functionality was an afterthought and no role implementation is mentioned.
+
+Item options were not mentioned anywhere in the document.
+
+Final evaluation: 7 / 10
+
